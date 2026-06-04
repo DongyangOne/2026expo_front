@@ -1,54 +1,93 @@
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
-
-# Build
-android/app/build/
-ios/build/
-*.apk
-*.aab
-*.ipa
-
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Metro
-.metro-health-check*
-
-# Editor
-.idea/
+# OSX
+#
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Coverage
-coverage/
-*.lcov
-
-# OS
 Thumbs.db
 
-# Buck
-buck-out/
-\.buckd/
+# Xcode
+#
+build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+**/.xcode.env.local
+
+# Android/IntelliJ
+#
+build/
+.idea
+.gradle
+local.properties
+*.iml
+*.hprof
+.cxx/
 *.keystore
 !debug.keystore
+.kotlin/
 
-# CocoaPods
-ios/Pods/
+# Android build cache (명시적)
+android/.gradle/
+android/app/.cxx/
+android/app/build/
+android/build/
 
-# Temporary
-*.tsbuildinfo
+# node.js
+#
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# fastlane
+#
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots
+**/fastlane/test_output
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Bundle artifact
+*.jsbundle
+
+# Ruby / CocoaPods
+**/Pods/
+/vendor/bundle/
+
+# Temporary files created by Metro to check the health of the file watcher
+.metro-health-check*
+
+# testing
+/coverage
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# NativeWind cache
+.swc/
+
+# Watchman
+watchman-state/
+
+# IDE
+.vscode/.history
+*.code-workspace
+*.sw?
