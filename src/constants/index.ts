@@ -1,1 +1,1 @@
-export { COLORS, FONTS, FONT_SIZES } from './theme';
+export { COLORS, FONTS, FONT_SIZES, GRADIENT_ACTIVE } from './theme';

@@ -20,6 +20,15 @@ export const COLORS = {
 } as const;
 
 /**
+ * 활성(선택) 상태에 사용하는 브랜드 그라데이션 색상
+ * 탭 바의 선택된 아이콘·라벨에 좌상단 → 우하단 방향으로 적용합니다.
+ */
+export const GRADIENT_ACTIVE = {
+  from: '#FF4FD8',
+  to: '#7B61FF',
+} as const;
+
+/**
  * NotoSansKR 폰트 패밀리
  * NativeWind에서는 font-notoSansKRDemiLight, font-notoSansKRRegular, font-notoSansKRBold로 사용
  * 동적으로 폰트를 지정해야 하는 경우에만 이 상수를 사용합니다.
