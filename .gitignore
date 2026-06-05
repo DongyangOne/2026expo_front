@@ -5,7 +5,7 @@ Thumbs.db
 
 # Xcode
 #
-build/
+**/build/
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -25,7 +25,7 @@ DerivedData
 
 # Android/IntelliJ
 #
-build/
+**/build/
 .idea
 .gradle
 local.properties
@@ -35,12 +35,6 @@ local.properties
 *.keystore
 !debug.keystore
 .kotlin/
-
-# Android build cache (명시적)
-android/.gradle/
-android/app/.cxx/
-android/app/build/
-android/build/
 
 # node.js
 #

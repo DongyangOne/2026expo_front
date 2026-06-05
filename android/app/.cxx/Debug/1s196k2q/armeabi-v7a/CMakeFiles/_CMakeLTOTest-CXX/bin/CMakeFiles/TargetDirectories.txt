@@ -1,4 +1,0 @@
-D:/2026expo_front/android/app/.cxx/Debug/1s196k2q/armeabi-v7a/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/foo.dir
-D:/2026expo_front/android/app/.cxx/Debug/1s196k2q/armeabi-v7a/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/boo.dir
-D:/2026expo_front/android/app/.cxx/Debug/1s196k2q/armeabi-v7a/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/edit_cache.dir
-D:/2026expo_front/android/app/.cxx/Debug/1s196k2q/armeabi-v7a/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/rebuild_cache.dir
