@@ -23,7 +23,7 @@ const Button = ({ label, onPress, variant = 'primary', disabled = false }: Butto
       onPress={onPress}
       disabled={disabled}
       activeOpacity={0.7}>
-      <Text className="text-base font-notoSansKRSemiBold text-white">{label}</Text>
+      <Text className="text-base font-notoSansKRBold text-white">{label}</Text>
     </TouchableOpacity>
   );
 };

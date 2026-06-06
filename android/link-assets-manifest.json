@@ -1,0 +1,21 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/.gitkeep",
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    {
+      "path": "src/assets/fonts/NotoSansKR-Bold.ttf",
+      "sha1": "16e4a1972373532b288bf3b227aee64826f493da"
+    },
+    {
+      "path": "src/assets/fonts/NotoSansKR-DemiLight.ttf",
+      "sha1": "5efb6b6cdaf0050dcee7bfa027ef27a26c8aac8d"
+    },
+    {
+      "path": "src/assets/fonts/NotoSansKR-Regular.ttf",
+      "sha1": "c440362601e0f20c3ab4d95bd776447db2690058"
+    }
+  ]
+}
