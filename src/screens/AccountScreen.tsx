@@ -1,25 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 
 const AccountScreen = () => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>계정</Text>
+    <View className="flex-1 items-center justify-center bg-white">
+      <Text className="text-xl font-notoSansKRRegular text-gray-800">계정</Text>
     </View>
   );
 };
 
 export default AccountScreen;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-  },
-  title: {
-    fontSize: 20,
-    color: '#1f2937',
-  },
-});
