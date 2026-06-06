@@ -1,10 +1,4 @@
 export { default as Button } from './Button';
 export { default as TabBarLabel } from './TabBarLabel';
-export {
-  HomeIcon,
-  SearchIcon,
-  QuizIcon,
-  FeedbackIcon,
-  AccountIcon,
-} from './icons';
+export { HomeIcon, SearchIcon, QuizIcon, FeedbackIcon, AccountIcon } from './icons';
 export type { IconProps } from './icons';
