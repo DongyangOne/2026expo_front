@@ -4,7 +4,7 @@ import { View, Text } from 'react-native';
 const SearchScreen = () => {
   return (
     <View className="flex-1 items-center justify-center bg-white">
-      <Text className="text-xl font-notoSansKRRegular text-gray-800">검색</Text>
+      <Text className="font-notoSansKRRegular text-xl text-gray-800">검색</Text>
     </View>
   );
 };
