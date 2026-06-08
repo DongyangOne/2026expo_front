@@ -16,7 +16,8 @@ import HomeScreen from '@/screens/HomeScreen';
 import SearchScreen from '@/screens/SearchScreen';
 import QuizScreen from '@/screens/QuizScreen';
 import FeedbackScreen from '@/screens/FeedbackScreen';
-import AccountScreen from '@/screens/AccountScreen';
+//import AccountScreen from '@/screens/AccountScreen';
+import UserAuthScreen from '@/screens/UserAuthScreen';
 
 import type { RootTabParamList } from './types';
 
@@ -86,7 +87,7 @@ const RootNavigator = () => {
       />
       <Tab.Screen
         name="Account"
-        component={AccountScreen}
+        component={UserAuthScreen}
         options={{
           tabBarIcon: ({ focused, size }) => (
             <AccountIcon active={focused} color={INACTIVE_COLOR} size={size} />
