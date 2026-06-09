@@ -9,7 +9,7 @@ const UserAuthScreen = () => {
 
       {/* 아이디 */}
       <View className="mt-6">
-        <Text className="mb-2 font-notoSansKRRegular text-sm text-gray-500">아이디</Text>
+        <Text className="mb-2 mt-40 font-notoSansKRRegular text-sm text-gray-500">아이디</Text>
         <View className="rounded-xl border border-gray-200 px-4 py-3">
           <Text className="font-notoSansKRRegular text-base text-black">cye4526</Text>
         </View>
@@ -18,10 +18,12 @@ const UserAuthScreen = () => {
       {/* 이메일 */}
       <View className="mt-4">
         <Text className="mb-2 font-notoSansKRRegular text-sm text-gray-500">이메일</Text>
-        <View className="flex-row items-center justify-between rounded-xl border border-gray-200 px-4 py-3">
-          <Text className="font-notoSansKRRegular text-base text-black ">cye4526@naver.com</Text>
-          <TouchableOpacity className="rounded-lg bg-gray-500 px-3 py-2 ">
-            <Text className="text-sm text-white">전송</Text>
+        <View className="flex-row">
+          <View className="flex-1 flex-row items-center justify-between rounded-l-xl border border-gray-200 px-4 py-3">
+            <Text className="font-notoSansKRRegular text-base text-black ">cye4526@naver.com</Text>
+          </View>
+          <TouchableOpacity className="-ml-2 rounded-xl bg-gray-500 px-4 py-3">
+            <Text className="text-base text-white">전송</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -34,8 +36,10 @@ const UserAuthScreen = () => {
           <Text className="font-notoSansKRRegular text-base text-red-500">05:00</Text>
         </View>
       </View>
-      <TouchableOpacity className="rounded-2xl bg-gray-500 px-3 py-2">
-        <Text>전송</Text>
+
+      {/* 확인 버튼 */}
+      <TouchableOpacity className="mx-5 mt-40 rounded-full bg-gray-500 py-5 ">
+        <Text className="text-center font-notoSansKRRegular text-xl text-white">확인</Text>
       </TouchableOpacity>
     </View>
   );

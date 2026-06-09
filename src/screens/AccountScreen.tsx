@@ -33,17 +33,17 @@ const AccountScreen = () => {
 
       {/* 프로필 수정 / 로그아웃 */}
       <TouchableOpacity className="mt-8 flex-row items-center justify-between rounded-xl border border-gray-200 px-4 py-4">
-        <Text className="font-notoSansKRRegular text-base text-black">프로필 수정</Text>
-        <Text className="text-gray-400">›</Text>
+        <Text className="font-notoSansKRRegular text-base text-gray-500">프로필 수정</Text>
+        <Text className="font-notoSansKRRegular text-2xl text-gray-500">›</Text>
       </TouchableOpacity>
 
       <TouchableOpacity className="mt-3 flex-row items-center justify-between rounded-xl border border-gray-200 px-4 py-4">
-        <Text className="font-notoSansKRRegular text-base text-black">로그아웃</Text>
-        <Text className="text-gray-400">›</Text>
+        <Text className="font-notoSansKRRegular text-base text-gray-500">로그아웃</Text>
+        <Text className="font-notoSansKRRegular text-2xl text-gray-500">›</Text>
       </TouchableOpacity>
 
       {/* 회원 탈퇴 */}
-      <Text className="mt-8 text-center font-notoSansKRRegular text-sm text-gray-400">
+      <Text className="mt-32 text-center font-notoSansKRRegular text-sm text-gray-400">
         회원 탈퇴
       </Text>
     </View>
