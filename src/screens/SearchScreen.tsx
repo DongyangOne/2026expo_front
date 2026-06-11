@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
+import { WebView } from 'react-native-webview';
 
 const SearchScreen = () => {
   return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <Text className="font-notoSansKRRegular text-xl text-gray-800">검색</Text>
+    <View className="flex-1">
+      <WebView source={{ uri: 'https://xn--oy2b29bd3a601b.kr//' }} className="flex-1"></WebView>
     </View>
   );
 };
