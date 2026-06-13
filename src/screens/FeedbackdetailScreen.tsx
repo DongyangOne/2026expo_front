@@ -4,9 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const FeedbackdetailScreen = () => {
   return (
-    <SafeAreaView>
+    <SafeAreaView edges={['top']} className="flex-1 items-center bg-white">
       <View>
-        <Text className="text-gray-800 font-notoSansKRRegular text-xl">피드백 목록</Text>
+        <Text className="text-gray-800 font-notoSansKRRegular text-xl">피드백 상세</Text>
+        <Text>뒤로가기 버튼</Text>
       </View>
     </SafeAreaView>
   );
