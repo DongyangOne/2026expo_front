@@ -19,7 +19,7 @@ import SearchScreen from '@/screens/SearchScreen';
 import QuizScreen from '@/screens/QuizScreen';
 import FeedbackScreen from '@/screens/FeedbackScreen';
 import AccountScreen from '@/screens/AccountScreen';
-import TabletDisplayScreen from '@/screens/tablet/TabletDisplayScreen';
+import TabletLogin from '@/screens/tablet/TabletLogin';
 
 import type { RootStackParamList, RootTabParamList } from './types';
 
@@ -107,10 +107,10 @@ const RootNavigator = () => {
 
   return (
     <Stack.Navigator
-      initialRouteName={isTablet ? 'TabletDisplay' : 'MobileTabs'}
+      initialRouteName={isTablet ? 'TabletLogin' : 'MobileTabs'}
       screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MobileTabs" component={MobileTabs} />
-      <Stack.Screen name="TabletDisplay" component={TabletDisplayScreen} />
+      <Stack.Screen name="TabletLogin" component={TabletLogin} />
     </Stack.Navigator>
   );
 };
