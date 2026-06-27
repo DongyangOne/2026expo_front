@@ -1,6 +1,8 @@
 import React from 'react';
+import { useWindowDimensions } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -17,16 +19,17 @@ import SearchScreen from '@/screens/SearchScreen';
 import QuizScreen from '@/screens/QuizScreen';
 import FeedbackScreen from '@/screens/FeedbackScreen';
 import AccountScreen from '@/screens/AccountScreen';
+import TabletDisplayScreen from '@/screens/tablet/TabletDisplayScreen';
 
-import type { RootTabParamList } from './types';
+import type { RootStackParamList, RootTabParamList } from './types';
 
+const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-/** 비활성 탭 아이콘 색상 (활성 탭은 아이콘/라벨 컴포넌트가 그라데이션으로 처리) */
 const INACTIVE_COLOR = '#9CA3AF';
+const TABLET_MIN_DP = 600;
 
-const RootNavigator = () => {
-  // 하단 제스처 바/노치 영역만큼 패딩을 더해 라벨이 잘리지 않도록 함
+const MobileTabs = () => {
   const insets = useSafeAreaInsets();
 
   const screenOptions: BottomTabNavigationOptions = {
@@ -95,6 +98,20 @@ const RootNavigator = () => {
         }}
       />
     </Tab.Navigator>
+  );
+};
+
+const RootNavigator = () => {
+  const { width, height } = useWindowDimensions();
+  const isTablet = Math.min(width, height) >= TABLET_MIN_DP;
+
+  return (
+    <Stack.Navigator
+      initialRouteName={isTablet ? 'TabletDisplay' : 'MobileTabs'}
+      screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="MobileTabs" component={MobileTabs} />
+      <Stack.Screen name="TabletDisplay" component={TabletDisplayScreen} />
+    </Stack.Navigator>
   );
 };
 
