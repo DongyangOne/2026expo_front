@@ -8,4 +8,10 @@ export type RootTabParamList = {
   Quiz: undefined;
   Feedback: undefined;
   Account: undefined;
+  FeedbackDetail: { id: number };
+};
+
+export type RootStackParamList = {
+  Tabs: undefined;
+  FeedbackDetail: { id: number };
 };

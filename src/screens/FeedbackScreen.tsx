@@ -2,6 +2,13 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useNavigation } from '@react-navigation/native';
+import type { CompositeNavigationProp } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+import type { RootTabParamList, RootStackParamList } from '@/navigation/types';
+
 const LIST_FEEDBACK = [
   {
     date: '2026.05.06',
@@ -32,7 +39,14 @@ const LIST_FEEDBACK = [
 
 const feedback = LIST_FEEDBACK;
 
+type FeedbackScreenNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<RootTabParamList, 'Feedback'>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+
 const FeedbackScreen = () => {
+  const navigation = useNavigation<FeedbackScreenNavigationProp>();
+
   return (
     <SafeAreaView edges={['top']} className="flex-1 items-center bg-white">
       <Text className="text-gray-800 font-notoSansKRRegular text-xl">피드백 목록</Text>
@@ -45,6 +59,7 @@ const FeedbackScreen = () => {
             {group.items.map((item) => (
               <TouchableOpacity
                 key={item.id}
+                onPress={() => navigation.navigate('FeedbackDetail', { id: item.id })}
                 className={`min-h-20 flex-row items-start gap-3 rounded-xl px-4 py-3 ${
                   item.success ? 'bg-emerald-50' : 'bg-rose-50'
                 }`}>
