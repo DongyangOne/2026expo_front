@@ -49,27 +49,29 @@ const FeedbackScreen = () => {
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 items-center bg-white">
-      <Text className="text-gray-800 font-notoSansKRRegular text-xl">피드백 목록</Text>
+      <Text className="text-gray-800 font-notoSansKRBold text-2xl">피드백 목록</Text>
       <ScrollView className="w-full">
         {feedback.map((group) => (
-          <View key={group.date} className="mt-12 gap-4">
-            <View className="min-h-20 flex-row items-start justify-center rounded-xl bg-[#F5F3FF] px-4 py-3">
-              <Text className="">{group.date}</Text>
+          <View key={group.date} className="mt-12 gap-2">
+            <View className="min-h-20 flex-row items-center rounded-xl bg-[#F5F3FF] px-4 py-3">
+              <Text className="font-notoSansKRBold text-lg">{group.date}</Text>
             </View>
             {group.items.map((item) => (
               <TouchableOpacity
                 key={item.id}
                 onPress={() => navigation.navigate('FeedbackDetail', { id: item.id })}
-                className={`min-h-20 flex-row items-start gap-3 rounded-xl px-4 py-3 ${
+                className={`min-h-20 flex-row items-center gap-3 rounded-xl px-4 py-3 ${
                   item.success ? 'bg-emerald-50' : 'bg-rose-50'
                 }`}>
-                <Text>{item.time}</Text>
+                <Text className="font-notoSansKRBold text-base">{item.time}</Text>
                 <View
-                  className={`mt-1.5 h-2 w-2 rounded-full ${
+                  className={`mt-1 h-2 w-2 rounded-full ${
                     item.success ? 'bg-emerald-500' : 'bg-rose-500'
                   }`}
                 />
-                <Text>{item.message}</Text>
+                <Text className="flex-1 text-center font-notoSansKRRegular text-base">
+                  {item.message}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
