@@ -3,13 +3,15 @@ import { Pressable, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { TabletBackgroundCircles } from '@/components/layout';
 import type { RootStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TabletLogin'>;
 
 const TabletLogin = ({ navigation }: Props) => {
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1 overflow-hidden bg-gray-100">
+      <TabletBackgroundCircles />
       <SafeAreaView className="flex-1 px-10 py-8" edges={['top', 'bottom']}>
       <View className="flex-1 items-center justify-center">
         <Text className="text-center font-notoSansKRBold text-3xl text-gray-800">
