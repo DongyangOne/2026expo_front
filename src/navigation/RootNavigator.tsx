@@ -20,6 +20,7 @@ import QuizScreen from '@/screens/QuizScreen';
 import FeedbackScreen from '@/screens/FeedbackScreen';
 import AccountScreen from '@/screens/AccountScreen';
 import TabletLogin from '@/screens/tablet/TabletLogin';
+import TabletSignup from '@/screens/tablet/TabletSignup';
 
 import type { RootStackParamList, RootTabParamList } from './types';
 
@@ -111,6 +112,7 @@ const RootNavigator = () => {
       screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MobileTabs" component={MobileTabs} />
       <Stack.Screen name="TabletLogin" component={TabletLogin} />
+      <Stack.Screen name="TabletSignup" component={TabletSignup} />
     </Stack.Navigator>
   );
 };
