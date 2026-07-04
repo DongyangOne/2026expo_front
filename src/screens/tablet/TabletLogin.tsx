@@ -126,7 +126,7 @@ const TabletLogin = ({ navigation }: Props) => {
       return;
     }
 
-    navigation.replace('MobileTabs', { screen: 'Home' });
+    navigation.replace('TabletReport');
   };
 
   return (

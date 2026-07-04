@@ -10,6 +10,8 @@ export type RootTabParamList = {
 
 export type RootStackParamList = {
   MobileTabs: NavigatorScreenParams<RootTabParamList> | undefined;
+  TabletMain: undefined;
   TabletLogin: undefined;
   TabletSignup: undefined;
+  TabletReport: undefined;
 };
