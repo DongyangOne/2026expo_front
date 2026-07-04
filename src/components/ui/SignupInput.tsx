@@ -1,4 +1,5 @@
 import React from 'react';
+import type { TextInputProps } from 'react-native';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
@@ -11,6 +12,8 @@ type SignupInputProps = {
   secureTextEntry?: boolean;
   actionLabel?: string;
   onActionPress?: () => void;
+  errorText?: string;
+  inputProps?: TextInputProps;
 };
 
 const SignupInput = ({
@@ -22,6 +25,8 @@ const SignupInput = ({
   secureTextEntry = false,
   actionLabel,
   onActionPress,
+  errorText,
+  inputProps,
 }: SignupInputProps) => {
   return (
     <View className="w-full">
@@ -39,6 +44,7 @@ const SignupInput = ({
           underlineColorAndroid="transparent"
           value={value}
           onChangeText={onChangeText}
+          {...inputProps}
         />
 
         {actionLabel ? (
@@ -58,6 +64,12 @@ const SignupInput = ({
           </Pressable>
         ) : null}
       </View>
+      <Text
+        adjustsFontSizeToFit
+        className="mt-0.5 h-[16px] font-notoSansKRRegular text-xs text-pink"
+        numberOfLines={1}>
+        {errorText || ' '}
+      </Text>
     </View>
   );
 };
