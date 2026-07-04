@@ -241,7 +241,7 @@ const TabletSignup = ({ navigation }: Props) => {
                 </Defs>
                 <Rect fill="url(#signup-submit-gradient)" height="100%" rx={20} width="100%" />
               </Svg>
-              <Text className="font-notoSansKRBold text-[16px] text-white">가입하기</Text>
+              <Text className="font-notoSansKRBold text-[16px] text-white">회원가입</Text>
             </Pressable>
 
             <Text className="h-[18px] text-center font-notoSansKRRegular text-sm text-pink">
