@@ -35,7 +35,9 @@ const LoginInput = ({
 }: LoginInputProps) => {
   return (
     <View className="w-full">
-      <Text className="mb-[5px] font-notoSansKRRegular text-[12px] text-body" style={{ lineHeight: 14 }}>
+      <Text
+        className="mb-[5px] font-notoSansKRRegular text-[12px] text-body"
+        style={{ lineHeight: 14 }}>
         {label}
         <Text className="text-pink"> *</Text>
       </Text>
@@ -168,7 +170,7 @@ const TabletLogin = ({ navigation }: Props) => {
               }`}>
               {autoLogin ? <CheckedIcon height={9} width={10} /> : null}
             </View>
-            <Text className="ml-[5px] font-notoSansKRRegular text-[11px] text-body">
+            <Text className="ml-[5px] font-notoSansKRRegular text-[14px] text-body">
               자동 로그인
             </Text>
           </Pressable>
