@@ -30,12 +30,12 @@ const SignupInput = ({
 }: SignupInputProps) => {
   return (
     <View className="w-full">
-      <Text className="mb-2 font-notoSansKRRegular text-sm text-body">
+      <Text className="mb-[5px] font-notoSansKRRegular text-sm text-body" style={{ lineHeight: 16 }}>
         {label}
         {required ? <Text className="font-notoSansKRRegular text-pink"> *</Text> : null}
       </Text>
 
-      <View className="h-[68px] flex-row items-center overflow-hidden rounded-[10px] border border-border bg-white">
+      <View className="h-[63px] flex-row items-center overflow-hidden rounded-[10px] border border-border bg-white">
         <TextInput
           className="h-full flex-1 px-[14px] py-0 font-notoSansKRDemiLight text-[13px] text-black"
           placeholder={placeholder}
@@ -49,7 +49,7 @@ const SignupInput = ({
 
         {actionLabel ? (
           <Pressable
-            className="h-[68px] w-[98px] items-center justify-center overflow-hidden rounded-[10px]"
+            className="h-[63px] w-[98px] items-center justify-center overflow-hidden rounded-[10px]"
             onPress={onActionPress}>
             <Svg height="100%" style={StyleSheet.absoluteFill} width="100%">
               <Defs>
@@ -66,7 +66,8 @@ const SignupInput = ({
       </View>
       <Text
         adjustsFontSizeToFit
-        className="mt-0.5 h-[16px] font-notoSansKRRegular text-xs text-pink"
+        className="mt-[3px] h-[21px] font-notoSansKRRegular text-sm text-pink"
+        minimumFontScale={0.75}
         numberOfLines={1}>
         {errorText || ' '}
       </Text>
