@@ -1,6 +1,6 @@
 import React from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 type SignupInputProps = {
   label: string;
@@ -30,7 +30,7 @@ const SignupInput = ({
         {required ? <Text className="font-notoSansKRRegular text-pink"> *</Text> : null}
       </Text>
 
-      <View className="h-[63px] flex-row items-center overflow-hidden rounded-[10px] border border-border bg-white">
+      <View className="h-[68px] flex-row items-center overflow-hidden rounded-[10px] border border-border bg-white">
         <TextInput
           className="h-full flex-1 px-[14px] py-0 font-notoSansKRDemiLight text-[13px] text-black"
           placeholder={placeholder}
@@ -43,15 +43,18 @@ const SignupInput = ({
 
         {actionLabel ? (
           <Pressable
-            className="h-[63px] w-[98px] overflow-hidden rounded-[10px]"
+            className="h-[68px] w-[98px] items-center justify-center overflow-hidden rounded-[10px]"
             onPress={onActionPress}>
-            <LinearGradient
-              className="h-full w-full items-center justify-center"
-              colors={['#7B61FF', '#FF4FD8']}
-              end={{ x: 1, y: 1 }}
-              start={{ x: 0, y: 0 }}>
-              <Text className="font-notoSansKRRegular text-[15px] text-white">{actionLabel}</Text>
-            </LinearGradient>
+            <Svg height="100%" style={StyleSheet.absoluteFill} width="100%">
+              <Defs>
+                <LinearGradient id="signup-input-action-gradient" x1="0" y1="0" x2="1" y2="1">
+                  <Stop offset="0" stopColor="#7B61FF" />
+                  <Stop offset="1" stopColor="#FF4FD8" />
+                </LinearGradient>
+              </Defs>
+              <Rect fill="url(#signup-input-action-gradient)" height="100%" rx={10} width="100%" />
+            </Svg>
+            <Text className="font-notoSansKRRegular text-[15px] text-white">{actionLabel}</Text>
           </Pressable>
         ) : null}
       </View>
