@@ -9,3 +9,9 @@ export type RootTabParamList = {
   Feedback: undefined;
   Account: undefined;
 };
+
+export type RootStackParamList = {
+  Tabs: undefined;
+  EditProfile: undefined;
+  UserAuth: undefined;
+};
