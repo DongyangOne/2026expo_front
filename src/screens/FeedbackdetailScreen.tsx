@@ -1,19 +1,34 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import LinearGradient from 'react-native-linear-gradient';
+import { cssInterop } from 'nativewind';
+import BackArrow from '../assets/images/Vector.svg';
+import SmallArrowR from '../assets/images/Chevron right.svg';
+import SmallArrowL from '../assets/images/Chevron left.svg';
+
+cssInterop(LinearGradient, {
+  className: 'style',
+});
+
+import type { RootStackParamList } from '@/navigation/types';
 
 const FeedbackDetailScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const handleGoSearch = () => {
+    navigation.navigate('Tabs', { screen: 'Search' });
+  };
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-white">
       <View className="flex-row items-center px-6 pt-2">
         <TouchableOpacity className="w-10 p-2" onPress={() => navigation.goBack()}>
-          <Text className="text-gray-800 text-2xl">{'<'}</Text>
+          <BackArrow width={20} height={20} />
         </TouchableOpacity>
-        <Text className="flex-1 text-center font-notoSansKRBold text-2xl text-black">
+        <Text className="flex-1 text-center font-notoSansKRBold text-3xl text-black">
           피드백 상세
         </Text>
         <View className="w-10" />
@@ -22,11 +37,11 @@ const FeedbackDetailScreen = () => {
       <View className="flex-1 px-6">
         <View className="mt-3 flex-row items-center justify-center gap-2 py-6">
           <TouchableOpacity className="p-1">
-            <Text className="text-gray-500 text-lg">{'<'}</Text>
+            <SmallArrowL width={20} height={20} />
           </TouchableOpacity>
-          <Text className="text-gray-600 font-notoSansKRRegular text-lg">2026.05.06 - 12:34</Text>
+          <Text className="font-notoSansKRRegular text-lg text-[#9CA3AF]">2026.05.06 - 12:34</Text>
           <TouchableOpacity className="p-1">
-            <Text className="text-gray-500 text-lg">{'>'}</Text>
+            <SmallArrowR width={20} height={20} />
           </TouchableOpacity>
         </View>
 
@@ -51,8 +66,15 @@ const FeedbackDetailScreen = () => {
         <View className="mt-4 px-8 py-6 pt-4">
           <TouchableOpacity
             activeOpacity={0.8}
-            className="items-center rounded-full bg-violet-500 py-4">
-            <Text className="font-notoSansKRBold text-xl text-white">자세한 분리수거 방법</Text>
+            className="overflow-hidden rounded-full"
+            onPress={handleGoSearch}>
+            <LinearGradient
+              colors={['#FF4FD8', '#7B61FF']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              className="items-center py-4">
+              <Text className="font-notoSansKRBold text-xl text-white">자세한 분리수거 방법</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </View>
