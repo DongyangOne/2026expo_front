@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+import { cssInterop } from 'nativewind';
+import LinearGradient from 'react-native-linear-gradient';
+
+cssInterop(LinearGradient, {
+  className: 'style',
+});
 import { Text, View, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -20,7 +26,7 @@ const DeleteAccountScreen = () => {
   const [selected, setSelected] = useState<string | null>(null);
   const [etcText, setEtcText] = useState('');
 
-  const handleComplete = () => navigation.navigate('DeleteComplete');
+  const handleNext = () => navigation.navigate('DeleteComplete');
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-white px-5 pt-6">
@@ -50,10 +56,10 @@ const DeleteAccountScreen = () => {
               {/* 바깥 원 */}
               <View
                 className={`h-5 w-5 items-center justify-center rounded-full border ${
-                  isSelected ? 'border-primary' : 'border-gray-300'
+                  isSelected ? 'border-[#7B61FF]' : 'border-gray-300'
                 }`}>
                 {/* 선택됐을 때만 점 */}
-                {isSelected && <View className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                {isSelected && <View className="h-2.5 w-2.5 rounded-full bg-[#7B61FF]" />}
               </View>
 
               <Text className="ml-3 font-notoSansKRRegular text-base text-black">{reason}</Text>
@@ -98,10 +104,14 @@ const DeleteAccountScreen = () => {
         )}
       </View>
       {/* 버튼 */}
-      <TouchableOpacity
-        className="mx-5 mt-12 rounded-full bg-gray-500 py-5 "
-        onPress={handleComplete}>
-        <Text className="text-center font-notoSansKRRegular text-xl text-white">다음</Text>
+      <TouchableOpacity className="mx-5 mt-20" onPress={handleNext}>
+        <LinearGradient
+          colors={['#FF6363', '#FF7A5980']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          className="mx-5 items-center justify-center rounded-full py-5">
+          <Text className="text-center font-notoSansKRRegular text-xl text-white">다음</Text>
+        </LinearGradient>
       </TouchableOpacity>
     </SafeAreaView>
   );
