@@ -6,8 +6,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
 import { cssInterop } from 'nativewind';
 import BackArrow from '../assets/images/Vector.svg';
-import SmallArrowR from '../assets/images/Chevron right.svg';
-import SmallArrowL from '../assets/images/Chevron left.svg';
+import SmallArrowR from '../assets/images/ChevronRight.svg';
+import SmallArrowL from '../assets/images/ChevronLeft.svg';
+import tailwindConfig from '../../tailwind.config.js';
 
 cssInterop(LinearGradient, {
   className: 'style',
@@ -16,6 +17,8 @@ cssInterop(LinearGradient, {
 import type { RootStackParamList } from '@/navigation/types';
 
 const FeedbackDetailScreen = () => {
+  const { colors } = tailwindConfig.theme.extend;
+
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleGoSearch = () => {
@@ -23,7 +26,7 @@ const FeedbackDetailScreen = () => {
   };
 
   return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-white">
+    <SafeAreaView edges={['top']} className="flex-1 bg-primary-backgorund">
       <View className="flex-row items-center px-6 pt-2">
         <TouchableOpacity className="w-10 p-2" onPress={() => navigation.goBack()}>
           <BackArrow width={20} height={20} />
@@ -39,7 +42,7 @@ const FeedbackDetailScreen = () => {
           <TouchableOpacity className="p-1">
             <SmallArrowL width={20} height={20} />
           </TouchableOpacity>
-          <Text className="font-notoSansKRRegular text-lg text-[#9CA3AF]">2026.05.06 - 12:34</Text>
+          <Text className="font-notoSansKRRegular text-lg text-gray">2026.05.06 - 12:34</Text>
           <TouchableOpacity className="p-1">
             <SmallArrowR width={20} height={20} />
           </TouchableOpacity>
@@ -53,7 +56,7 @@ const FeedbackDetailScreen = () => {
           <Text className="text-gray-500 font-notoSansKRRegular text-base">동영상</Text>
         </View>
 
-        <View className="mt-6 rounded-xl bg-[#F5F3FF] px-4 py-8">
+        <View className="mt-6 rounded-xl bg-purple/[0.08] px-4 py-8">
           <Text className="font-notoSansKRBold text-lg text-black">캔을 버릴 때에는</Text>
           <Text className="text-gray-700 mt-6 font-notoSansKRRegular text-base">
             1. 안에 내용물이 없어야 합니다.
@@ -69,7 +72,7 @@ const FeedbackDetailScreen = () => {
             className="overflow-hidden rounded-full"
             onPress={handleGoSearch}>
             <LinearGradient
-              colors={['#FF4FD8', '#7B61FF']}
+              colors={[colors.pink, colors.purple]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               className="items-center py-4">

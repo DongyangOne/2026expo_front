@@ -48,12 +48,12 @@ const FeedbackScreen = () => {
   const navigation = useNavigation<FeedbackScreenNavigationProp>();
 
   return (
-    <SafeAreaView edges={['top']} className="flex-1 items-center bg-white">
+    <SafeAreaView edges={['top']} className="flex-1 items-center bg-primary-backgorund">
       <Text className="text-gray-800 font-notoSansKRBold text-2xl">피드백 목록</Text>
       <ScrollView className="w-full">
         {feedback.map((group) => (
           <View key={group.date} className="mt-12 gap-2">
-            <View className="min-h-20 flex-row items-center rounded-xl bg-[#F5F3FF] px-4 py-3">
+            <View className="min-h-20 flex-row items-center rounded-xl bg-purple/[0.08] px-4 py-3">
               <Text className="font-notoSansKRBold text-lg">{group.date}</Text>
             </View>
             {group.items.map((item) => (
@@ -61,13 +61,11 @@ const FeedbackScreen = () => {
                 key={item.id}
                 onPress={() => navigation.navigate('FeedbackDetail', { id: item.id })}
                 className={`min-h-20 flex-row items-center gap-3 rounded-xl px-4 py-3 ${
-                  item.success ? 'bg-emerald-50' : 'bg-rose-50'
+                  item.success ? 'bg-green/[0.08]' : 'bg-red/[0.08]'
                 }`}>
                 <Text className="font-notoSansKRBold text-base">{item.time}</Text>
                 <View
-                  className={`mt-1 h-2 w-2 rounded-full ${
-                    item.success ? 'bg-emerald-500' : 'bg-rose-500'
-                  }`}
+                  className={`mt-1 h-2 w-2 rounded-full ${item.success ? 'bg-green' : 'bg-red'}`}
                 />
                 <Text className="flex-1 text-center font-notoSansKRRegular text-base">
                   {item.message}

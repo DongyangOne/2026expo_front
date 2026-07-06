@@ -7,6 +7,7 @@ module.exports = {
       colors: {
         primary: {
           //메인
+          backgorund: '#F8F9FC',
           start: '#7B61FF',
           end: '#FF4FD8',
         },
@@ -22,6 +23,8 @@ module.exports = {
         disabledBg: '#E5E7EB', // 비활성배경
         purple: '#7B61FF', //보라색
         pink: '#FF4FD8', //핑크
+        green: '#00AA58', //초록
+        red: '#FF0000', //빨강
       },
       fontFamily: {
         notoSansKRDemiLight: ['NotoSansKR-DemiLight'],
