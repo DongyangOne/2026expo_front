@@ -23,6 +23,7 @@ import TabletMain from '@/screens/tablet/TabletMain';
 import TabletLogin from '@/screens/tablet/TabletLogin';
 import TabletReport from '@/screens/tablet/TabletReport';
 import TabletSignup from '@/screens/tablet/TabletSignup';
+import TabletTrashFeedbackScreen from '@/screens/tablet/TabletTrashFeedbackScreen';
 
 import type { RootStackParamList, RootTabParamList } from './types';
 
@@ -117,6 +118,7 @@ const RootNavigator = () => {
       <Stack.Screen name="TabletLogin" component={TabletLogin} />
       <Stack.Screen name="TabletSignup" component={TabletSignup} />
       <Stack.Screen name="TabletReport" component={TabletReport} />
+      <Stack.Screen name="TabletTrashFeedback" component={TabletTrashFeedbackScreen} />
     </Stack.Navigator>
   );
 };
