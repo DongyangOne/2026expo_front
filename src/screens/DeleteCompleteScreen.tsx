@@ -15,7 +15,11 @@ import type { RootStackParamList } from '@/navigation/types';
 
 import CompleteImage from '../assets/images/leave.svg';
 
+import tailwindConfig from '../../tailwind.config.js';
+
 const DeleteCompleteScreen = () => {
+  const { colors } = tailwindConfig.theme.extend;
+
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleGoHome = () => {
@@ -37,7 +41,7 @@ const DeleteCompleteScreen = () => {
       {/* 처음으로 버튼 */}
       <TouchableOpacity className="mx-5 mt-20" onPress={handleGoHome}>
         <LinearGradient
-          colors={['#7B61FF', '#FF4FD8']}
+          colors={[colors.purple, colors.pink]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           className="mx-7 items-center justify-center rounded-full py-6">
