@@ -21,7 +21,7 @@ const UserAuthScreen = () => {
       <View className="relative flex-row items-center justify-center">
         {/* 뒤로가기 버튼 */}
         <TouchableOpacity className="absolute left-5 z-10" onPress={() => navigation.goBack()}>
-          <BackArrow width={20} height={20} />
+          <BackArrow />
         </TouchableOpacity>
         {/* 타이틀 */}
         <Text className="text-center font-notoSansKRBold text-2xl text-black">사용자 인증</Text>
@@ -29,20 +29,20 @@ const UserAuthScreen = () => {
 
       {/* 아이디 */}
       <View className="ml-3 mr-3 mt-6">
-        <Text className="mb-2 mt-40 font-notoSansKRRegular text-lg text-[#4B5563]">아이디</Text>
-        <View className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3">
-          <Text className="font-notoSansKRRegular text-lg text-[#4B5563]">cye4526</Text>
+        <Text className="mb-2 mt-40 font-notoSansKRRegular text-lg text-body">아이디</Text>
+        <View className="rounded-xl border border-border bg-white px-4 py-3">
+          <Text className="font-notoSansKRRegular text-lg text-black">cye4526</Text>
         </View>
       </View>
 
       {/* 이메일 */}
       <View className="ml-3 mr-3 mt-4">
-        <Text className="mb-2 font-notoSansKRRegular text-lg text-[#4B5563]">이메일</Text>
+        <Text className="mb-2 font-notoSansKRRegular text-lg text-black">이메일</Text>
         <View className="flex-row">
-          <View className="flex-1 flex-row items-center justify-between rounded-l-xl border border-[#E5E7EB] bg-white px-5 py-3">
-            <Text className="font-notoSansKRRegular text-lg text-[#4B5563]">cye4526@naver.com</Text>
+          <View className="flex-1 flex-row items-center justify-between rounded-l-xl border border-border bg-white px-5 py-3">
+            <Text className="font-notoSansKRRegular text-lg text-black">cye4526@naver.com</Text>
           </View>
-          <TouchableOpacity className="-ml-2 rounded-xl bg-gray-500 px-5 py-3">
+          <TouchableOpacity className="-ml-2 rounded-xl bg-gray px-5 py-3">
             <Text className="text-base text-white">전송</Text>
           </TouchableOpacity>
         </View>
@@ -50,10 +50,10 @@ const UserAuthScreen = () => {
 
       {/* 인증 코드 */}
       <View className="ml-3 mr-3 mt-6">
-        <Text className="mb-2 font-notoSansKRRegular text-lg text-[#4B5563]">인증 코드</Text>
+        <Text className="mb-2 font-notoSansKRRegular text-lg text-body">인증 코드</Text>
         <View className="flex-row items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-5 py-3">
           <Text className="font-notoSansKRRegular text-lg text-[#4B5563]">111111</Text>
-          <Text className="font-notoSansKRRegular text-lg text-red-500">05:00</Text>
+          <Text className="text-red-500 font-notoSansKRRegular text-lg">05:00</Text>
         </View>
       </View>
 

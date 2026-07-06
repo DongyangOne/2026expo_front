@@ -23,7 +23,7 @@ const EditProfileScreen = () => {
         <View className="relative flex-row items-center justify-center">
           {/* 뒤로가기 버튼 */}
           <TouchableOpacity className="absolute left-5 z-10" onPress={() => navigation.goBack()}>
-            <BackArrow width={20} height={20} />
+            <BackArrow />
           </TouchableOpacity>
           {/* 타이틀 */}
           <Text className="text-center font-notoSansKRBold text-2xl text-black">프로필 수정</Text>

@@ -6,13 +6,14 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import type { RootStackParamList } from '@/navigation/types';
 import ProfileImage from '../assets/images/profile.svg';
+import Arrow from '../assets/images/arrow.svg';
 
 const AccountScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleCheck = () => navigation.navigate('UserAuth');
   return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-[#F5F5F5] px-5 pt-6">
+    <SafeAreaView edges={['top']} className="flex-1 bg-primary-backgorund px-5 pt-6">
       {/* 타이틀 */}
       <Text className="text-center font-notoSansKRBold text-2xl text-black">프로필</Text>
 
@@ -26,8 +27,8 @@ const AccountScreen = () => {
 
       {/* 아이디 */}
       <View className="ml-3 mr-3 mt-6">
-        <Text className="mb-2 font-notoSansKRRegular text-lg text-[#4B5563]">아이디</Text>
-        <View className="rounded-xl border border-[#E5E7EB] bg-white px-5 py-3">
+        <Text className="mb-2 font-notoSansKRRegular text-lg text-body">아이디</Text>
+        <View className="rounded-xl border border-border bg-white px-5 py-3">
           <Text className="font-notoSansKRRegular text-lg text-black">cye4526</Text>
         </View>
       </View>
@@ -42,15 +43,15 @@ const AccountScreen = () => {
 
       {/* 프로필 수정 / 로그아웃 */}
       <TouchableOpacity
-        className="mx-3 mt-28 flex-row items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-5 py-3"
+        className="mx-3 mt-28 flex-row items-center justify-between rounded-xl border border-border bg-white px-5 py-3"
         onPress={handleCheck}>
-        <Text className="font-notoSansKRRegular text-base text-[#4B5563]">프로필 수정</Text>
-        <Text className="font-notoSansKRRegular text-2xl text-[#4B5563]">›</Text>
+        <Text className="font-notoSansKRRegular text-base text-body">프로필 수정</Text>
+        <Arrow></Arrow>
       </TouchableOpacity>
 
-      <TouchableOpacity className="ml-3 mr-3 mt-3 flex-row items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-5 py-3">
-        <Text className="font-notoSansKRRegular text-base text-[#4B5563]">로그아웃</Text>
-        <Text className="font-notoSansKRRegular text-2xl text-[#4B5563]">›</Text>
+      <TouchableOpacity className="ml-3 mr-3 mt-3 flex-row items-center justify-between rounded-xl border border-border bg-white px-5 py-3">
+        <Text className="font-notoSansKRRegular text-base text-body">로그아웃</Text>
+        <Arrow></Arrow>
       </TouchableOpacity>
 
       {/* 회원 탈퇴 */}
