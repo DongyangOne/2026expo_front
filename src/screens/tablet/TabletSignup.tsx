@@ -27,6 +27,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TabletSignup'>;
 
 const RESERVED_IDS = new Set(['admin', 'manager', 'test1234']);
 const KEYBOARD_SEQUENCES = ['qwer', 'wert'];
+const ID_AVAILABLE_MESSAGE = '사용 가능한 아이디입니다.';
+const ID_DUPLICATE_MESSAGE = '이미 사용 중인 아이디입니다.';
 
 const GradientText = ({ label }: { label: string }) => {
   return (
@@ -80,12 +82,12 @@ const validateId = (value: string) => {
 };
 
 const validatePassword = (value: string) => {
-  if (!/^[A-Za-z0-9]{8,16}$/.test(value)) {
-    return '비밀번호는 영문과 숫자 조합으로 8~16자만 입력해 주세요';
+  if (!/^[\x21-\x7E]{8,16}$/.test(value)) {
+    return '비밀번호는 영문, 숫자, 특수문자 조합으로 8~16자만 입력해 주세요';
   }
 
-  if (!/[A-Za-z]/.test(value) || !/[0-9]/.test(value)) {
-    return '비밀번호에는 영문과 숫자가 모두 포함되어야 합니다';
+  if (!/[A-Za-z]/.test(value) || !/[0-9]/.test(value) || !/[^A-Za-z0-9]/.test(value)) {
+    return '비밀번호에는 영문, 숫자, 특수문자가 모두 포함되어야 합니다';
   }
 
   if (hasSequentialRun(value)) {
@@ -118,7 +120,7 @@ const TabletSignup = ({ navigation }: Props) => {
   const affiliationError = useMemo(() => validateAffiliation(affiliation), [affiliation]);
   const passwordConfirmError =
     passwordConfirm && password !== passwordConfirm ? '비밀번호가 일치하지 않습니다' : '';
-  const isIdAvailable = idCheckMessage === '사용 가능한 아이디 입니다.' && idCheckedValue === id;
+  const isIdAvailable = idCheckMessage === ID_AVAILABLE_MESSAGE && idCheckedValue === id;
 
   const handleIdChange = (value: string) => {
     setId(value.replace(/[^a-z0-9]/g, '').slice(0, 12));
@@ -127,7 +129,7 @@ const TabletSignup = ({ navigation }: Props) => {
   };
 
   const handlePasswordChange = (value: string) => {
-    setPassword(value.replace(/[^A-Za-z0-9]/g, '').slice(0, 16));
+    setPassword(value.replace(/[^\x21-\x7E]/g, '').slice(0, 16));
   };
 
   const handleAffiliationChange = (value: string) => {
@@ -141,9 +143,7 @@ const TabletSignup = ({ navigation }: Props) => {
     }
 
     setIdCheckedValue(id);
-    setIdCheckMessage(
-      RESERVED_IDS.has(id) ? '이미 사용중인 아이디 입니디ㅏ.' : '사용 가능한 아이디 입니다.',
-    );
+    setIdCheckMessage(RESERVED_IDS.has(id) ? ID_DUPLICATE_MESSAGE : ID_AVAILABLE_MESSAGE);
   };
 
   const handleSubmit = () => {
@@ -162,8 +162,12 @@ const TabletSignup = ({ navigation }: Props) => {
 
     setFormMessage('');
     ToastAndroid.show('가입완료', ToastAndroid.SHORT);
-    Alert.alert('가입완료');
-    navigation.replace('TabletLogin');
+    Alert.alert('가입완료', undefined, [
+      {
+        text: '확인',
+        onPress: () => navigation.replace('TabletLogin'),
+      },
+    ]);
   };
 
   return (
@@ -188,6 +192,7 @@ const TabletSignup = ({ navigation }: Props) => {
                 actionLabel="중복 확인"
                 value={id}
                 errorText={idCheckMessage || (submitAttempted ? idError : '')}
+                messageVariant={isIdAvailable ? 'success' : 'error'}
                 inputProps={{ autoCapitalize: 'none', maxLength: 12 }}
                 onActionPress={handleCheckDuplicate}
                 onChangeText={handleIdChange}
@@ -213,7 +218,7 @@ const TabletSignup = ({ navigation }: Props) => {
                 errorText={passwordConfirmError}
                 inputProps={{ autoCapitalize: 'none', maxLength: 16 }}
                 onChangeText={(value) =>
-                  setPasswordConfirm(value.replace(/[^A-Za-z0-9]/g, '').slice(0, 16))
+                  setPasswordConfirm(value.replace(/[^\x21-\x7E]/g, '').slice(0, 16))
                 }
               />
 
@@ -243,7 +248,7 @@ const TabletSignup = ({ navigation }: Props) => {
               <Text className="font-notoSansKRBold text-[16px] text-white">회원가입</Text>
             </Pressable>
 
-            <Text className="h-[18px] text-center font-notoSansKRRegular text-sm text-pink">
+            <Text className="h-[18px] text-center font-notoSansKRRegular text-sm text-danger">
               {formMessage || ' '}
             </Text>
 
