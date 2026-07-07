@@ -27,6 +27,7 @@ import FindPasswordScreen from '@/screens/FindPasswordScreen';
 import FindPasswordSuccessScreen from '@/screens/FindPasswordSuccessScreen';
 import ResetPasswordScreen from '@/screens/ResetPasswordScreen';
 import ResetPasswordSuccessScreen from '@/screens/ResetPasswordSuccessScreen';
+import TabletTrashFeedbackScreen from '@/screens/tablet/TabletTrashFeedbackScreen';
 
 import type { RootStackParamList, RootTabParamList } from './types';
 
@@ -125,6 +126,7 @@ const RootNavigator = () => {
       <Stack.Screen name="FindPasswordSuccess" component={FindPasswordSuccessScreen} />
       <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
       <Stack.Screen name="ResetPasswordSuccess" component={ResetPasswordSuccessScreen} />
+      <Stack.Screen name="TabletTrashFeedback" component={TabletTrashFeedbackScreen} />
     </Stack.Navigator>
   );
 };

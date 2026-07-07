@@ -18,4 +18,5 @@ export type RootStackParamList = {
   FindPasswordSuccess: undefined;
   ResetPassword: undefined;
   ResetPasswordSuccess: undefined;
+  TabletTrashFeedback: undefined;
 };
