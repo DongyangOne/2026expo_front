@@ -53,7 +53,7 @@ const LoginInput = ({
       />
       <Text
         adjustsFontSizeToFit
-        className="mt-[3px] h-[21px] font-notoSansKRRegular text-sm text-pink"
+        className="mt-[3px] h-[21px] font-notoSansKRRegular text-sm text-danger"
         minimumFontScale={0.75}
         numberOfLines={1}>
         {errorText || ' '}
@@ -95,20 +95,12 @@ const TabletLogin = ({ navigation }: Props) => {
       return '아이디를 입력해 주세요.';
     }
 
-    if (!/^[a-z0-9]{4,12}$/.test(id)) {
-      return '아이디는 영문 소문자와 숫자 4~12자로 입력해 주세요.';
-    }
-
     return '';
   }, [id]);
 
   const passwordError = useMemo(() => {
     if (!password) {
       return '비밀번호를 입력해 주세요.';
-    }
-
-    if (!/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{8,16}$/.test(password)) {
-      return '비밀번호는 영문, 숫자, 특수문자 포함 8~16자로 입력해 주세요.';
     }
 
     return '';
