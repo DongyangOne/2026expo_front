@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import QRCode from 'react-native-qrcode-svg';
@@ -9,6 +9,9 @@ import { TabletBackgroundCircles } from '@/components/layout';
 import LogoIcon from '@/assets/icons/Logo.svg';
 import { FONTS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
+import { clearAdminSession, getAdminSession, reissueAdminToken, saveAdminSession } from '@/services';
+import { useAuthStore } from '@/store';
+import type { AdminLoginData } from '@/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TabletMain'>;
 
@@ -59,6 +62,50 @@ const GradientGuideText = (): React.JSX.Element => {
 
 const TabletMain = ({ navigation }: Props): React.JSX.Element => {
   const qrTapState = useRef<QrTapState>({ firstTapAt: 0, count: 0 });
+  const setAdminSession = useAuthStore((state) => state.setAdminSession);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const restoreAdminSession = async (): Promise<void> => {
+      try {
+        const adminSession = await getAdminSession();
+
+        if (!isMounted || !adminSession?.adminAccessToken || !adminSession.adminRefreshToken) {
+          return;
+        }
+
+        const reissueResponse = await reissueAdminToken({
+          refreshToken: adminSession.adminRefreshToken,
+        });
+
+        if (!isMounted || !reissueResponse.success) {
+          await clearAdminSession();
+          return;
+        }
+
+        const refreshedAdminSession: AdminLoginData = {
+          adminLoginId: adminSession.adminLoginId,
+          team: adminSession.team,
+          adminAccessToken: reissueResponse.data.accessToken,
+          adminRefreshToken: reissueResponse.data.refreshToken,
+        };
+
+        await saveAdminSession(refreshedAdminSession);
+        setAdminSession(refreshedAdminSession);
+        navigation.replace('TabletReport');
+      } catch {
+        await clearAdminSession();
+        return;
+      }
+    };
+
+    restoreAdminSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigation, setAdminSession]);
 
   const handleQrPress = useCallback((): void => {
     const currentTime = Date.now();

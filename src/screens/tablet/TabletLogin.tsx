@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, ToastAndroid, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { AxiosError } from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-native-svg';
 
@@ -8,11 +9,15 @@ import { TabletBackgroundCircles } from '@/components/layout';
 import CheckedIcon from '@/components/ui/icons/checked.svg';
 import { FONTS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
+import { clearAdminSession, loginAdmin, saveAdminSession } from '@/services';
+import { useAuthStore } from '@/store';
+import type { ApiResponse } from '@/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TabletLogin'>;
 
-const ADMIN_ID = 'admin';
-const ADMIN_PASSWORD = 'Admin123!';
+const LOGIN_FAILED_MESSAGE = '아이디/비밀번호가 맞지 않습니다.';
+const LOGIN_ERROR_MESSAGE = '로그인 중 오류가 발생했습니다.';
+const LOGIN_RESPONSE_ERROR_MESSAGE = '로그인 응답을 확인할 수 없습니다.';
 
 type LoginInputProps = {
   label: string;
@@ -89,6 +94,8 @@ const TabletLogin = ({ navigation }: Props) => {
   const [password, setPassword] = useState('');
   const [autoLogin, setAutoLogin] = useState(true);
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const setAdminSession = useAuthStore((state) => state.setAdminSession);
 
   const idError = useMemo(() => {
     if (!id) {
@@ -106,19 +113,48 @@ const TabletLogin = ({ navigation }: Props) => {
     return '';
   }, [password]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async (): Promise<void> => {
     setSubmitAttempted(true);
 
-    if (idError || passwordError) {
+    if (idError || passwordError || isSubmitting) {
       return;
     }
 
-    if (id !== ADMIN_ID || password !== ADMIN_PASSWORD) {
-      ToastAndroid.show('아이디/비밀번호 가 맞지 않습니다.', ToastAndroid.SHORT);
-      return;
-    }
+    setIsSubmitting(true);
 
-    navigation.replace('TabletReport');
+    try {
+      const loginResponse = await loginAdmin({
+        adminLoginId: id,
+        adminPassword: password,
+      });
+
+      if (!loginResponse.success) {
+        ToastAndroid.show(loginResponse.message || LOGIN_FAILED_MESSAGE, ToastAndroid.SHORT);
+        return;
+      }
+
+      if (!loginResponse.data?.adminAccessToken || !loginResponse.data.adminRefreshToken) {
+        ToastAndroid.show(LOGIN_RESPONSE_ERROR_MESSAGE, ToastAndroid.SHORT);
+        return;
+      }
+
+      setAdminSession(loginResponse.data);
+
+      if (autoLogin) {
+        await saveAdminSession(loginResponse.data);
+      } else {
+        await clearAdminSession();
+      }
+
+      navigation.replace('TabletReport');
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiResponse<unknown>>;
+      const errorMessage = axiosError.response?.data.message ?? LOGIN_ERROR_MESSAGE;
+
+      ToastAndroid.show(errorMessage, ToastAndroid.SHORT);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -169,6 +205,7 @@ const TabletLogin = ({ navigation }: Props) => {
 
           <Pressable
             className="mt-[27px] h-[63px] items-center justify-center overflow-hidden rounded-[20px]"
+            disabled={isSubmitting}
             onPress={handleSubmit}>
             <Svg height="100%" style={StyleSheet.absoluteFill} width="100%">
               <Defs>
@@ -179,7 +216,9 @@ const TabletLogin = ({ navigation }: Props) => {
               </Defs>
               <Rect fill="url(#login-submit-gradient)" height="100%" rx={14} width="100%" />
             </Svg>
-            <Text className="font-notoSansKRBold text-[15px] text-white">로그인</Text>
+            <Text className="font-notoSansKRBold text-[15px] text-white">
+              {isSubmitting ? '로그인 중' : '로그인'}
+            </Text>
           </Pressable>
 
           <View className="mt-[22px] flex-row items-center justify-center">
