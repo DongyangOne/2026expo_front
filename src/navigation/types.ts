@@ -14,4 +14,8 @@ export type RootStackParamList = {
   TabletLogin: undefined;
   TabletSignup: undefined;
   TabletReport: undefined;
+  FindPassword: undefined;
+  FindPasswordSuccess: undefined;
+  ResetPassword: undefined;
+  ResetPasswordSuccess: undefined;
 };
