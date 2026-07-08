@@ -49,12 +49,12 @@ const FeedbackScreen = () => {
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 items-center bg-primary-backgorund">
-      <Text className="text-gray-800 font-notoSansKRBold text-2xl">피드백 목록</Text>
+      <Text className="text-gray-800 font-notoSansKRBold text-xl">피드백 목록</Text>
       <ScrollView className="w-full">
         {feedback.map((group) => (
           <View key={group.date} className="mt-12 gap-2">
             <View className="min-h-20 flex-row items-center rounded-xl bg-purple/[0.08] px-4 py-3">
-              <Text className="font-notoSansKRBold text-lg">{group.date}</Text>
+              <Text className="font-notoSansKRBold text-base">{group.date}</Text>
             </View>
             {group.items.map((item) => (
               <TouchableOpacity
@@ -67,7 +67,7 @@ const FeedbackScreen = () => {
                 <View
                   className={`mt-1 h-2 w-2 rounded-full ${item.success ? 'bg-green' : 'bg-red'}`}
                 />
-                <Text className="flex-1 text-center font-notoSansKRRegular text-base">
+                <Text className="flex-1 text-center font-notoSansKRDemiLight text-xs">
                   {item.message}
                 </Text>
               </TouchableOpacity>

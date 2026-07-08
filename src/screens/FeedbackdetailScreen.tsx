@@ -29,9 +29,9 @@ const FeedbackDetailScreen = () => {
     <SafeAreaView edges={['top']} className="flex-1 bg-primary-backgorund">
       <View className="flex-row items-center px-6 pt-2">
         <TouchableOpacity className="w-10 p-2" onPress={() => navigation.goBack()}>
-          <BackArrow width={20} height={20} />
+          <BackArrow />
         </TouchableOpacity>
-        <Text className="flex-1 text-center font-notoSansKRBold text-3xl text-black">
+        <Text className="flex-1 text-center font-notoSansKRBold text-xl text-black">
           피드백 상세
         </Text>
         <View className="w-10" />
@@ -40,15 +40,15 @@ const FeedbackDetailScreen = () => {
       <View className="flex-1 px-6">
         <View className="mt-3 flex-row items-center justify-center gap-2 py-6">
           <TouchableOpacity className="p-1">
-            <SmallArrowL width={20} height={20} />
+            <SmallArrowL />
           </TouchableOpacity>
-          <Text className="font-notoSansKRRegular text-lg text-gray">2026.05.06 - 12:34</Text>
+          <Text className="font-notoSansKRRegular text-base text-gray">2026.05.06 - 12:34</Text>
           <TouchableOpacity className="p-1">
-            <SmallArrowR width={20} height={20} />
+            <SmallArrowR />
           </TouchableOpacity>
         </View>
 
-        <Text className="my-4 text-center font-notoSansKRRegular text-xl text-black">
+        <Text className="my-4 text-center font-notoSansKRRegular text-lg text-black">
           캔을 올바르게 버리지 못했어요.
         </Text>
 
@@ -57,11 +57,11 @@ const FeedbackDetailScreen = () => {
         </View>
 
         <View className="mt-6 rounded-xl bg-purple/[0.08] px-4 py-8">
-          <Text className="font-notoSansKRBold text-lg text-black">캔을 버릴 때에는</Text>
-          <Text className="text-gray-700 mt-6 font-notoSansKRRegular text-base">
+          <Text className="font-notoSansKRBold text-base text-black">캔을 버릴 때에는</Text>
+          <Text className="text-gray-700 mt-6 font-notoSansKRDemiLight text-base">
             1. 안에 내용물이 없어야 합니다.
           </Text>
-          <Text className="text-gray-700 mt-6 font-notoSansKRRegular text-base">
+          <Text className="text-gray-700 mt-6 font-notoSansKRDemiLight text-base">
             2. 물로 헹군후 배출해야 합니다.
           </Text>
         </View>
@@ -76,7 +76,7 @@ const FeedbackDetailScreen = () => {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               className="items-center py-4">
-              <Text className="font-notoSansKRBold text-xl text-white">자세한 분리수거 방법</Text>
+              <Text className="font-notoSansKRBold text-base text-white">자세한 분리수거 방법</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
