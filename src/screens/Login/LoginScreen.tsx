@@ -78,7 +78,7 @@ const LoginScreen = ({ navigation }: Props) => {
     navigation.replace('MobileTabs');
   };
 
-  const handleSocialPress = (provider: 'google' | 'naver' | 'kakao') => {
+  const handleSocialPress = (_provider: 'google' | 'naver' | 'kakao') => {
     // TODO: 소셜 로그인 화면/SDK 연동
   };
 
@@ -86,7 +86,7 @@ const LoginScreen = ({ navigation }: Props) => {
     <View className="flex-1 bg-background">
       <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
         <ScrollView contentContainerClassName="px-11 pb-[40px]" keyboardShouldPersistTaps="handled">
-          <Text className="mb-[60px] mt-[40px] text-center font-notoSansKRBold text-4xl text-black">
+          <Text className="mb-[67px] mt-[127px] text-center font-notoSansKRBold text-4xl text-black">
             Log in
           </Text>
 
@@ -95,24 +95,24 @@ const LoginScreen = ({ navigation }: Props) => {
             placeholder="아이디를 입력해 주세요."
             maxLength={12}
             value={id}
-            errorText={submitAttempted ? idError : ''}
+            errorText={submitAttempted && !id ? idError : ''}
             onChangeText={(value) => setId(value.replace(/[^a-z0-9]/g, ''))}
           />
 
-          <View className="mt-[16px]">
+          <View className="mt-[18px]">
             <LoginField
               label="비밀번호"
               placeholder="비밀번호를 입력해 주세요."
               maxLength={16}
               secureTextEntry
               value={password}
-              errorText={submitAttempted ? passwordError : ''}
+              errorText={submitAttempted && !password ? passwordError : ''}
               onChangeText={(value) => setPassword(value.replace(/[^\x21-\x7E]/g, ''))}
             />
           </View>
 
           <Pressable
-            className="mt-[6px] flex-row items-center self-start"
+            className="mt-[2px] flex-row items-center self-start"
             hitSlop={8}
             onPress={() => setAutoLogin((current) => !current)}>
             <View
@@ -126,7 +126,7 @@ const LoginScreen = ({ navigation }: Props) => {
             </Text>
           </Pressable>
 
-          <View className="mt-[30px] flex-row gap-[14px]">
+          <View className="mt-[29px] flex-row gap-[14px]">
             <Pressable
               className="h-[53px] flex-1 items-center justify-center rounded-[6px] bg-[rgba(229,231,235,0.5)]"
               onPress={() => {
@@ -144,7 +144,7 @@ const LoginScreen = ({ navigation }: Props) => {
           </View>
 
           <Pressable
-            className="mt-[35px] h-[50px] w-[250px] items-center justify-center self-center overflow-hidden rounded-full"
+            className="mt-[52px] h-[50px] w-[250px] items-center justify-center self-center overflow-hidden rounded-full"
             onPress={handleSubmit}>
             <Svg height="100%" style={StyleSheet.absoluteFill} width="100%">
               <Defs>
@@ -158,17 +158,17 @@ const LoginScreen = ({ navigation }: Props) => {
             <Text className="font-notoSansKRBold text-[15.5px] text-white">로그인</Text>
           </Pressable>
 
-          <View className="mt-[40px] flex-row items-center">
+          <View className="mt-[42px] flex-row items-center">
             <View className="h-[1px] flex-1 bg-border" />
             <Text className="mx-[16px] font-notoSansKRDemiLight text-sm text-gray">또는</Text>
             <View className="h-[1px] flex-1 bg-border" />
           </View>
 
-          <View className="mt-[24px]">
+          <View className="mt-[25px]">
             <SocialLoginRow onPressSocial={handleSocialPress} />
           </View>
 
-          <View className="mt-[40px] flex-row items-center justify-center">
+          <View className="mt-[33px] flex-row items-center justify-center">
             <Text className="font-notoSansKRDemiLight text-sm text-gray">계정이 없으신가요?</Text>
             <SignupGradientLink
               onPress={() => {

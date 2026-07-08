@@ -22,7 +22,9 @@ const LoginField = ({
 }: LoginFieldProps) => {
   return (
     <View className="w-full">
-      <Text className="mb-[8px] font-notoSansKRRegular text-sm text-body">
+      <Text
+        className="mb-[8px] font-notoSansKRRegular text-sm text-body"
+        style={{ includeFontPadding: false }}>
         {label}
         <Text className="text-pink"> *</Text>
       </Text>
@@ -33,15 +35,17 @@ const LoginField = ({
         placeholder={placeholder}
         placeholderTextColor="#9CA3AF"
         secureTextEntry={secureTextEntry}
+        style={{ includeFontPadding: false, textAlignVertical: 'center' }}
         underlineColorAndroid="transparent"
         value={value}
         onChangeText={onChangeText}
       />
       <Text
         adjustsFontSizeToFit
-        className="mt-[3px] h-[18px] font-notoSansKRRegular text-xs text-pink"
+        className="mt-[2px] h-[14px] font-notoSansKRRegular text-[10px] text-danger"
         minimumFontScale={0.75}
-        numberOfLines={1}>
+        numberOfLines={1}
+        style={{ includeFontPadding: false }}>
         {errorText || ' '}
       </Text>
     </View>
