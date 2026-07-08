@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -13,53 +13,55 @@ const AccountScreen = () => {
 
   const handleCheck = () => navigation.navigate('UserAuth');
   return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-primary-backgorund px-5 pt-6">
-      {/* 타이틀 */}
-      <Text className="text-center font-notoSansKRBold text-2xl text-black">프로필</Text>
-
-      {/* 프로필 이미지 */}
-      <View className="my-5 items-center">
-        <ProfileImage width={115} height={115} />
-      </View>
-
-      {/* 이름 */}
-      <Text className="mt-4 text-center font-notoSansKRBold text-2xl text-black">최예은</Text>
-
-      {/* 아이디 */}
-      <View className="ml-3 mr-3 mt-6">
-        <Text className="mb-2 font-notoSansKRRegular text-lg text-body">아이디</Text>
-        <View className="rounded-xl border border-border bg-white px-5 py-3">
-          <Text className="font-notoSansKRRegular text-lg text-black">cye4526</Text>
-        </View>
-      </View>
-
-      {/* 이메일 */}
-      <View className="ml-3 mr-3 mt-4">
-        <Text className="mb-2 font-notoSansKRRegular text-lg text-[#4B5563]">이메일</Text>
-        <View className="rounded-xl border border-[#E5E7EB] bg-white px-5 py-3">
-          <Text className="font-notoSansKRRegular text-lg text-black">cye4526@naver.com</Text>
-        </View>
-      </View>
-
-      {/* 프로필 수정 / 로그아웃 */}
-      <TouchableOpacity
-        className="mx-3 mt-28 flex-row items-center justify-between rounded-xl border border-border bg-white px-5 py-3"
-        onPress={handleCheck}>
-        <Text className="font-notoSansKRRegular text-base text-body">프로필 수정</Text>
-        <Arrow></Arrow>
-      </TouchableOpacity>
-
-      <TouchableOpacity className="ml-3 mr-3 mt-3 flex-row items-center justify-between rounded-xl border border-border bg-white px-5 py-3">
-        <Text className="font-notoSansKRRegular text-base text-body">로그아웃</Text>
-        <Arrow></Arrow>
-      </TouchableOpacity>
-
-      {/* 회원 탈퇴 */}
-      <TouchableOpacity>
-        <Text className="mt-14 text-center font-notoSansKRBold text-lg text-[#4B5563]">
-          회원 탈퇴
+    <SafeAreaView edges={['top']} className="flex-1 bg-primary-backgorund">
+      <View className="mx-11 flex-1">
+        {/* 타이틀 */}
+        <Text className="mb-5 mt-11 text-center font-notoSansKRBold text-xl text-black">
+          프로필
         </Text>
-      </TouchableOpacity>
+
+        {/* 프로필 이미지 */}
+        <View className="mb-9 items-center">
+          <ProfileImage />
+        </View>
+
+        {/* 이름 */}
+        <Text className="text-center font-notoSansKRBold text-xl text-black">최예은</Text>
+
+        {/* 아이디 */}
+        <View className="mt-7">
+          <Text className="mb-2 font-notoSansKRRegular text-sm text-body">아이디</Text>
+          <View className="rounded-xl border border-border bg-white px-3">
+            <TextInput className="text-sm text-black" placeholder="cye4526"></TextInput>
+          </View>
+        </View>
+
+        {/* 이메일 */}
+        <View className="mt-4">
+          <Text className="mb-2 font-notoSansKRRegular text-sm text-body">이메일</Text>
+          <View className="rounded-xl border border-border bg-white px-3">
+            <TextInput className="text-sm text-black" placeholder="cye4526@naver.com"></TextInput>
+          </View>
+        </View>
+
+        {/* 프로필 수정 / 로그아웃 */}
+        <TouchableOpacity
+          className="mt-20 flex-row items-center justify-between rounded-xl border border-border bg-white px-3 py-4"
+          onPress={handleCheck}>
+          <Text className="font-notoSansKRDemiLight text-sm text-body">프로필 수정</Text>
+          <Arrow></Arrow>
+        </TouchableOpacity>
+
+        <TouchableOpacity className="mt-2 flex-row items-center justify-between rounded-xl border border-border bg-white px-3 py-4">
+          <Text className="font-notoSansKRDemiLight text-sm text-body">로그아웃</Text>
+          <Arrow></Arrow>
+        </TouchableOpacity>
+
+        {/* 회원 탈퇴 */}
+        <TouchableOpacity>
+          <Text className="mt-16 text-center font-notoSansKRBold text-sm text-body">회원 탈퇴</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
