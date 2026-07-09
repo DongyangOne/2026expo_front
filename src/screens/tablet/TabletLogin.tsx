@@ -6,10 +6,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-native-svg';
 
 import { TabletBackgroundCircles } from '@/components/layout';
-import CheckedIcon from '@/components/ui/icons/checked.svg';
 import { FONTS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
-import { clearAdminSession, loginAdmin, saveAdminSession } from '@/services';
+import { loginAdmin } from '@/services';
 import { useAuthStore } from '@/store';
 import type { ApiResponse } from '@/types';
 
@@ -92,7 +91,6 @@ const SignupGradientText = () => {
 const TabletLogin = ({ navigation }: Props) => {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
-  const [autoLogin, setAutoLogin] = useState(true);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const setAdminSession = useAuthStore((state) => state.setAdminSession);
@@ -139,13 +137,6 @@ const TabletLogin = ({ navigation }: Props) => {
       }
 
       setAdminSession(loginResponse.data);
-
-      if (autoLogin) {
-        await saveAdminSession(loginResponse.data);
-      } else {
-        await clearAdminSession();
-      }
-
       navigation.replace('TabletReport');
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ApiResponse<unknown>>;
@@ -189,22 +180,7 @@ const TabletLogin = ({ navigation }: Props) => {
           </View>
 
           <Pressable
-            className="mt-[5px] flex-row items-center self-start"
-            hitSlop={8}
-            onPress={() => setAutoLogin((current) => !current)}>
-            <View
-              className={`h-[16px] w-[16px] items-center justify-center rounded-[4px] ${
-                autoLogin ? 'bg-purple' : 'border border-border bg-white'
-              }`}>
-              {autoLogin ? <CheckedIcon height={9} width={10} /> : null}
-            </View>
-            <Text className="ml-[5px] font-notoSansKRRegular text-[14px] text-body">
-              자동 로그인
-            </Text>
-          </Pressable>
-
-          <Pressable
-            className="mt-[27px] h-[63px] items-center justify-center overflow-hidden rounded-[20px]"
+            className="mt-[53px] h-[63px] items-center justify-center overflow-hidden rounded-[20px]"
             disabled={isSubmitting}
             onPress={handleSubmit}>
             <Svg height="100%" style={StyleSheet.absoluteFill} width="100%">
