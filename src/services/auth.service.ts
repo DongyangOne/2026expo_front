@@ -1,8 +1,11 @@
 import type {
+  AdminExistsData,
+  AdminExistsRequest,
   AdminLoginData,
   AdminLoginRequest,
   AdminReissueData,
   AdminReissueRequest,
+  AdminSignupRequest,
   ApiResponse,
 } from '@/types';
 
@@ -15,6 +18,24 @@ export const loginAdmin = async (
     '/api/v1/admin/login',
     loginRequest,
   );
+
+  return response.data;
+};
+
+export const signupAdmin = async (
+  signupRequest: AdminSignupRequest,
+): Promise<ApiResponse<null>> => {
+  const response = await instance.post<ApiResponse<null>>('/api/v1/admin/signup', signupRequest);
+
+  return response.data;
+};
+
+export const checkAdminIdExists = async (
+  existsRequest: AdminExistsRequest,
+): Promise<ApiResponse<AdminExistsData>> => {
+  const response = await instance.get<ApiResponse<AdminExistsData>>('/api/v1/admin/exists', {
+    params: existsRequest,
+  });
 
   return response.data;
 };
