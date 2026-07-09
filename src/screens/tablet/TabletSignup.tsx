@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { AxiosError } from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, {
   Defs,
@@ -22,13 +23,18 @@ import { TabletBackgroundCircles } from '@/components/layout';
 import { SignupInput } from '@/components/ui';
 import { FONTS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
+import { checkAdminIdExists, signupAdmin } from '@/services';
+import type { ApiResponse } from '@/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TabletSignup'>;
 
-const RESERVED_IDS = new Set(['admin', 'manager', 'test1234']);
 const KEYBOARD_SEQUENCES = ['qwer', 'wert'];
 const ID_AVAILABLE_MESSAGE = '사용 가능한 아이디입니다.';
 const ID_DUPLICATE_MESSAGE = '이미 사용 중인 아이디입니다.';
+const ID_CHECK_REQUIRED_MESSAGE = '중복확인 인증을 해주세요.';
+const ID_CHECK_ERROR_MESSAGE = '아이디 중복 확인 중 오류가 발생했습니다.';
+const SIGNUP_ERROR_MESSAGE = '회원가입 중 오류가 발생했습니다.';
+const SIGNUP_SUCCESS_MESSAGE = '가입완료';
 
 const GradientText = ({ label }: { label: string }) => {
   return (
@@ -97,6 +103,18 @@ const validatePassword = (value: string) => {
   return '';
 };
 
+const validatePasswordConfirm = (password: string, passwordConfirm: string) => {
+  if (!passwordConfirm) {
+    return '비밀번호 확인을 입력해 주세요';
+  }
+
+  if (password !== passwordConfirm) {
+    return '비밀번호가 일치하지 않습니다';
+  }
+
+  return '';
+};
+
 const validateAffiliation = (value: string) => {
   if (!/^[가-힣A-Za-z]{2,20}$/.test(value)) {
     return '소속은 문자만 2~20자로 입력해 주세요';
@@ -114,12 +132,16 @@ const TabletSignup = ({ navigation }: Props) => {
   const [idCheckedValue, setIdCheckedValue] = useState('');
   const [formMessage, setFormMessage] = useState('');
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [isCheckingId, setIsCheckingId] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const idError = useMemo(() => validateId(id), [id]);
   const passwordError = useMemo(() => validatePassword(password), [password]);
+  const passwordConfirmError = useMemo(
+    () => validatePasswordConfirm(password, passwordConfirm),
+    [password, passwordConfirm],
+  );
   const affiliationError = useMemo(() => validateAffiliation(affiliation), [affiliation]);
-  const passwordConfirmError =
-    passwordConfirm && password !== passwordConfirm ? '비밀번호가 일치하지 않습니다' : '';
   const isIdAvailable = idCheckMessage === ID_AVAILABLE_MESSAGE && idCheckedValue === id;
 
   const handleIdChange = (value: string) => {
@@ -136,38 +158,87 @@ const TabletSignup = ({ navigation }: Props) => {
     setAffiliation(value.replace(/[^가-힣A-Za-z]/g, '').slice(0, 20));
   };
 
-  const handleCheckDuplicate = () => {
-    if (idError) {
+  const handleCheckDuplicate = async (): Promise<void> => {
+    if (idError || isCheckingId) {
       setIdCheckMessage(idError);
       return;
     }
 
-    setIdCheckedValue(id);
-    setIdCheckMessage(RESERVED_IDS.has(id) ? ID_DUPLICATE_MESSAGE : ID_AVAILABLE_MESSAGE);
+    setIsCheckingId(true);
+
+    try {
+      const existsResponse = await checkAdminIdExists({ adminId: id });
+
+      if (!existsResponse.success) {
+        setIdCheckMessage(existsResponse.message || ID_CHECK_ERROR_MESSAGE);
+        return;
+      }
+
+      setIdCheckedValue(id);
+      setIdCheckMessage(
+        existsResponse.data.exists === 'Y' ? ID_DUPLICATE_MESSAGE : ID_AVAILABLE_MESSAGE,
+      );
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiResponse<unknown>>;
+      const errorMessage = axiosError.response?.data.message ?? ID_CHECK_ERROR_MESSAGE;
+
+      setIdCheckMessage(errorMessage);
+    } finally {
+      setIsCheckingId(false);
+    }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async (): Promise<void> => {
     setSubmitAttempted(true);
+
+    if (!idError && !isIdAvailable) {
+      setIdCheckMessage(ID_CHECK_REQUIRED_MESSAGE);
+      setFormMessage('');
+      return;
+    }
 
     if (
       idError ||
       !isIdAvailable ||
       passwordError ||
-      password !== passwordConfirm ||
-      affiliationError
+      passwordConfirmError ||
+      affiliationError ||
+      isSubmitting
     ) {
       setFormMessage('입력칸에 내용을 입력해 주세요');
       return;
     }
 
+    setIsSubmitting(true);
     setFormMessage('');
-    ToastAndroid.show('가입완료', ToastAndroid.SHORT);
-    Alert.alert('가입완료', undefined, [
-      {
-        text: '확인',
-        onPress: () => navigation.replace('TabletLogin'),
-      },
-    ]);
+
+    try {
+      const signupResponse = await signupAdmin({
+        adminId: id,
+        adminPassword: password,
+        team: affiliation,
+      });
+
+      if (!signupResponse.success) {
+        setFormMessage(signupResponse.message || SIGNUP_ERROR_MESSAGE);
+        return;
+      }
+
+      ToastAndroid.show(SIGNUP_SUCCESS_MESSAGE, ToastAndroid.SHORT);
+      Alert.alert(SIGNUP_SUCCESS_MESSAGE, undefined, [
+        {
+          text: '확인',
+          onPress: () => navigation.replace('TabletLogin'),
+        },
+      ]);
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiResponse<unknown>>;
+      const errorMessage = axiosError.response?.data.message ?? SIGNUP_ERROR_MESSAGE;
+
+      setFormMessage(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -189,7 +260,7 @@ const TabletSignup = ({ navigation }: Props) => {
                 label="아이디"
                 placeholder="아이디를 입력해 주세요"
                 required
-                actionLabel="중복 확인"
+                actionLabel={isCheckingId ? '확인 중' : '중복 확인'}
                 value={id}
                 errorText={idCheckMessage || (submitAttempted ? idError : '')}
                 messageVariant={isIdAvailable ? 'success' : 'error'}
@@ -215,7 +286,7 @@ const TabletSignup = ({ navigation }: Props) => {
                 required
                 secureTextEntry
                 value={passwordConfirm}
-                errorText={passwordConfirmError}
+                errorText={submitAttempted ? passwordConfirmError : ''}
                 inputProps={{ autoCapitalize: 'none', maxLength: 16 }}
                 onChangeText={(value) =>
                   setPasswordConfirm(value.replace(/[^\x21-\x7E]/g, '').slice(0, 16))
@@ -235,6 +306,7 @@ const TabletSignup = ({ navigation }: Props) => {
 
             <Pressable
               className="mt-[30px] h-[68px] items-center justify-center overflow-hidden rounded-[20px]"
+              disabled={isSubmitting}
               onPress={handleSubmit}>
               <Svg height="100%" style={StyleSheet.absoluteFill} width="100%">
                 <Defs>
@@ -245,7 +317,9 @@ const TabletSignup = ({ navigation }: Props) => {
                 </Defs>
                 <Rect fill="url(#signup-submit-gradient)" height="100%" rx={20} width="100%" />
               </Svg>
-              <Text className="font-notoSansKRBold text-[16px] text-white">회원가입</Text>
+              <Text className="font-notoSansKRBold text-[16px] text-white">
+                {isSubmitting ? '가입 중' : '회원가입'}
+              </Text>
             </Pressable>
 
             <Text className="h-[18px] text-center font-notoSansKRRegular text-sm text-danger">

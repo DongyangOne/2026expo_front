@@ -1,3 +1,3 @@
 export { default as apiInstance } from './instance';
-export { loginAdmin, reissueAdminToken } from './auth.service';
+export { checkAdminIdExists, loginAdmin, reissueAdminToken, signupAdmin } from './auth.service';
 export { clearAdminSession } from './authStorage.service';
