@@ -148,14 +148,22 @@ const TabletSignup = ({ navigation }: Props) => {
     setId(value.replace(/[^a-z0-9]/g, '').slice(0, 12));
     setIdCheckMessage('');
     setIdCheckedValue('');
+    setFormMessage('');
   };
 
   const handlePasswordChange = (value: string) => {
     setPassword(value.replace(/[^\x21-\x7E]/g, '').slice(0, 16));
+    setFormMessage('');
+  };
+
+  const handlePasswordConfirmChange = (value: string) => {
+    setPasswordConfirm(value.replace(/[^\x21-\x7E]/g, '').slice(0, 16));
+    setFormMessage('');
   };
 
   const handleAffiliationChange = (value: string) => {
     setAffiliation(value.replace(/[^가-힣A-Za-z]/g, '').slice(0, 20));
+    setFormMessage('');
   };
 
   const handleCheckDuplicate = async (): Promise<void> => {
@@ -288,9 +296,7 @@ const TabletSignup = ({ navigation }: Props) => {
                 value={passwordConfirm}
                 errorText={submitAttempted ? passwordConfirmError : ''}
                 inputProps={{ autoCapitalize: 'none', maxLength: 16 }}
-                onChangeText={(value) =>
-                  setPasswordConfirm(value.replace(/[^\x21-\x7E]/g, '').slice(0, 16))
-                }
+                onChangeText={handlePasswordConfirmChange}
               />
 
               <SignupInput
