@@ -48,8 +48,8 @@ const FeedbackScreen = () => {
   const navigation = useNavigation<FeedbackScreenNavigationProp>();
 
   return (
-    <SafeAreaView edges={['top']} className="flex-1 items-center bg-primary-backgorund">
-      <Text className="text-gray-800 font-notoSansKRBold text-xl">피드백 목록</Text>
+    <SafeAreaView edges={['top']} className="flex-1 items-center bg-primary-backgorund px-6">
+      <Text className="text-gray-800 pt-9 font-notoSansKRBold text-xl">피드백 목록</Text>
       <ScrollView className="w-full">
         {feedback.map((group) => (
           <View key={group.date} className="mt-12 gap-2">

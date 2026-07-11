@@ -27,8 +27,8 @@ const FeedbackDetailScreen = () => {
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-primary-backgorund">
-      <View className="flex-row items-center px-6 pt-2">
-        <TouchableOpacity className="w-10 p-2" onPress={() => navigation.goBack()}>
+      <View className="flex-row items-center px-6 pt-9">
+        <TouchableOpacity className="w-10 p-2 pl-6" onPress={() => navigation.goBack()}>
           <BackArrow />
         </TouchableOpacity>
         <Text className="flex-1 text-center font-notoSansKRBold text-xl text-black">
