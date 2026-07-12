@@ -73,15 +73,15 @@ const DeleteAccountScreen = () => {
         <>
           {/* 아이디 */}
           <View className="mx-11 mt-14">
-            <Text className="mb-2 font-notoSansKRRegular text-sm text-body">아이디</Text>
+            <Text className="mb-2 font-notoSansKRRegular text-sm text-body">비밀번호</Text>
             <View className="rounded-xl border border-border bg-white px-3">
-              <TextInput className="text-sm text-black" placeholder="cye4526"></TextInput>
+              <TextInput className="text-sm text-black" placeholder="*****1"></TextInput>
             </View>
           </View>
 
           {/* 비밀번호 */}
           <View className="mx-11 mt-4">
-            <Text className="mb-2 font-notoSansKRRegular text-sm text-body">비밀번호</Text>
+            <Text className="mb-2 font-notoSansKRRegular text-sm text-body">비밀번호 확인</Text>
             <View className="rounded-xl border border-border bg-white px-3">
               <TextInput className="text-sm text-black" placeholder="*****1"></TextInput>
             </View>
