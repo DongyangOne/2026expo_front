@@ -15,4 +15,10 @@ export type RootTabParamList = {
 export type RootStackParamList = {
   Tabs: NavigatorScreenParams<RootTabParamList>;
   FeedbackDetail: { id: number };
+  MobileTabs: NavigatorScreenParams<RootTabParamList> | undefined;
+  TabletMain: undefined;
+  TabletLogin: undefined;
+  TabletSignup: undefined;
+  TabletReport: undefined;
+  TabletTrashFeedback: undefined;
 };

@@ -53,7 +53,7 @@ const FeedbackScreen = () => {
       <ScrollView className="w-full">
         {feedback.map((group) => (
           <View key={group.date} className="mt-12 gap-2">
-            <View className="min-h-20 flex-row items-center rounded-xl bg-purple/[0.08] px-4 py-3">
+            <View className="h-[58px] flex-row items-center rounded-xl bg-purple/[0.08] px-4 py-3">
               <Text className="font-notoSansKRBold text-base">{group.date}</Text>
             </View>
             {group.items.map((item) => (
