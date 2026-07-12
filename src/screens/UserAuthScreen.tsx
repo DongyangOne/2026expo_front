@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { cssInterop } from 'nativewind';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,10 +12,73 @@ cssInterop(LinearGradient, {
 import type { RootStackParamList } from '@/navigation/types';
 import BackArrow from '../assets/images/vector.svg';
 
+const AUTH_CODE_DURATION = 300; // 5분 (초 단위)
+
+const formatTime = (totalSeconds: number): string => {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
+
 const UserAuthScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const handleEditProfile = () => navigation.navigate('EditProfile');
+  const [email, setEmail] = useState('');
+  const [authCode, setAuthCode] = useState('');
+
+  // 인증코드 입력창 노출 여부
+  const [isCodeSent, setIsCodeSent] = useState(false);
+  // 남은 시간(초)
+  const [remainingSeconds, setRemainingSeconds] = useState(AUTH_CODE_DURATION);
+  // 시간 만료 여부
+  const [isExpired, setIsExpired] = useState(false);
+
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  const startTimer = () => {
+    clearTimer();
+    setIsExpired(false);
+    setRemainingSeconds(AUTH_CODE_DURATION);
+
+    timerRef.current = setInterval(() => {
+      setRemainingSeconds((prev) => {
+        if (prev <= 1) {
+          clearTimer();
+          setIsExpired(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  // 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => clearTimer();
+  }, []);
+
+  const handleSendCode = () => {
+    if (email.trim().length === 0) return;
+
+    // TODO: 실제 이메일 인증코드 전송 API 호출
+    setAuthCode('');
+    setIsCodeSent(true);
+    startTimer();
+  };
+
+  const handleEditProfile = () => {
+    if (!isCodeSent || isExpired || authCode.trim().length === 0) return;
+    // TODO: 실제 인증코드 검증 API 호출
+    navigation.navigate('EditProfile');
+  };
+
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-primary-backgorund">
       <View className="mx-11 flex-1">
@@ -32,7 +95,7 @@ const UserAuthScreen = () => {
         <View className="mt-52">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">아이디</Text>
           <View className="rounded-xl border border-border bg-white px-3">
-            <TextInput className="text-sm text-black" placeholder="cye4526"></TextInput>
+            <TextInput className="text-sm text-black"></TextInput>
           </View>
         </View>
 
@@ -41,22 +104,49 @@ const UserAuthScreen = () => {
           <Text className="mb-2 font-notoSansKRRegular text-sm text-black">이메일</Text>
           <View className="flex-row">
             <View className="flex-1 flex-row items-center justify-between rounded-l-xl border border-border bg-white px-3">
-              <TextInput placeholder="cye4526@naver.com" className="text-sm text-black"></TextInput>
+              <TextInput
+                className="flex-1 text-sm text-black"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="이메일을 입력해 주세요"
+              />
             </View>
-            <TouchableOpacity className="-ml-2 rounded-xl bg-gray px-5 py-3">
-              <Text className="text-sm text-white">전송</Text>
+            <TouchableOpacity
+              className="-ml-2 rounded-xl bg-gray px-5 py-3"
+              onPress={handleSendCode}
+              disabled={email.trim().length === 0}>
+              <Text className="text-sm text-white">{isCodeSent ? '재전송' : '전송'}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* 인증 코드 */}
-        <View className="mt-5">
-          <Text className="mb-2 font-notoSansKRRegular text-sm text-body">인증 코드</Text>
-          <View className="flex-row items-center justify-between rounded-xl border border-border bg-white px-3">
-            <TextInput placeholder="111111" className="text-sm text-black"></TextInput>
-            <Text className="font-notoSansKRRegular text-sm text-red">05:00</Text>
+        {/* 인증 코드: 전송 버튼을 누르기 전에는 노출되지 않음 */}
+        {isCodeSent && (
+          <View className="mt-5">
+            <Text className="mb-2 font-notoSansKRRegular text-sm text-body">인증 코드</Text>
+            <View className="flex-row items-center justify-between rounded-xl border border-border bg-white px-3">
+              <TextInput
+                className="flex-1 text-sm text-black"
+                value={authCode}
+                onChangeText={setAuthCode}
+                keyboardType="number-pad"
+                placeholder="인증코드를 입력해 주세요"
+                editable={!isExpired}
+              />
+              <Text className="font-notoSansKRRegular text-sm text-red">
+                {isExpired ? '시간 만료' : formatTime(remainingSeconds)}
+              </Text>
+            </View>
+            {isExpired && (
+              <Text className="mt-1 font-notoSansKRRegular text-xs text-red">
+                인증 시간이 만료되었어요. 재전송 버튼을 눌러주세요.
+              </Text>
+            )}
           </View>
-        </View>
+        )}
 
         {/* 확인 버튼 */}
         <TouchableOpacity className="mx-5 mt-40" onPress={handleEditProfile}>

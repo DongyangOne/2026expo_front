@@ -8,6 +8,8 @@ export type RootTabParamList = {
   Quiz: undefined;
   Feedback: undefined;
   Account: undefined;
+  EditProfile: undefined;
+  UserAuth: undefined;
 };
 
 export type RootStackParamList = {
