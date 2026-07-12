@@ -60,14 +60,16 @@ const FeedbackScreen = () => {
               <TouchableOpacity
                 key={item.id}
                 onPress={() => navigation.navigate('FeedbackDetail', { id: item.id })}
-                className={`min-h-20 flex-row items-center gap-3 rounded-xl px-4 py-3 ${
+                className={`min-h-[65px] flex-row items-center gap-3 rounded-xl px-4 py-3 ${
                   item.success ? 'bg-green/[0.08]' : 'bg-red/[0.08]'
                 }`}>
-                <Text className="font-notoSansKRBold text-base">{item.time}</Text>
+                <Text className="font-notoSansKRBold text-base text-body">{item.time}</Text>
                 <View
-                  className={`mt-1 h-2 w-2 rounded-full ${item.success ? 'bg-green' : 'bg-red'}`}
+                  className={`h-[10px] w-[10px] rounded-full ${
+                    item.success ? 'bg-green' : 'bg-red'
+                  }`}
                 />
-                <Text className="flex-1 text-center font-notoSansKRDemiLight text-xs">
+                <Text className="flex-1 text-center font-notoSansKRDemiLight text-xs leading-5">
                   {item.message}
                 </Text>
               </TouchableOpacity>
