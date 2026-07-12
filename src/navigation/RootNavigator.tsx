@@ -22,8 +22,6 @@ const MobileTabs = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Tabs" component={RootTabNavigator} />
-      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
-      <Stack.Screen name="UserAuth" component={UserAuthScreen} />
     </Stack.Navigator>
   );
 };

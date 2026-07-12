@@ -2,18 +2,19 @@ import React from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import type { RootStackParamList } from '@/navigation/types';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { RootTabParamList } from '@/navigation/types';
+
 import ProfileImage from '../assets/images/profile.svg';
 import Arrow from '../assets/images/arrow.svg';
 
 const AccountScreen = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
   const handleCheck = () => navigation.navigate('UserAuth');
   return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-primary-backgorund">
+    <SafeAreaView edges={['top']} className="bg-primary-backgorund flex-1">
       <View className="mx-11 flex-1">
         {/* 타이틀 */}
         <Text className="mb-5 mt-11 text-center font-notoSansKRBold text-xl text-black">

@@ -23,10 +23,7 @@
     "react-native": "0.85.3",
     "react-native-config": "^1.6.1",
     "react-native-linear-gradient": "^2.8.3",
-<<<<<<< HEAD
-=======
     "react-native-qrcode-svg": "^6.3.21",
->>>>>>> develop
     "react-native-safe-area-context": "^5.8.0",
     "react-native-screens": "^4.25.2",
     "react-native-svg": "^15.15.5",
