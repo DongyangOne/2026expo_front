@@ -1,17 +1,16 @@
 import React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import LinearGradient from 'react-native-linear-gradient';
 import { cssInterop } from 'nativewind';
 
 cssInterop(LinearGradient, {
   className: 'style',
 });
 
-import { View, Text, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import LinearGradient from 'react-native-linear-gradient';
-
-import type { RootStackParamList } from '@/navigation/types';
+import type { MobileStackParamList } from '@/navigation/types';
 
 import CompleteImage from '../assets/images/leave.svg';
 
@@ -20,12 +19,12 @@ import tailwindConfig from '../../tailwind.config.js';
 const DeleteCompleteScreen = () => {
   const { colors } = tailwindConfig.theme.extend;
 
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<MobileStackParamList>>();
 
   const handleGoHome = () => {
     navigation.reset({
       index: 0,
-      routes: [{ name: 'Tabs' }],
+      routes: [{ name: 'MobileTabs' }],
     });
   };
 

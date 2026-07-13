@@ -1,25 +1,145 @@
 import React from 'react';
+import { useWindowDimensions } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import type { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import RootTabNavigator from './RootTabNavigator';
+import {
+  HomeIcon,
+  SearchIcon,
+  QuizIcon,
+  FeedbackIcon,
+  AccountIcon,
+  TabBarLabel,
+} from '@/components/ui';
+import { COLORS } from '@/constants';
+import HomeScreen from '@/screens/HomeScreen';
+import SearchScreen from '@/screens/SearchScreen';
+import QuizScreen from '@/screens/QuizScreen';
+import FeedbackScreen from '@/screens/FeedbackScreen';
+import AccountScreen from '@/screens/AccountScreen';
 import EditProfileScreen from '@/screens/EditProfileScreen';
 import UserAuthScreen from '@/screens/UserAuthScreen';
 import DeleteAccountScreen from '@/screens/DeleteAccountScreen';
 import DeleteCompleteScreen from '@/screens/DeleteCompleteScreen';
+import TabletMain from '@/screens/tablet/TabletMain';
+import TabletLogin from '@/screens/tablet/TabletLogin';
+import TabletReport from '@/screens/tablet/TabletReport';
+import TabletSignup from '@/screens/tablet/TabletSignup';
+import TabletTrashFeedbackScreen from '@/screens/tablet/TabletTrashFeedbackScreen';
 
-import type { RootStackParamList } from './types';
+import type { RootStackParamList, RootTabParamList, MobileStackParamList } from './types';
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const MobileStackNav = createNativeStackNavigator<MobileStackParamList>();
+const RootStack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<RootTabParamList>();
+
+const INACTIVE_COLOR = '#9CA3AF';
+const TABLET_MIN_DP = 600;
+
+// 바텀탭 (모바일 전용)
+const MobileTabs = () => {
+  const insets = useSafeAreaInsets();
+
+  const screenOptions: BottomTabNavigationOptions = {
+    headerShown: false,
+    tabBarShowLabel: true,
+    tabBarStyle: {
+      height: 60 + insets.bottom,
+      paddingTop: 8,
+      paddingBottom: insets.bottom + 8,
+      backgroundColor: COLORS.white,
+      borderTopColor: COLORS.gray[200],
+      borderTopWidth: 1,
+    },
+  };
+
+  return (
+    <Tab.Navigator initialRouteName="Home" screenOptions={screenOptions}>
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarIcon: ({ focused, size }) => (
+            <HomeIcon active={focused} color={INACTIVE_COLOR} size={size} />
+          ),
+          tabBarLabel: ({ focused }) => <TabBarLabel label="홈" focused={focused} />,
+        }}
+      />
+      <Tab.Screen
+        name="Search"
+        component={SearchScreen}
+        options={{
+          tabBarIcon: ({ focused, size }) => (
+            <SearchIcon active={focused} color={INACTIVE_COLOR} size={size} />
+          ),
+          tabBarLabel: ({ focused }) => <TabBarLabel label="검색" focused={focused} />,
+        }}
+      />
+      <Tab.Screen
+        name="Quiz"
+        component={QuizScreen}
+        options={{
+          tabBarIcon: ({ focused, size }) => (
+            <QuizIcon active={focused} color={INACTIVE_COLOR} size={size} />
+          ),
+          tabBarLabel: ({ focused }) => <TabBarLabel label="퀴즈" focused={focused} />,
+        }}
+      />
+      <Tab.Screen
+        name="Feedback"
+        component={FeedbackScreen}
+        options={{
+          tabBarIcon: ({ focused, size }) => (
+            <FeedbackIcon active={focused} color={INACTIVE_COLOR} size={size} />
+          ),
+          tabBarLabel: ({ focused }) => <TabBarLabel label="피드백" focused={focused} />,
+        }}
+      />
+      <Tab.Screen
+        name="Account"
+        component={AccountScreen}
+        options={{
+          tabBarIcon: ({ focused, size }) => (
+            <AccountIcon active={focused} color={INACTIVE_COLOR} size={size} />
+          ),
+          tabBarLabel: ({ focused }) => <TabBarLabel label="마이" focused={focused} />,
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
+
+// 모바일 전용 스택: 바텀탭 + 프로필편집/인증/계정삭제
+// (태블릿 플로우에서는 접근 불가)
+const MobileStack = () => {
+  return (
+    <MobileStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <MobileStackNav.Screen name="MobileTabs" component={MobileTabs} />
+      <MobileStackNav.Screen name="EditProfile" component={EditProfileScreen} />
+      <MobileStackNav.Screen name="UserAuth" component={UserAuthScreen} />
+      <MobileStackNav.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <MobileStackNav.Screen name="DeleteComplete" component={DeleteCompleteScreen} />
+    </MobileStackNav.Navigator>
+  );
+};
 
 const RootNavigator = () => {
+  const { width, height } = useWindowDimensions();
+  const isTablet = Math.min(width, height) >= TABLET_MIN_DP;
+
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Tabs" component={RootTabNavigator} />
-      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
-      <Stack.Screen name="UserAuth" component={UserAuthScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
-      <Stack.Screen name="DeleteComplete" component={DeleteCompleteScreen} />
-    </Stack.Navigator>
+    <RootStack.Navigator
+      initialRouteName={isTablet ? 'TabletMain' : 'MobileStack'}
+      screenOptions={{ headerShown: false }}>
+      <RootStack.Screen name="MobileStack" component={MobileStack} />
+      <RootStack.Screen name="TabletMain" component={TabletMain} />
+      <RootStack.Screen name="TabletLogin" component={TabletLogin} />
+      <RootStack.Screen name="TabletSignup" component={TabletSignup} />
+      <RootStack.Screen name="TabletReport" component={TabletReport} />
+      <RootStack.Screen name="TabletTrashFeedback" component={TabletTrashFeedbackScreen} />
+    </RootStack.Navigator>
   );
 };
 

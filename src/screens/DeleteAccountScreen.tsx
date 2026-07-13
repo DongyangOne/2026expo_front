@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import type { RootStackParamList } from '@/navigation/types';
+import type { MobileStackParamList } from '@/navigation/types';
 import BackArrow from '../assets/images/vector.svg';
 
 import tailwindConfig from '../../tailwind.config.js';
@@ -22,87 +22,14 @@ const WITHDRAW_REASONS = [
   '기타',
 ] as const;
 
-// TODO: 실제로는 서버에서 최근 사용한 비밀번호 3개(해시 등)를 받아와야 합니다.
-// 여기서는 데모용으로 로컬 배열을 사용합니다.
-const RECENT_PASSWORDS: string[] = [];
-
-// 키보드 연속 배열 (정방향/역방향 모두 체크)
-const KEYBOARD_ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', '1234567890'];
-
-/** 4자리 이상 연속된 숫자/문자(오름차순, 내림차순, 키보드 순서) 포함 여부 검사 */
-const hasSequentialChars = (value: string, minLen = 4): boolean => {
-  const lower = value.toLowerCase();
-
-  // 1) 오름차순/내림차순 연속 (예: 1234, abcd, dcba, 4321)
-  for (let i = 0; i <= lower.length - minLen; i++) {
-    let asc = true;
-    let desc = true;
-    for (let j = 1; j < minLen; j++) {
-      const prev = lower.charCodeAt(i + j - 1);
-      const curr = lower.charCodeAt(i + j);
-      if (curr - prev !== 1) asc = false;
-      if (prev - curr !== 1) desc = false;
-    }
-    if (asc || desc) return true;
-  }
-
-  // 2) 키보드 배열 순서 (예: qwer, asdf, 1234 포함 - 정/역방향)
-  for (const row of KEYBOARD_ROWS) {
-    for (let i = 0; i <= row.length - minLen; i++) {
-      const seq = row.slice(i, i + minLen);
-      const reversedSeq = seq.split('').reverse().join('');
-      if (lower.includes(seq) || lower.includes(reversedSeq)) return true;
-    }
-  }
-
-  return false;
-};
-
-type PasswordCheckResult = {
-  isValid: boolean;
-  message: string;
-};
-
-const validatePassword = (value: string): PasswordCheckResult => {
-  if (value.length === 0) {
-    return { isValid: false, message: '' };
-  }
-
-  if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(value)) {
-    return { isValid: false, message: '한글은 입력할 수 없어요.' };
-  }
-
-  if (/\s/.test(value)) {
-    return { isValid: false, message: '공백은 입력할 수 없어요.' };
-  }
-
-  if (value.length < 8 || value.length > 16) {
-    return { isValid: false, message: '비밀번호는 8~16자로 입력해 주세요.' };
-  }
-
-  const hasLetter = /[A-Za-z]/.test(value);
-  const hasNumber = /[0-9]/.test(value);
-  const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~`]/.test(value);
-
-  if (!hasLetter || !hasNumber || !hasSpecial) {
-    return { isValid: false, message: '영문, 숫자, 특수문자를 모두 포함해 주세요.' };
-  }
-
-  if (hasSequentialChars(value, 4)) {
-    return { isValid: false, message: '연속된 문자/숫자는 4자리 이상 사용할 수 없어요.' };
-  }
-
-  if (RECENT_PASSWORDS.includes(value)) {
-    return { isValid: false, message: '최근에 사용한 비밀번호는 다시 사용할 수 없어요.' };
-  }
-
-  return { isValid: true, message: '사용 가능한 비밀번호예요.' };
-};
+// TODO: 실제로는 서버에서 현재 로그인된 사용자의 비밀번호를 검증해야 합니다.
+// 백엔드 연동 전까지 임시로 고정된 값을 사용합니다.
+const TEMP_CURRENT_PASSWORD = 'Test1234!';
 
 const DeleteAccountScreen = () => {
   const { colors } = tailwindConfig.theme.extend;
 
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<MobileStackParamList>>();
 
   const [selected, setSelected] = useState<string | null>(null);
   const [etcText, setEtcText] = useState('');
@@ -110,7 +37,16 @@ const DeleteAccountScreen = () => {
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
 
-  const passwordResult = useMemo(() => validatePassword(password), [password]);
+  // 입력한 비밀번호가 실제 계정 비밀번호와 일치하는지 (임시로 하드코딩된 값과 비교)
+  const isCorrectPassword = useMemo(() => {
+    if (password.length === 0) return false;
+    return password === TEMP_CURRENT_PASSWORD;
+  }, [password]);
+
+  const passwordMessage = useMemo(() => {
+    if (password.length === 0) return '';
+    return isCorrectPassword ? '' : '비밀번호가 일치하지 않아요.';
+  }, [password, isCorrectPassword]);
 
   const confirmResult = useMemo(() => {
     if (passwordConfirm.length === 0) {
@@ -122,16 +58,15 @@ const DeleteAccountScreen = () => {
     return { isValid: true, message: '비밀번호가 일치해요.' };
   }, [password, passwordConfirm]);
 
-  // '기타' 선택 시에는 비밀번호 조건 없이, 사유 텍스트 입력만 있으면 진행 가능
   const isNextEnabled = useMemo(() => {
-    if (selected === '기타') {
-      return etcText.trim().length > 0;
-    }
     if (selected === null) {
       return false;
     }
-    return passwordResult.isValid && confirmResult.isValid;
-  }, [selected, etcText, passwordResult.isValid, confirmResult.isValid]);
+    if (selected === '기타' && etcText.trim().length === 0) {
+      return false;
+    }
+    return isCorrectPassword && confirmResult.isValid;
+  }, [selected, etcText, isCorrectPassword, confirmResult.isValid]);
 
   const handleNext = () => {
     if (!isNextEnabled) return;
@@ -139,7 +74,7 @@ const DeleteAccountScreen = () => {
   };
 
   return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-primary-backgorund px-5 pt-6">
+    <SafeAreaView edges={['top']} className="bg-primary-backgorund flex-1 px-5 pt-6">
       <ScrollView>
         <View className="relative flex-row items-center ">
           {/* 뒤로가기 버튼 */}
@@ -163,12 +98,10 @@ const DeleteAccountScreen = () => {
               key={reason}
               className="mb-4 ml-10 flex-row items-center"
               onPress={() => setSelected(reason)}>
-              {/* 바깥 원 */}
               <View
                 className={`h-5 w-5 items-center justify-center rounded-full border ${
                   isSelected ? 'border-purple' : 'border-black'
                 }`}>
-                {/* 선택됐을 때만 점 */}
                 {isSelected && <View className="h-2.5 w-2.5 rounded-full bg-purple" />}
               </View>
 
@@ -176,59 +109,54 @@ const DeleteAccountScreen = () => {
             </TouchableOpacity>
           );
         })}
-        {selected !== '기타' && (
-          <>
-            {/* 비밀번호 */}
-            <View className="mx-11 mt-14">
-              <Text className="mb-2 font-notoSansKRRegular text-sm text-body">비밀번호</Text>
-              <View className="rounded-xl border border-border bg-white px-3">
-                <TextInput
-                  className="text-sm text-black"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  maxLength={16}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  placeholder="8~16자, 영문/숫자/특수문자 포함"
-                />
-              </View>
-              {passwordResult.message.length > 0 && (
-                <Text
-                  className={`mt-1 font-notoSansKRRegular text-xs ${
-                    passwordResult.isValid ? 'text-purple' : 'text-red-500'
-                  }`}>
-                  {passwordResult.message}
-                </Text>
-              )}
-            </View>
 
-            {/* 비밀번호 확인 */}
-            <View className="mx-11 mt-4">
-              <Text className="mb-2 font-notoSansKRRegular text-sm text-body">비밀번호 확인</Text>
-              <View className="rounded-xl border border-border bg-white px-3">
-                <TextInput
-                  className="text-sm text-black"
-                  value={passwordConfirm}
-                  onChangeText={setPasswordConfirm}
-                  secureTextEntry
-                  maxLength={16}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  placeholder="비밀번호를 다시 입력해 주세요"
-                />
-              </View>
-              {confirmResult.message.length > 0 && (
-                <Text
-                  className={`mt-1 font-notoSansKRRegular text-xs ${
-                    confirmResult.isValid ? 'text-purple' : 'text-red-500'
-                  }`}>
-                  {confirmResult.message}
-                </Text>
-              )}
+        <>
+          {/* 비밀번호 */}
+          <View className="mx-11 mt-14">
+            <Text className="mb-2 font-notoSansKRRegular text-sm text-body">비밀번호</Text>
+            <View className="rounded-xl border border-border bg-white px-3">
+              <TextInput
+                className="text-sm text-black"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="비밀번호를 입력해 주세요"
+              />
             </View>
-          </>
-        )}
+            {passwordMessage.length > 0 && (
+              <Text className="mt-1 font-notoSansKRRegular text-xs text-red-500">
+                {passwordMessage}
+              </Text>
+            )}
+          </View>
+
+          {/* 비밀번호 확인 */}
+          <View className="mx-11 mt-4">
+            <Text className="mb-2 font-notoSansKRRegular text-sm text-body">비밀번호 확인</Text>
+            <View className="rounded-xl border border-border bg-white px-3">
+              <TextInput
+                className="text-sm text-black"
+                value={passwordConfirm}
+                onChangeText={setPasswordConfirm}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="비밀번호를 다시 입력해 주세요"
+              />
+            </View>
+            {confirmResult.message.length > 0 && (
+              <Text
+                className={`mt-1 font-notoSansKRRegular text-xs ${
+                  confirmResult.isValid ? 'text-purple' : 'text-red-500'
+                }`}>
+                {confirmResult.message}
+              </Text>
+            )}
+          </View>
+        </>
+
         {/* 기타 선택 시에만 입력창 노출 */}
         {selected === '기타' && (
           <View className="mx-11 mt-2 min-h-[200px] rounded-xl border border-border px-5 py-3">
@@ -246,6 +174,7 @@ const DeleteAccountScreen = () => {
             </Text>
           </View>
         )}
+
         {/* 버튼 */}
         <TouchableOpacity
           className="mx-14 mt-20"
