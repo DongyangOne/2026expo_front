@@ -4,8 +4,10 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CheckedIcon from '@/components/ui/icons/checked.svg';
+import UncheckedIcon from '@/components/ui/icons/unchecked.svg';
 import type { RootStackParamList } from '@/navigation/types';
 
+import AgreementCancelModal from './components/AgreementCancelModal';
 import GradientButton from './components/GradientButton';
 import LoginGradientLink from './components/LoginGradientLink';
 import SignupField from './components/SignupField';
@@ -26,7 +28,7 @@ const MOCK_VERIFICATION_CODE = '123456';
 const MOCK_DUPLICATE_ID = 'testuser';
 
 const NAME_PATTERN = /^[가-힣a-zA-Z]{2,8}$/;
-const ID_PATTERN = /^[a-z0-9]{4,12}$/;
+const ID_PATTERN = /^(?=.*[a-z])(?=.*[0-9])[a-z0-9]{4,12}$/;
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{8,16}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -68,7 +70,7 @@ const formatRemainingTime = (totalSeconds: number) => {
   return `${minutes}:${seconds}`;
 };
 
-const SignupScreen = ({ navigation }: Props) => {
+const SignupScreen = ({ navigation, route }: Props) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [emailTouched, setEmailTouched] = useState(false);
@@ -77,12 +79,14 @@ const SignupScreen = ({ navigation }: Props) => {
   );
   const [remainingSeconds, setRemainingSeconds] = useState(EMAIL_CODE_DURATION_SECONDS);
   const [code, setCode] = useState('');
+  const [codeStatus, setCodeStatus] = useState<'idle' | 'mismatch'>('idle');
   const [id, setId] = useState('');
   const [idTouched, setIdTouched] = useState(false);
   const [idStatus, setIdStatus] = useState<'idle' | 'available' | 'duplicate'>('idle');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [agreed, setAgreed] = useState(false);
+  const [showAgreementCancelModal, setShowAgreementCancelModal] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [blinkState, setBlinkState] = useState<{ field: FieldKey; token: number } | null>(null);
@@ -117,7 +121,7 @@ const SignupScreen = ({ navigation }: Props) => {
     }
 
     if (!ID_PATTERN.test(id)) {
-      return '아이디는 영문 소문자와 숫자 4~12자로 입력해 주세요.';
+      return '아이디는 영문 소문자와 숫자를 모두 포함하여 4~12자로 입력해 주세요.';
     }
 
     return '';
@@ -141,6 +145,7 @@ const SignupScreen = ({ navigation }: Props) => {
 
   const nameInvalid = !!nameError;
   const emailInvalid = !!emailFormatError || emailStatus === 'duplicate';
+  const emailNotVerified = emailStatus !== 'sent' && emailStatus !== 'verified';
   const codeInvalid = emailStatus !== 'verified';
   const idInvalid = !!idFormatError || idStatus !== 'available';
   const passwordInvalid = !!passwordError;
@@ -164,11 +169,19 @@ const SignupScreen = ({ navigation }: Props) => {
       return { text: emailFormatError, variant: 'error' };
     }
 
+    if (submitAttempted && emailNotVerified) {
+      return { text: '이메일 인증을 진행해 주세요.', variant: 'error' };
+    }
+
     return { text: '', variant: 'error' };
-  }, [emailStatus, submitAttempted, emailTouched, emailFormatError]);
+  }, [emailStatus, submitAttempted, emailTouched, emailFormatError, emailNotVerified]);
 
   const codeHelper = useMemo((): { text: string; variant: 'error' | 'success' } => {
-    if (emailStatus === 'sent' && code.length === 6 && code !== MOCK_VERIFICATION_CODE) {
+    if (emailStatus === 'verified') {
+      return { text: '이메일 인증이 완료되었습니다.', variant: 'success' };
+    }
+
+    if (codeStatus === 'mismatch') {
       return { text: '인증번호가 일치하지 않습니다.', variant: 'error' };
     }
 
@@ -177,7 +190,7 @@ const SignupScreen = ({ navigation }: Props) => {
     }
 
     return { text: '', variant: 'error' };
-  }, [emailStatus, code, submitAttempted, codeInvalid]);
+  }, [emailStatus, codeStatus, submitAttempted, codeInvalid]);
 
   const idHelper = useMemo((): { text: string; variant: 'error' | 'success' } => {
     if (idStatus === 'duplicate') {
@@ -227,15 +240,42 @@ const SignupScreen = ({ navigation }: Props) => {
     return () => clearTimeout(timer);
   }, [toastMessage]);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (route.params?.agreed) {
+        setAgreed(true);
+        navigation.setParams({ agreed: undefined });
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, route.params?.agreed]);
+
   const handleChangeEmail = (value: string) => {
     setEmail(value);
     setEmailStatus('idle');
     setCode('');
+    setCodeStatus('idle');
   };
 
   const handleChangeId = (value: string) => {
     setId(value.replace(/[^a-z0-9]/g, ''));
     setIdStatus('idle');
+  };
+
+  const handleChangeCode = (value: string) => {
+    setCode(value.replace(/[^0-9]/g, ''));
+    setCodeStatus('idle');
+  };
+
+  const handleCodeConfirm = () => {
+    if (code === MOCK_VERIFICATION_CODE) {
+      setEmailStatus('verified');
+      setToastMessage('이메일 인증이 완료되었습니다.');
+      return;
+    }
+
+    setCodeStatus('mismatch');
   };
 
   const handleEmailVerify = () => {
@@ -271,7 +311,7 @@ const SignupScreen = ({ navigation }: Props) => {
 
   const getFirstInvalidField = (): FieldKey | null => {
     if (nameInvalid) return 'name';
-    if (emailInvalid) return 'email';
+    if (emailInvalid || emailNotVerified) return 'email';
     if (codeInvalid) return 'code';
     if (idInvalid) return 'id';
     if (passwordInvalid) return 'password';
@@ -305,6 +345,40 @@ const SignupScreen = ({ navigation }: Props) => {
   };
 
   const getBlinkToken = (field: FieldKey) => (blinkState?.field === field ? blinkState.token : 0);
+
+  const handlePressAgreement = () => {
+    if (agreed) {
+      setShowAgreementCancelModal(true);
+      return;
+    }
+
+    navigation.navigate('Terms');
+  };
+
+  const handleConfirmAgreementCancel = () => {
+    setAgreed(false);
+    setShowAgreementCancelModal(false);
+  };
+
+  const renderAgreementIcon = () => {
+    if (agreed) {
+      return (
+        <View className="size-[16px] items-center justify-center rounded-[4px] bg-purple">
+          <CheckedIcon height={9} width={10} />
+        </View>
+      );
+    }
+
+    if (submitAttempted && agreedInvalid) {
+      return (
+        <View className="size-[16px] items-center justify-center rounded-[4px] border-2 border-error bg-white">
+          <UncheckedIcon height={12} width={12} />
+        </View>
+      );
+    }
+
+    return <UncheckedIcon height={16} width={16} />;
+  };
 
   return (
     <View className="flex-1 bg-background">
@@ -346,32 +420,26 @@ const SignupScreen = ({ navigation }: Props) => {
             />
           </View>
 
-          <View className="mt-[5px]">
-            <VerificationCodeField
-              blinkToken={getBlinkToken('code')}
-              helperText={codeHelper.text}
-              helperVariant={codeHelper.variant}
-              label="인증번호"
-              placeholder="인증번호를 입력해 주세요."
-              remainingLabel={
-                emailStatus === 'sent' ? formatRemainingTime(remainingSeconds) : '05:00'
-              }
-              value={code}
-              onChangeText={(value) => {
-                const sanitized = value.replace(/[^0-9]/g, '');
-                setCode(sanitized);
-
-                if (
-                  emailStatus === 'sent' &&
-                  sanitized.length === 6 &&
-                  sanitized === MOCK_VERIFICATION_CODE
-                ) {
-                  setEmailStatus('verified');
-                  setToastMessage('이메일 인증 완료');
+          {(emailStatus === 'sent' || emailStatus === 'verified') && (
+            <View className="mt-[5px]">
+              <VerificationCodeField
+                actionDisabled={code.length !== 6}
+                actionLabel="확인"
+                blinkToken={getBlinkToken('code')}
+                gradientId="signup-code-confirm-gradient"
+                helperText={codeHelper.text}
+                helperVariant={codeHelper.variant}
+                label="인증번호"
+                placeholder="인증번호를 입력해 주세요."
+                remainingLabel={
+                  emailStatus === 'sent' ? formatRemainingTime(remainingSeconds) : '05:00'
                 }
-              }}
-            />
-          </View>
+                value={code}
+                onChangeText={handleChangeCode}
+                onPressAction={handleCodeConfirm}
+              />
+            </View>
+          )}
 
           <View className="mt-[5px]">
             <SignupFieldWithAction
@@ -419,17 +487,8 @@ const SignupScreen = ({ navigation }: Props) => {
           <Pressable
             className="ml-[14px] mt-[3px] flex-row items-center self-start"
             hitSlop={8}
-            onPress={() => setAgreed((current) => !current)}>
-            <View
-              className={`size-[16px] items-center justify-center rounded-[4px] ${
-                agreed
-                  ? 'bg-purple'
-                  : submitAttempted && agreedInvalid
-                  ? 'border-2 border-pink bg-white'
-                  : 'bg-border'
-              }`}>
-              {agreed ? <CheckedIcon height={9} width={10} /> : null}
-            </View>
+            onPress={handlePressAgreement}>
+            {renderAgreementIcon()}
             <Text
               className="ml-[6px] font-notoSansKRDemiLight text-sm text-black"
               style={{ includeFontPadding: false }}>
@@ -462,6 +521,12 @@ const SignupScreen = ({ navigation }: Props) => {
       </SafeAreaView>
 
       <SignupToast message={toastMessage ?? ''} visible={!!toastMessage} />
+
+      <AgreementCancelModal
+        visible={showAgreementCancelModal}
+        onCancel={() => setShowAgreementCancelModal(false)}
+        onConfirm={handleConfirmAgreementCancel}
+      />
     </View>
   );
 };

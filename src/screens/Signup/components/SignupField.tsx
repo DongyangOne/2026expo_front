@@ -30,7 +30,7 @@ const SignupField = ({
   onChangeText,
 }: SignupFieldProps) => {
   const flashOn = useBlink(blinkToken);
-  const helperColorClassName = helperVariant === 'success' ? 'text-success' : 'text-pink';
+  const helperColorClassName = helperVariant === 'success' ? 'text-success' : 'text-error';
 
   return (
     <View className="w-full">

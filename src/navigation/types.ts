@@ -10,8 +10,9 @@ export type RootTabParamList = {
 
 export type RootStackParamList = {
   MobileTabs: NavigatorScreenParams<RootTabParamList> | undefined;
-  Signup: undefined;
+  Signup: { agreed?: boolean } | undefined;
   SignupComplete: undefined;
+  Terms: undefined;
   TabletMain: undefined;
   TabletLogin: undefined;
   TabletSignup: undefined;

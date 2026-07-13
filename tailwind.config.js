@@ -24,6 +24,7 @@ module.exports = {
         purple: '#7B61FF', //보라색
         pink: '#FF4FD8', //핑크
         success: '#00AA58', //성공/정상
+        error: '#FF3B30', //경고/에러
       },
       fontFamily: {
         notoSansKRDemiLight: ['NotoSansKR-DemiLight'],
