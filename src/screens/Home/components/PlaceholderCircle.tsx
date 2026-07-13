@@ -12,7 +12,7 @@ const PlaceholderCircle = ({ size, source }: PlaceholderCircleProps) => {
   if (source) {
     return (
       <Image
-        className="rounded-full border border-placeholderBorder bg-placeholder"
+        className="rounded-full bg-placeholder"
         resizeMode="cover"
         source={source}
         style={{ width: size, height: size }}
