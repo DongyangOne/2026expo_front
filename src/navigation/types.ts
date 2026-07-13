@@ -9,6 +9,7 @@ export type RootTabParamList = {
 };
 
 export type RootStackParamList = {
+  Splash: undefined;
   MobileTabs: NavigatorScreenParams<RootTabParamList> | undefined;
   TabletMain: undefined;
   TabletLogin: undefined;
