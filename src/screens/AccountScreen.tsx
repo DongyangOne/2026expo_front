@@ -17,7 +17,13 @@ const AccountScreen = () => {
     <SafeAreaView edges={['top']} className="bg-primary-backgorund flex-1">
       <View className="mx-11 flex-1">
         {/* 타이틀 */}
-        <Text className="mb-5 mt-11 text-center font-notoSansKRBold text-xl text-black">
+        <Text
+          className="mb-5 mt-11 text-center font-notoSansKRBold text-xl text-black"
+          style={{
+            textShadowColor: 'rgba(17, 24, 39, 0.25)',
+            textShadowOffset: { width: 0, height: 4 },
+            textShadowRadius: 3,
+          }}>
           프로필
         </Text>
 
@@ -32,7 +38,7 @@ const AccountScreen = () => {
         {/* 아이디 */}
         <View className="mt-7">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">아이디</Text>
-          <View className="rounded-xl border border-border bg-white px-3">
+          <View className="android:elevation-md rounded-xl border border-border bg-white px-3 shadow-md">
             <TextInput className="text-sm text-black" placeholder="cye4526"></TextInput>
           </View>
         </View>
@@ -40,27 +46,35 @@ const AccountScreen = () => {
         {/* 이메일 */}
         <View className="mt-4">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">이메일</Text>
-          <View className="rounded-xl border border-border bg-white px-3">
+          <View className="android:elevation-md rounded-xl border border-border bg-white px-3 shadow-md">
             <TextInput className="text-sm text-black" placeholder="cye4526@naver.com"></TextInput>
           </View>
         </View>
 
         {/* 프로필 수정 / 로그아웃 */}
         <TouchableOpacity
-          className="mt-20 flex-row items-center justify-between rounded-xl border border-border bg-white px-3 py-4"
+          className="android:elevation-md mt-20 flex-row items-center justify-between rounded-xl border border-border bg-white px-3 py-4 shadow-md"
           onPress={handleCheck}>
           <Text className="font-notoSansKRDemiLight text-sm text-body">프로필 수정</Text>
           <Arrow></Arrow>
         </TouchableOpacity>
 
-        <TouchableOpacity className="mt-2 flex-row items-center justify-between rounded-xl border border-border bg-white px-3 py-4">
+        <TouchableOpacity className="android:elevation-md mt-2 flex-row items-center justify-between rounded-xl border border-border bg-white px-3 py-4 shadow-md">
           <Text className="font-notoSansKRDemiLight text-sm text-body">로그아웃</Text>
           <Arrow></Arrow>
         </TouchableOpacity>
 
         {/* 회원 탈퇴 */}
         <TouchableOpacity>
-          <Text className="mt-16 text-center font-notoSansKRBold text-sm text-body">회원 탈퇴</Text>
+          <Text
+            className="mt-16 text-center font-notoSansKRBold text-sm text-body"
+            style={{
+              textShadowColor: 'rgba(17, 24, 39, 0.25)',
+              textShadowOffset: { width: 0, height: 4 },
+              textShadowRadius: 3,
+            }}>
+            회원 탈퇴
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
