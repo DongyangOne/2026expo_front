@@ -5,3 +5,8 @@ declare module '*.svg' {
   const content: FC<SvgProps>;
   export default content;
 }
+
+declare module '*.mp4' {
+  const content: NodeRequire;
+  export default content;
+}

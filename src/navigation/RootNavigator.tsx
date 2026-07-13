@@ -10,6 +10,7 @@ import TabletLogin from '@/screens/tablet/TabletLogin';
 import TabletReport from '@/screens/tablet/TabletReport';
 import TabletSignup from '@/screens/tablet/TabletSignup';
 import TabNavigator from './TabNavigator';
+import TabletTrashFeedbackScreen from '@/screens/tablet/TabletTrashFeedbackScreen';
 
 import type { RootStackParamList } from './types';
 
@@ -33,6 +34,7 @@ const RootNavigator = () => {
       <Stack.Screen name="FindId" component={FindIdScreen} />
       <Stack.Screen name="FindIdSuccess" component={FindIdSuccessScreen} />
       <Stack.Screen name="FindIdResult" component={FindIdResultScreen} />
+      <Stack.Screen name="TabletTrashFeedback" component={TabletTrashFeedbackScreen} />
     </Stack.Navigator>
   );
 };
