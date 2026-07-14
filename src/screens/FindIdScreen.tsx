@@ -15,7 +15,7 @@ const CORRECT_CODE = '123456'; // TODO: 임시 코드, 실제 인증 API 연동 
 const TOAST_DURATION = 2000;
 
 const InlineError = ({ message }: { message: string }) => (
-  <View className="ml-6 mt-2 flex-row items-center gap-1">
+  <View className="ml-4 mt-2 flex-row items-center gap-1">
     <InfoIcon width={12} height={12} />
     <Text className="font-notoSansKRRegular text-sm text-gray">{message}</Text>
   </View>
@@ -77,6 +77,10 @@ const FindIdScreen = ({ navigation }: FindIdScreenProps) => {
   };
 
   const handleVerify = (): void => {
+    if (!email.trim()) {
+      showToast('이메일을 입력해주세요');
+      return;
+    }
     if (isCodeSent && timeLeft === 0) {
       showToast('시간초과, 다시 입력해 주세요');
       return;
@@ -112,7 +116,7 @@ const FindIdScreen = ({ navigation }: FindIdScreenProps) => {
           className="flex-1"
           contentContainerClassName="flex-grow px-10 pt-14 pb-10"
           keyboardShouldPersistTaps="handled">
-          <Text className="mb-12 text-center font-notoSansKRDemiLight text-[15px] leading-7 text-body">
+          <Text className="mb-20 text-center font-notoSansKRDemiLight text-[15px] leading-7 text-black">
             {'가입 시 등록한 정보로\n아이디를 찾을 수 있습니다.'}
           </Text>
 
@@ -175,21 +179,19 @@ const FindIdScreen = ({ navigation }: FindIdScreenProps) => {
         </ScrollView>
       </KeyboardAvoidingView>
       {/* 키보드에 영향받지 않도록 KeyboardAvoidingView 밖에 고정 */}
-      <View className="bg-background px-8 pb-44">
+      <View className="bg-background px-16 pb-44">
         <View className="relative">
           <GradientButton
             label="본인인증 하기"
             onPress={handleVerify}
             height={54}
-            borderRadius={27}
+            borderRadius={28}
             fontSize={16}
           />
           {toastMessage && (
             <View className="absolute left-0 right-0 top-full mt-7 items-center">
               <View className="rounded-md bg-disabledBg px-5 py-3">
-                <Text className="font-notoSansKRDemiLight text-xs text-black">
-                  {toastMessage}
-                </Text>
+                <Text className="font-notoSansKRDemiLight text-xs text-black">{toastMessage}</Text>
               </View>
             </View>
           )}

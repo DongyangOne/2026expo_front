@@ -13,7 +13,7 @@ const TopBar = ({ title, onBack }: TopBarProps) => {
 
   return (
     <View style={{ paddingTop: insets.top + 12 }} className="bg-background">
-      <View className="flex-row items-center px-10 pb-4">
+      <View className="ml-12 mt-9 flex-row items-center pb-4">
         {onBack ? (
           <TouchableOpacity
             className="w-10 items-start justify-center"
@@ -29,7 +29,7 @@ const TopBar = ({ title, onBack }: TopBarProps) => {
         ) : (
           <View className="w-10" />
         )}
-        <Text className="flex-1 text-center font-notoSansKRBold text-xl text-black">{title}</Text>
+        <Text className="mx-16 flex-1 font-notoSansKRBold text-xl text-black">{title}</Text>
         <View className="w-10" />
       </View>
     </View>
