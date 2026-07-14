@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
@@ -14,7 +14,7 @@ const AccountScreen = () => {
 
   const handleCheck = () => navigation.navigate('UserAuth');
   return (
-    <SafeAreaView edges={['top']} className="bg-primary-backgorund flex-1">
+    <SafeAreaView edges={['top']} className="bg-backgorund flex-1">
       <View className="mx-11 flex-1">
         {/* 타이틀 */}
         <Text
@@ -39,7 +39,7 @@ const AccountScreen = () => {
         <View className="mt-7">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">아이디</Text>
           <View className="android:elevation-md rounded-xl border border-border bg-white px-3 shadow-md">
-            <TextInput className="text-sm text-black" placeholder="cye4526"></TextInput>
+            <Text className="py-3 text-sm text-black">cye4526</Text>
           </View>
         </View>
 
@@ -47,7 +47,7 @@ const AccountScreen = () => {
         <View className="mt-4">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">이메일</Text>
           <View className="android:elevation-md rounded-xl border border-border bg-white px-3 shadow-md">
-            <TextInput className="text-sm text-black" placeholder="cye4526@naver.com"></TextInput>
+            <Text className="py-3 text-sm text-black">cye4526@naver.com</Text>
           </View>
         </View>
 
