@@ -111,7 +111,7 @@ const FindIdScreen = ({ navigation }: FindIdScreenProps) => {
       <KeyboardAvoidingView
         className="flex-1 bg-background"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <TopBar title="아이디 찾기" onBack={() => navigation.goBack()} />
+        <TopBar title="아이디 찾기" onPress={() => navigation.goBack()} />
         <ScrollView
           className="flex-1"
           contentContainerClassName="flex-grow px-10 pt-14 pb-10"
