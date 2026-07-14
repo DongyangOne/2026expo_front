@@ -26,6 +26,82 @@ const WITHDRAW_REASONS = [
 // 백엔드 연동 전까지 임시로 고정된 값을 사용합니다.
 const TEMP_CURRENT_PASSWORD = 'Test1234!';
 
+// TODO: 실제로는 서버에서 "최근 사용한 비밀번호 3개" 이력을 받아와야 합니다.
+// 백엔드 연동 전까지 임시로 고정된 값을 사용합니다.
+const TEMP_RECENT_PASSWORDS = ['OldPass12!', 'OldPass34!', 'OldPass56!'];
+
+// ---- 비밀번호 형식 규칙 ----
+const SPECIAL_CHARS = `!@#$%^&*()_+\\-=\\[\\]{};':"\\\\|,.<>/?~\``;
+// 영문 + 숫자 + 특수문자만 허용 (한글/공백 등은 이 셋에 없으므로 자동 차단됨), 8~16자
+const ALLOWED_LENGTH_REGEX = new RegExp(`^[A-Za-z0-9${SPECIAL_CHARS}]{8,16}$`);
+const HAS_LETTER_REGEX = /[A-Za-z]/;
+const HAS_DIGIT_REGEX = /\d/;
+const HAS_SPECIAL_REGEX = new RegExp(`[${SPECIAL_CHARS}]`);
+
+// 키보드 상단 행 기준 연속 문자열 (필요 시 다른 행 추가 가능)
+const KEYBOARD_ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', '1234567890'];
+
+// 문자 코드가 1씩 증가/감소하는 연속 문자인지 확인 (예: abcd, 4321)
+const isCodeSequential = (slice: string) => {
+  let ascending = true;
+  let descending = true;
+  for (let i = 0; i < slice.length - 1; i += 1) {
+    const diff = slice.charCodeAt(i + 1) - slice.charCodeAt(i);
+    if (diff !== 1) ascending = false;
+    if (diff !== -1) descending = false;
+  }
+  return ascending || descending;
+};
+
+// 키보드 배열 기준 연속 문자인지 확인 (예: qwer, rewq)
+const isKeyboardSequential = (slice: string) => {
+  return KEYBOARD_ROWS.some((row) => {
+    return row.includes(slice) || row.split('').reverse().join('').includes(slice);
+  });
+};
+
+// 비밀번호 내에 4자리 이상 연속된 문자/숫자가 있는지 검사
+const hasSequentialChars = (password: string, minLength = 4) => {
+  const lower = password.toLowerCase();
+  for (let i = 0; i <= lower.length - minLength; i += 1) {
+    const slice = lower.slice(i, i + minLength);
+    if (isCodeSequential(slice) || isKeyboardSequential(slice)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+// 비밀번호 "형식" 검증 결과와 안내 메시지를 함께 반환
+const validatePasswordFormat = (password: string): { isValid: boolean; message: string } => {
+  if (password.length === 0) {
+    return { isValid: false, message: '' };
+  }
+  if (!ALLOWED_LENGTH_REGEX.test(password)) {
+    return {
+      isValid: false,
+      message: '8~16자의 영문, 숫자, 특수문자만 사용할 수 있어요. (한글, 공백 불가)',
+    };
+  }
+  if (
+    !HAS_LETTER_REGEX.test(password) ||
+    !HAS_DIGIT_REGEX.test(password) ||
+    !HAS_SPECIAL_REGEX.test(password)
+  ) {
+    return {
+      isValid: false,
+      message: '영문, 숫자, 특수문자를 모두 포함해 주세요.',
+    };
+  }
+  if (hasSequentialChars(password)) {
+    return {
+      isValid: false,
+      message: '연속된 문자나 숫자는 4자리 이상 사용할 수 없어요. (예: 1234, abcd, qwer)',
+    };
+  }
+  return { isValid: true, message: '' };
+};
+
 const DeleteAccountScreen = () => {
   const { colors } = tailwindConfig.theme.extend;
 
@@ -37,16 +113,12 @@ const DeleteAccountScreen = () => {
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
 
-  // 입력한 비밀번호가 실제 계정 비밀번호와 일치하는지 (임시로 하드코딩된 값과 비교)
-  const isCorrectPassword = useMemo(() => {
-    if (password.length === 0) return false;
-    return password === TEMP_CURRENT_PASSWORD;
-  }, [password]);
+  // 버튼 클릭(다음 페이지 이동) 시에만 사용할 에러 메시지
+  // (실제 비밀번호 불일치 / 최근 사용 비밀번호 재사용 등 "제출 시점"에만 확인 가능한 오류)
+  const [submitError, setSubmitError] = useState('');
 
-  const passwordMessage = useMemo(() => {
-    if (password.length === 0) return '';
-    return isCorrectPassword ? '' : '비밀번호가 일치하지 않아요.';
-  }, [password, isCorrectPassword]);
+  // 비밀번호 "형식" 검증 (실제 계정 비밀번호와의 일치 여부와는 무관)
+  const passwordFormatResult = useMemo(() => validatePasswordFormat(password), [password]);
 
   const confirmResult = useMemo(() => {
     if (passwordConfirm.length === 0) {
@@ -58,6 +130,8 @@ const DeleteAccountScreen = () => {
     return { isValid: true, message: '비밀번호가 일치해요.' };
   }, [password, passwordConfirm]);
 
+  // 버튼 활성화 조건: 형식 조건 + 비밀번호 확인 일치 여부만 체크
+  // (실제 계정 비밀번호와 같은지는 여기서 체크하지 않음)
   const isNextEnabled = useMemo(() => {
     if (selected === null) {
       return false;
@@ -65,21 +139,41 @@ const DeleteAccountScreen = () => {
     if (selected === '기타' && etcText.trim().length === 0) {
       return false;
     }
-    return isCorrectPassword && confirmResult.isValid;
-  }, [selected, etcText, isCorrectPassword, confirmResult.isValid]);
+    return passwordFormatResult.isValid && confirmResult.isValid;
+  }, [selected, etcText, passwordFormatResult.isValid, confirmResult.isValid]);
+
+  const handlePasswordChange = (text: string) => {
+    setPassword(text);
+    if (submitError) setSubmitError('');
+  };
 
   const handleNext = () => {
     if (!isNextEnabled) return;
+
+    // 1) 실제 계정 비밀번호와 다르면 페이지 이동 없이 에러만 표시
+    if (password !== TEMP_CURRENT_PASSWORD) {
+      setSubmitError('비밀번호가 올바르지 않아요. 다시 확인해 주세요.');
+      return;
+    }
+
+    // 2) 최근 사용한 비밀번호 3개와 동일하면 페이지 이동 없이 에러만 표시
+    // TODO: 실제로는 서버 응답으로 재사용 여부를 판단해야 합니다.
+    if (TEMP_RECENT_PASSWORDS.includes(password)) {
+      setSubmitError('최근에 사용한 비밀번호는 다시 사용할 수 없어요.');
+      return;
+    }
+
+    setSubmitError('');
     navigation.navigate('DeleteComplete');
   };
 
   return (
-    <SafeAreaView edges={['top']} className="bg-primary-backgorund flex-1 px-5 pt-6">
+    <SafeAreaView edges={['top']} className="bg-backgorund flex-1 px-5 pb-6 pt-6">
       <ScrollView>
         <View className="relative flex-row items-center ">
           {/* 뒤로가기 버튼 */}
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <BackArrow width={20} height={20} />
+          <TouchableOpacity onPress={() => navigation.goBack()} className="ml-[23px] mt-[32px]">
+            <BackArrow />
           </TouchableOpacity>
         </View>
         <Text className="mt-20 text-center font-notoSansKRBold text-xl text-black">
@@ -118,16 +212,17 @@ const DeleteAccountScreen = () => {
               <TextInput
                 className="text-sm text-black"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={handlePasswordChange}
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholder="비밀번호를 입력해 주세요"
+                maxLength={16}
+                placeholder="8~16자 영문, 숫자, 특수문자를 입력해 주세요"
               />
             </View>
-            {passwordMessage.length > 0 && (
+            {passwordFormatResult.message.length > 0 && (
               <Text className="mt-1 font-notoSansKRRegular text-xs text-red-500">
-                {passwordMessage}
+                {passwordFormatResult.message}
               </Text>
             )}
           </View>
@@ -143,23 +238,30 @@ const DeleteAccountScreen = () => {
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
+                maxLength={16}
                 placeholder="비밀번호를 다시 입력해 주세요"
               />
             </View>
             {confirmResult.message.length > 0 && (
               <Text
                 className={`mt-1 font-notoSansKRRegular text-xs ${
-                  confirmResult.isValid ? 'text-purple' : 'text-red-500'
+                  confirmResult.isValid ? 'text-green-500' : 'text-red-500'
                 }`}>
                 {confirmResult.message}
               </Text>
             )}
           </View>
+          {/* 실제 비밀번호 불일치 / 최근 비밀번호 재사용 등 제출 시점 에러 메시지 */}
+          {submitError.length > 0 && (
+            <Text className="mx-11 mt-2 font-notoSansKRRegular text-xs text-red-500">
+              {submitError}
+            </Text>
+          )}
         </>
 
         {/* 기타 선택 시에만 입력창 노출 */}
         {selected === '기타' && (
-          <View className="mx-11 mt-2 min-h-[200px] rounded-xl border border-border px-5 py-3">
+          <View className="mx-11 mt-6 min-h-[200px] rounded-xl border border-border bg-white px-5 py-3">
             <TextInput
               className="flex-1 font-notoSansKRRegular text-sm text-black"
               placeholder="떠나시는 이유를 작성해 주세요."
