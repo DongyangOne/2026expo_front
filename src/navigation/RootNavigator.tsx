@@ -6,15 +6,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
-  HomeIcon,
-  SearchIcon,
-  QuizIcon,
-  FeedbackIcon,
   AccountIcon,
+  FeedbackIcon,
+  HomeIcon,
+  QuizIcon,
+  SearchIcon,
   TabBarLabel,
 } from '@/components/ui';
 import { COLORS } from '@/constants';
-import HomeScreen from '@/screens/HomeScreen';
+import HomeScreen from '@/screens/Home';
 import SearchScreen from '@/screens/SearchScreen';
 import QuizScreen from '@/screens/QuizScreen';
 import FeedbackScreen from '@/screens/FeedbackScreen';
@@ -30,8 +30,10 @@ import type { RootStackParamList, RootTabParamList } from './types';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-const INACTIVE_COLOR = '#9CA3AF';
 const TABLET_MIN_DP = 600;
+
+/** 비활성 탭 아이콘 색상 (활성 탭은 아이콘/라벨 컴포넌트가 그라데이션으로 처리) */
+const INACTIVE_TAB_COLOR = '#9CA3AF';
 
 const MobileTabs = () => {
   const insets = useSafeAreaInsets();
@@ -56,9 +58,9 @@ const MobileTabs = () => {
         component={HomeScreen}
         options={{
           tabBarIcon: ({ focused, size }) => (
-            <HomeIcon active={focused} color={INACTIVE_COLOR} size={size} />
+            <HomeIcon active={focused} color={INACTIVE_TAB_COLOR} size={size} />
           ),
-          tabBarLabel: ({ focused }) => <TabBarLabel label="홈" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label="홈" />,
         }}
       />
       <Tab.Screen
@@ -66,9 +68,9 @@ const MobileTabs = () => {
         component={SearchScreen}
         options={{
           tabBarIcon: ({ focused, size }) => (
-            <SearchIcon active={focused} color={INACTIVE_COLOR} size={size} />
+            <SearchIcon active={focused} color={INACTIVE_TAB_COLOR} size={size} />
           ),
-          tabBarLabel: ({ focused }) => <TabBarLabel label="검색" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label="검색" />,
         }}
       />
       <Tab.Screen
@@ -76,9 +78,9 @@ const MobileTabs = () => {
         component={QuizScreen}
         options={{
           tabBarIcon: ({ focused, size }) => (
-            <QuizIcon active={focused} color={INACTIVE_COLOR} size={size} />
+            <QuizIcon active={focused} color={INACTIVE_TAB_COLOR} size={size} />
           ),
-          tabBarLabel: ({ focused }) => <TabBarLabel label="퀴즈" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label="퀴즈" />,
         }}
       />
       <Tab.Screen
@@ -86,9 +88,9 @@ const MobileTabs = () => {
         component={FeedbackScreen}
         options={{
           tabBarIcon: ({ focused, size }) => (
-            <FeedbackIcon active={focused} color={INACTIVE_COLOR} size={size} />
+            <FeedbackIcon active={focused} color={INACTIVE_TAB_COLOR} size={size} />
           ),
-          tabBarLabel: ({ focused }) => <TabBarLabel label="피드백" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label="피드백" />,
         }}
       />
       <Tab.Screen
@@ -96,9 +98,9 @@ const MobileTabs = () => {
         component={AccountScreen}
         options={{
           tabBarIcon: ({ focused, size }) => (
-            <AccountIcon active={focused} color={INACTIVE_COLOR} size={size} />
+            <AccountIcon active={focused} color={INACTIVE_TAB_COLOR} size={size} />
           ),
-          tabBarLabel: ({ focused }) => <TabBarLabel label="마이" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label="마이" />,
         }}
       />
     </Tab.Navigator>
