@@ -24,7 +24,7 @@ const WITHDRAW_REASONS = [
 
 // TODO: 실제로는 서버에서 현재 로그인된 사용자의 비밀번호를 검증해야 합니다.
 // 백엔드 연동 전까지 임시로 고정된 값을 사용합니다.
-const TEMP_CURRENT_PASSWORD = 'Test1234!';
+const TEMP_CURRENT_PASSWORD = 'Test1423!';
 
 // TODO: 실제로는 서버에서 "최근 사용한 비밀번호 3개" 이력을 받아와야 합니다.
 // 백엔드 연동 전까지 임시로 고정된 값을 사용합니다.
@@ -130,6 +130,15 @@ const DeleteAccountScreen = () => {
     return { isValid: true, message: '비밀번호가 일치해요.' };
   }, [password, passwordConfirm]);
 
+  // 비밀번호 확인 밑에 보여줄 메시지를 하나로 통합
+  // 우선순위: 제출 시점 에러(비밀번호 불일치, 최근 비밀번호 재사용 등) > 단순 확인 일치 여부
+  const confirmDisplay = useMemo(() => {
+    if (submitError.length > 0) {
+      return { message: submitError, isValid: false };
+    }
+    return confirmResult;
+  }, [submitError, confirmResult]);
+
   // 버튼 활성화 조건: 형식 조건 + 비밀번호 확인 일치 여부만 체크
   // (실제 계정 비밀번호와 같은지는 여기서 체크하지 않음)
   const isNextEnabled = useMemo(() => {
@@ -168,7 +177,7 @@ const DeleteAccountScreen = () => {
   };
 
   return (
-    <SafeAreaView edges={['top']} className="bg-backgorund flex-1 px-5 pb-6 pt-6">
+    <SafeAreaView edges={['top']} className="flex-1 bg-background px-5 pb-6 pt-6">
       <ScrollView>
         <View className="relative flex-row items-center ">
           {/* 뒤로가기 버튼 */}
@@ -220,11 +229,6 @@ const DeleteAccountScreen = () => {
                 placeholder="8~16자 영문, 숫자, 특수문자를 입력해 주세요"
               />
             </View>
-            {passwordFormatResult.message.length > 0 && (
-              <Text className="mt-1 font-notoSansKRRegular text-xs text-red-500">
-                {passwordFormatResult.message}
-              </Text>
-            )}
           </View>
 
           {/* 비밀번호 확인 */}
@@ -242,26 +246,20 @@ const DeleteAccountScreen = () => {
                 placeholder="비밀번호를 다시 입력해 주세요"
               />
             </View>
-            {confirmResult.message.length > 0 && (
+            {confirmDisplay.message.length > 0 && (
               <Text
                 className={`mt-1 font-notoSansKRRegular text-xs ${
-                  confirmResult.isValid ? 'text-green-500' : 'text-red-500'
+                  confirmDisplay.isValid ? 'text-green-500' : 'text-red-500'
                 }`}>
-                {confirmResult.message}
+                {confirmDisplay.message}
               </Text>
             )}
           </View>
-          {/* 실제 비밀번호 불일치 / 최근 비밀번호 재사용 등 제출 시점 에러 메시지 */}
-          {submitError.length > 0 && (
-            <Text className="mx-11 mt-2 font-notoSansKRRegular text-xs text-red-500">
-              {submitError}
-            </Text>
-          )}
         </>
 
         {/* 기타 선택 시에만 입력창 노출 */}
         {selected === '기타' && (
-          <View className="mx-11 mt-6 min-h-[200px] rounded-xl border border-border bg-white px-5 py-3">
+          <View className="mx-11 mt-11 min-h-[200px] rounded-xl border border-border bg-white px-5 py-3">
             <TextInput
               className="flex-1 font-notoSansKRRegular text-sm text-black"
               placeholder="떠나시는 이유를 작성해 주세요."
