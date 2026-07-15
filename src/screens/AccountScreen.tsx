@@ -14,7 +14,7 @@ const AccountScreen = () => {
 
   const handleCheck = () => navigation.navigate('UserAuth');
   return (
-    <SafeAreaView edges={['top']} className="bg-backgorund flex-1">
+    <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <View className="mx-11 flex-1">
         {/* 타이틀 */}
         <Text

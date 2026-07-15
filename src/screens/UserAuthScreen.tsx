@@ -21,6 +21,9 @@ const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 // TODO: 실제로는 서버에서 전송한 인증코드와 비교해야 함. 지금은 임의값으로 고정.
 const MOCK_CORRECT_AUTH_CODE = '123456';
 
+// TODO: 실제로는 서버에 등록된 사용자인지 조회해야 함. 지금은 임의값으로 고정.
+const MOCK_REGISTERED_USERS = [{ id: 'testuser', email: 'test@example.com' }];
+
 const formatTime = (totalSeconds: number): string => {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
@@ -30,6 +33,7 @@ const formatTime = (totalSeconds: number): string => {
 const UserAuthScreen = () => {
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
+  const [userId, setUserId] = useState('');
   const [email, setEmail] = useState('');
   const [authCode, setAuthCode] = useState('');
 
@@ -40,6 +44,8 @@ const UserAuthScreen = () => {
   // 시간 만료 여부
   const [isExpired, setIsExpired] = useState(false);
 
+  // 등록되지 않은 사용자 오류 문구 (아이디/이메일 공통으로 사용)
+  const [userNotFoundError, setUserNotFoundError] = useState('');
   // 이메일 형식 오류 문구
   const [emailError, setEmailError] = useState('');
   // 인증코드 불일치 오류 문구
@@ -75,6 +81,7 @@ const UserAuthScreen = () => {
     useCallback(() => {
       clearTimer();
 
+      setUserId('');
       setEmail('');
       setAuthCode('');
       setIsCodeSent(false);
@@ -102,6 +109,18 @@ const UserAuthScreen = () => {
     }
 
     setEmailError('');
+
+    // 등록된 아이디/이메일인지 체크
+    // TODO: 실제로는 서버 응답으로 존재 여부를 판단해야 함
+    const isRegistered = MOCK_REGISTERED_USERS.some(
+      (user) => user.id === userId.trim() && user.email === email.trim(),
+    );
+    if (!isRegistered) {
+      setUserNotFoundError('존재하지 않는 사용자입니다.');
+      return;
+    }
+    setUserNotFoundError('');
+
     // TODO: 실제 이메일 인증코드 전송 API 호출
     setAuthCode('');
     setAuthCodeError('');
@@ -113,7 +132,7 @@ const UserAuthScreen = () => {
     if (!isCodeSent || isExpired || authCode.trim().length === 0) return;
 
     if (authCode.trim() !== MOCK_CORRECT_AUTH_CODE) {
-      setAuthCodeError('인증코드가 일치하지 않아요.');
+      setAuthCodeError('인증코드가 일치하지 않습니다.');
       return;
     }
 
@@ -139,8 +158,23 @@ const UserAuthScreen = () => {
         <View className="mt-52">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">아이디</Text>
           <View className="rounded-xl border border-border bg-white px-3">
-            <TextInput className="text-sm text-black"></TextInput>
+            <TextInput
+              className="text-sm text-black"
+              value={userId}
+              onChangeText={(text) => {
+                setUserId(text);
+                setUserNotFoundError('');
+              }}
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="아이디를 입력해 주세요"
+            />
           </View>
+          {userNotFoundError !== '' && (
+            <Text className="mt-1 font-notoSansKRRegular text-xs text-red">
+              {userNotFoundError}
+            </Text>
+          )}
         </View>
 
         {/* 이메일 */}
@@ -154,6 +188,7 @@ const UserAuthScreen = () => {
                 onChangeText={(text) => {
                   setEmail(text);
                   setEmailError('');
+                  setUserNotFoundError('');
                 }}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -167,7 +202,7 @@ const UserAuthScreen = () => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 className="-ml-2 rounded-xl px-5 py-3">
-                <Text className="text-sm text-white">{isCodeSent ? '재전송' : '이메일 인증'}</Text>
+                <Text className="text-sm text-white">이메일 인증</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>

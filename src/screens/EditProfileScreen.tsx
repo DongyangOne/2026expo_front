@@ -53,7 +53,11 @@ const EditProfileScreen = () => {
     return false;
   };
 
-  const handleSubmit = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  // 아이디 중복 등 서버 응답 기반 에러 (예: 이미 사용중인 아이디)
+  const [submitError, setSubmitError] = useState('');
+
+  const handleSubmit = async () => {
     if (!ID_REGEX.test(id)) {
       setIdError('최소 4자 이상, 최대 12자 이하, 영문 소문자와 숫자만 사용할 수 있습니다.');
       return;
@@ -79,7 +83,26 @@ const EditProfileScreen = () => {
       return;
     }
 
-    navigation.navigate('Account');
+    setSubmitError('');
+    setIsSubmitting(true);
+
+    try {
+      // TODO: 실제 프로필 수정 API 호출로 교체
+      // 예: const response = await api.patch('/user/profile', { id, password, email });
+      await new Promise((resolve) => setTimeout(resolve, 500)); // 임시: 서버 응답 흉내
+
+      // TODO: 서버가 "이미 사용중인 아이디입니다" 같은 에러를 응답하면 여기서 처리
+      // if (response.error === 'DUPLICATE_ID') {
+      //   setIdError('이미 사용중인 아이디입니다.');
+      //   return;
+      // }
+
+      navigation.navigate('Account');
+    } catch (error) {
+      setSubmitError('프로필 수정에 실패했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
