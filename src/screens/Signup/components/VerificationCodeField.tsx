@@ -47,7 +47,7 @@ const VerificationCodeField = ({
       <View className="relative justify-center">
         <TextInput
           autoCapitalize="none"
-          className="h-[43.5px] rounded-[9.25px] border border-border bg-white py-0 pl-[14px] pr-[165px] font-notoSansKRDemiLight text-sm text-black"
+          className="h-[43.5px] rounded-[9.25px] border border-border bg-white py-0 pl-[14px] pr-[127px] font-notoSansKRDemiLight text-sm text-black"
           keyboardType="number-pad"
           maxLength={6}
           placeholder={placeholder}
@@ -58,12 +58,12 @@ const VerificationCodeField = ({
           onChangeText={onChangeText}
         />
         <Text
-          className="absolute right-[110px] font-notoSansKRDemiLight text-sm text-pink"
+          className="absolute right-[72px] font-notoSansKRDemiLight text-sm text-error"
           style={{ includeFontPadding: false }}>
           {remainingLabel}
         </Text>
         <GradientButton
-          className="absolute right-0 top-0 h-[45px] w-[98px] rounded-[10px]"
+          className="absolute right-0 top-0 h-[45px] w-[60px] rounded-[10px]"
           disabled={actionDisabled}
           gradientId={gradientId}
           label={actionLabel}

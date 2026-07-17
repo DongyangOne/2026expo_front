@@ -36,9 +36,10 @@ const ARTICLES = [
   },
 ];
 
-const TermsScreen = ({ navigation }: Props) => {
+const TermsScreen = ({ navigation, route }: Props) => {
   const handleAgree = () => {
-    navigation.navigate('Signup', { agreed: true });
+    route.params?.onAgree();
+    navigation.goBack();
   };
 
   return (
