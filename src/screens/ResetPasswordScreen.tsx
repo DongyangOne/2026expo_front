@@ -1,12 +1,14 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { Defs, LinearGradient as SvgLinearGradient, Rect, Stop, Svg } from 'react-native-svg';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { GradientButton, TopBar } from '@/components/ui';
@@ -18,6 +20,12 @@ type ResetPasswordScreenProps = NativeStackScreenProps<RootStackParamList, 'Rese
 
 const PLACEHOLDER_COLOR = '#9CA3AF';
 const STRENGTH_SEGMENTS = 4;
+const STRENGTH_BAR_HEIGHT = 4;
+const STRENGTH_BAR_GAP = 4;
+const STRENGTH_GRADIENT_START = '#7B61FF';
+const STRENGTH_GRADIENT_END = '#FF4FD8';
+const MIN_VALID_STRENGTH_FILLED = 3; // 보통(3칸) 이상부터 재설정 가능
+const TOAST_DURATION = 2000;
 
 const STRENGTH_LEVELS = [
   { label: '매우 약함', textClass: 'text-[#FF3B30]', barColor: '#FF3B30', filled: 1 },
@@ -74,6 +82,9 @@ const ChecklistItem = ({ label, satisfied }: { label: string; satisfied: boolean
 const ResetPasswordScreen = ({ navigation }: ResetPasswordScreenProps) => {
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [strengthBarWidth, setStrengthBarWidth] = useState(0);
 
   const { lengthOk, hasLetter, hasDigit, hasSpecial } = useMemo(
     () => getPasswordChecks(password),
@@ -82,10 +93,17 @@ const ResetPasswordScreen = ({ navigation }: ResetPasswordScreenProps) => {
   const comboOk = hasLetter && hasDigit && hasSpecial;
   const typeCount = useMemo(() => getTypeCount(password), [password]);
   const strengthLevel = getStrengthLevel(password.length, typeCount);
-  const isPasswordValid = lengthOk && comboOk;
+  const isStrengthEnough = strengthLevel.filled >= MIN_VALID_STRENGTH_FILLED;
+  const isPasswordValid = lengthOk && comboOk && isStrengthEnough;
 
   const passwordConfirmError =
     passwordConfirm && password !== passwordConfirm ? '비밀번호가 다릅니다.' : '';
+
+  const showToast = (message: string): void => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastMessage(message);
+    toastTimerRef.current = setTimeout(() => setToastMessage(null), TOAST_DURATION);
+  };
 
   const handlePasswordChange = (value: string) => {
     setPassword(value.replace(/\s/g, '').slice(0, 16));
@@ -96,12 +114,27 @@ const ResetPasswordScreen = ({ navigation }: ResetPasswordScreenProps) => {
   };
 
   const handleSubmit = (): void => {
-    if (!isPasswordValid || password !== passwordConfirm) {
+    if (!password.trim()) {
+      showToast('새 비밀번호를 입력해 주세요.');
+      return;
+    }
+    if (!isPasswordValid) {
+      showToast('비밀번호 조건을 확인해 주세요.');
+      return;
+    }
+    if (password !== passwordConfirm) {
+      showToast('비밀번호가 다릅니다.');
       return;
     }
 
     navigation.replace('ResetPasswordSuccess');
   };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   return (
     <KeyboardAvoidingView
@@ -134,19 +167,41 @@ const ResetPasswordScreen = ({ navigation }: ResetPasswordScreenProps) => {
             />
           </View>
           {password.length > 0 && (
-            <View className="mt-3 flex-row items-center gap-3">
-              <View className="flex-1 flex-row gap-1">
-                {Array.from({ length: STRENGTH_SEGMENTS }).map((_, index) => (
-                  <View
-                    key={index}
-                    className="h-1 flex-1 rounded-full"
-                    style={{
-                      backgroundColor:
-                        index < strengthLevel.filled ? strengthLevel.barColor : '#E5E7EB',
-                    }}
-                  />
-                ))}
-              </View>
+            <View
+              className="mt-3"
+              style={{ height: STRENGTH_BAR_HEIGHT }}
+              onLayout={(e) => setStrengthBarWidth(e.nativeEvent.layout.width)}>
+              {strengthBarWidth > 0 &&
+                (() => {
+                  const segmentWidth =
+                    (strengthBarWidth - STRENGTH_BAR_GAP * (STRENGTH_SEGMENTS - 1)) /
+                    STRENGTH_SEGMENTS;
+
+                  return (
+                    <Svg
+                      width={strengthBarWidth}
+                      height={STRENGTH_BAR_HEIGHT}
+                      style={StyleSheet.absoluteFill}>
+                      <Defs>
+                        <SvgLinearGradient id="strengthGrad" x1="0" y1="0" x2="1" y2="0">
+                          <Stop offset="0" stopColor={STRENGTH_GRADIENT_START} />
+                          <Stop offset="1" stopColor={STRENGTH_GRADIENT_END} />
+                        </SvgLinearGradient>
+                      </Defs>
+                      {Array.from({ length: STRENGTH_SEGMENTS }).map((_, index) => (
+                        <Rect
+                          key={index}
+                          x={index * (segmentWidth + STRENGTH_BAR_GAP)}
+                          y={0}
+                          width={segmentWidth}
+                          height={STRENGTH_BAR_HEIGHT}
+                          rx={STRENGTH_BAR_HEIGHT / 2}
+                          fill={index < strengthLevel.filled ? 'url(#strengthGrad)' : '#E5E7EB'}
+                        />
+                      ))}
+                    </Svg>
+                  );
+                })()}
             </View>
           )}
           {password.length > 0 && (
@@ -187,13 +242,19 @@ const ResetPasswordScreen = ({ navigation }: ResetPasswordScreenProps) => {
           <GradientButton
             label="다음"
             onPress={handleSubmit}
-            disabled={!isPasswordValid || password !== passwordConfirm}
             height={54}
             borderRadius={27}
             fontSize={16}
           />
         </View>
       </ScrollView>
+      {toastMessage && (
+        <View className="absolute inset-x-0 bottom-16 items-center">
+          <View className="rounded-md bg-disabledBg px-5 py-3">
+            <Text className="font-notoSansKRDemiLight text-xs text-black">{toastMessage}</Text>
+          </View>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 };

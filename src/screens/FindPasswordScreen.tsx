@@ -80,6 +80,10 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
   };
 
   const handleVerify = (): void => {
+    if (!email.trim()) {
+      showToast('이메일을 입력해 주세요');
+      return;
+    }
     if (isCodeSent && timeLeft === 0) {
       showToast('시간초과, 다시 입력해 주세요');
       return;
