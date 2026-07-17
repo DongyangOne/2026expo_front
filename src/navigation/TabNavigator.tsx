@@ -12,7 +12,7 @@ import {
   TabBarLabel,
 } from '@/components/ui';
 import { COLORS } from '@/constants';
-import HomeScreen from '@/screens/HomeScreen';
+import HomeScreen from '@/screens/Home';
 import SearchScreen from '@/screens/SearchScreen';
 import QuizScreen from '@/screens/QuizScreen';
 import FeedbackScreen from '@/screens/FeedbackScreen';
