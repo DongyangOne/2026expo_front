@@ -86,7 +86,9 @@ const LoginScreen = ({ navigation }: Props) => {
     <View className="flex-1 bg-background">
       <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
         <ScrollView contentContainerClassName="px-11 pb-[40px]" keyboardShouldPersistTaps="handled">
-          <Text className="mb-[67px] mt-[127px] text-center font-notoSansKRBold text-4xl text-black">
+          <Text
+            className="mb-[55px] mt-[80px] text-center font-notoSansKRBold text-4xl leading-[52px] text-black"
+            style={{ includeFontPadding: false }}>
             Log in
           </Text>
 
