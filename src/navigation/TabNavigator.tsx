@@ -1,4 +1,3 @@
-// navigation/RootTabNavigator.tsx
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
@@ -13,7 +12,7 @@ import {
   TabBarLabel,
 } from '@/components/ui';
 import { COLORS } from '@/constants';
-import HomeScreen from '@/screens/HomeScreen';
+import HomeScreen from '@/screens/Home';
 import SearchScreen from '@/screens/SearchScreen';
 import QuizScreen from '@/screens/QuizScreen';
 import FeedbackScreen from '@/screens/FeedbackScreen';
@@ -25,7 +24,7 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 
 const INACTIVE_COLOR = '#9CA3AF';
 
-const RootTabNavigator = () => {
+const TabNavigator = () => {
   const insets = useSafeAreaInsets();
 
   const screenOptions: BottomTabNavigationOptions = {
@@ -97,4 +96,4 @@ const RootTabNavigator = () => {
   );
 };
 
-export default RootTabNavigator;
+export default TabNavigator;

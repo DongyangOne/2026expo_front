@@ -22,7 +22,7 @@ const FeedbackDetailScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleGoSearch = () => {
-    navigation.navigate('Tabs', { screen: 'Search' });
+    navigation.navigate('MobileTabs', { screen: 'Search' });
   };
 
   return (
