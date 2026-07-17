@@ -1,2 +1,2 @@
 export { default as RootNavigator } from './RootNavigator';
-export type { RootTabParamList } from './types';
+export type { RootTabParamList, RootStackParamList } from './types';

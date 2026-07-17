@@ -17,6 +17,12 @@ const AccountScreen = ({ navigation }: Props) => {
       <Text className="font-notoSansKRRegular text-xl text-gray-800">계정</Text>
       <TouchableOpacity
         className="mt-6 rounded-full bg-purple px-8 py-3"
+        onPress={() => navigation.navigate('FindId')}
+        activeOpacity={0.8}>
+        <Text className="font-notoSansKRBold text-base text-white">아이디 찾기</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        className="mt-6 rounded-full bg-purple px-8 py-3"
         onPress={() => navigation.navigate('FindPassword')}
         activeOpacity={0.8}>
         <Text className="font-notoSansKRBold text-base text-white">비밀번호 찾기</Text>
