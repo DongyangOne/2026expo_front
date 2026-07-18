@@ -2,9 +2,11 @@ import React from 'react';
 import { useWindowDimensions } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import FeedbackdetailScreen from '@/screens/FeedbackdetailScreen';
 import FindIdScreen from '@/screens/FindIdScreen';
 import FindIdSuccessScreen from '@/screens/FindIdSuccessScreen';
 import FindIdResultScreen from '@/screens/FindIdResultScreen';
+
 import TabletMain from '@/screens/tablet/TabletMain';
 import TabletLogin from '@/screens/tablet/TabletLogin';
 import TabletReport from '@/screens/tablet/TabletReport';
@@ -43,6 +45,7 @@ const RootNavigator = () => {
       <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
       <Stack.Screen name="ResetPasswordSuccess" component={ResetPasswordSuccessScreen} />
       <Stack.Screen name="TabletTrashFeedback" component={TabletTrashFeedbackScreen} />
+      <Stack.Screen name="FeedbackDetail" component={FeedbackdetailScreen} />
     </Stack.Navigator>
   );
 };
