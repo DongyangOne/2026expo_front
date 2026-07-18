@@ -3,7 +3,6 @@ import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView } fro
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { GradientButton, TopBar } from '@/components/ui';
-import InfoIcon from '@/assets/icons/infoicon.svg';
 import type { RootStackParamList } from '@/navigation/types';
 
 type FindPasswordScreenProps = NativeStackScreenProps<RootStackParamList, 'FindPassword'>;
@@ -16,9 +15,8 @@ const REGISTERED_ID = 'asdf1234'; // TODO: 임시 아이디, 실제 인증 API �
 const TOAST_DURATION = 2000;
 
 const InlineError = ({ message }: { message: string }) => (
-  <View className="ml-6 mt-2 flex-row items-center gap-1">
-    <InfoIcon width={12} height={12} />
-    <Text className="font-notoSansKRRegular text-sm text-gray">{message}</Text>
+  <View className="ml-6 mt-2">
+    <Text className="font-notoSansKRRegular text-sm text-danger">{message}</Text>
   </View>
 );
 
@@ -92,12 +90,12 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
       showToast('인증번호를 입력해 주세요');
       return;
     }
-    if (!userId.trim()) {
-      showToast('아이디를 입력해 주세요');
-      return;
-    }
     if (verificationCode.trim() !== CORRECT_CODE) {
       setCodeError('인증 번호가 잘못되었습니다.');
+      return;
+    }
+    if (!userId.trim()) {
+      showToast('아이디를 입력해 주세요');
       return;
     }
     if (userId.trim() !== REGISTERED_ID) {
@@ -136,7 +134,7 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
           <Text className="mb-2 font-notoSansKRRegular text-sm text-black">
             이메일 <Text className="text-pink">*</Text>
           </Text>
-          <View className="h-14 flex-row items-center overflow-hidden rounded-xl border border-border bg-white pl-4">
+          <View className="h-14 flex-row items-center overflow-hidden rounded-xl border border-border bg-white pl-3">
             <TextInput
               className="h-14 flex-1 py-0 font-notoSansKRRegular text-sm text-black"
               placeholder="이메일을 입력해주세요."
@@ -150,12 +148,15 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
               autoCapitalize="none"
               textAlignVertical="center"
             />
-            <GradientButton
-              label={isCodeSent ? '재전송' : '이메일 인증'}
-              onPress={handleEmailVerify}
-              borderRadius={10}
-              fontSize={14}
-            />
+            {!isCodeSent && (
+              <GradientButton
+                label="이메일 인증"
+                onPress={handleEmailVerify}
+                borderRadius={10}
+                fontSize={14}
+                fontWeight="regular"
+              />
+            )}
           </View>
           {emailError && <InlineError message={emailError} />}
         </View>
@@ -193,7 +194,7 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
           <Text className="mb-2 font-notoSansKRRegular text-sm text-black">
             아이디 <Text className="text-pink">*</Text>
           </Text>
-          <View className="h-14 flex-row items-center overflow-hidden rounded-xl border border-border bg-white pl-4">
+          <View className="h-14 flex-row items-center overflow-hidden rounded-xl border border-border bg-white pl-3">
             <TextInput
               className="h-14 flex-1 py-0 font-notoSansKRRegular text-sm text-black"
               placeholder="아이디를 입력해 주세요."

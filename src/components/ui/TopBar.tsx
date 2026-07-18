@@ -20,7 +20,7 @@ export const TopBar: React.FC<TopBarProps> = ({ title, onBack, onPress, classNam
       {handleBack ? (
         <Pressable
           onPress={handleBack}
-          className="z-10 ml-10 h-10 w-10 items-start justify-center"
+          className="z-10 ml-8 h-10 w-10 items-start justify-center"
           accessibilityRole="button"
           accessibilityLabel="뒤로가기">
           <BackIcon width={10} height={16} />

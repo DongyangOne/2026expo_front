@@ -52,11 +52,11 @@ const getTypeCount = (value: string): number => {
   return [hasLower, hasUpper, hasDigit, hasSpecial].filter(Boolean).length;
 };
 
-// 매우 약함: 8자 미만 또는 단일 문자 종류 / 약함: 8자 이상 + 2종류 / 보통: 10자 이상 + 3종류 / 강함: 12자 이상 + 4종류
+// 매우 약함: 4자 이상 또는 단일 문자 종류 / 약함: 5자 이상 + 1종류 조합 / 보통: 6자 이상 + 2종류 조합 / 강함: 8자 이상 + 3종류 조합
 const getStrengthLevel = (length: number, typeCount: number) => {
-  if (length >= 12 && typeCount >= 4) return STRENGTH_LEVELS[3];
-  if (length >= 10 && typeCount >= 3) return STRENGTH_LEVELS[2];
-  if (length >= 8 && typeCount >= 2) return STRENGTH_LEVELS[1];
+  if (length >= 8 && typeCount >= 3) return STRENGTH_LEVELS[3];
+  if (length >= 6 && typeCount >= 2) return STRENGTH_LEVELS[2];
+  if (length >= 5 && typeCount >= 1) return STRENGTH_LEVELS[1];
   return STRENGTH_LEVELS[0];
 };
 

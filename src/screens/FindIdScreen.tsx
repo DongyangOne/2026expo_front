@@ -3,7 +3,6 @@ import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView } fro
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { GradientButton, TopBar } from '@/components/ui';
-import InfoIcon from '@/assets/icons/infoicon.svg';
 import type { RootStackParamList } from '@/navigation/types';
 
 type FindIdScreenProps = NativeStackScreenProps<RootStackParamList, 'FindId'>;
@@ -15,9 +14,8 @@ const CORRECT_CODE = '123456'; // TODO: 임시 코드, 실제 인증 API 연동 
 const TOAST_DURATION = 2000;
 
 const InlineError = ({ message }: { message: string }) => (
-  <View className="ml-4 mt-2 flex-row items-center gap-1">
-    <InfoIcon width={12} height={12} />
-    <Text className="font-notoSansKRRegular text-sm text-gray">{message}</Text>
+  <View className="ml-4 mt-2">
+    <Text className="font-notoSansKRRegular text-sm text-danger">{message}</Text>
   </View>
 );
 
@@ -139,12 +137,15 @@ const FindIdScreen = ({ navigation }: FindIdScreenProps) => {
                 autoCapitalize="none"
                 textAlignVertical="center"
               />
-              <GradientButton
-                label={isCodeSent ? '재전송' : '이메일 인증'}
-                onPress={handleEmailVerify}
-                borderRadius={10}
-                fontSize={14}
-              />
+              {!isCodeSent && (
+                <GradientButton
+                  label="이메일 인증"
+                  onPress={handleEmailVerify}
+                  borderRadius={10}
+                  fontSize={14}
+                  fontWeight="regular"
+                />
+              )}
             </View>
             {emailError && <InlineError message={emailError} />}
           </View>
