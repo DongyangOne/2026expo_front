@@ -114,7 +114,7 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
     };
   }, []);
 
-  const timerColorClass = timeLeft === 0 ? 'text-gray' : 'text-red-500';
+  const timerColorClass = 'text-red';
 
   return (
     <KeyboardAvoidingView

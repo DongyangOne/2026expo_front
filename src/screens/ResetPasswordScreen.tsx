@@ -13,7 +13,6 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { GradientButton, TopBar } from '@/components/ui';
 import CheckedIcon from '@/components/ui/icons/checked.svg';
-import InfoIcon from '@/assets/icons/infoicon.svg';
 import type { RootStackParamList } from '@/navigation/types';
 
 type ResetPasswordScreenProps = NativeStackScreenProps<RootStackParamList, 'ResetPassword'>;
@@ -61,9 +60,8 @@ const getStrengthLevel = (length: number, typeCount: number) => {
 };
 
 const InlineError = ({ message }: { message: string }) => (
-  <View className="ml-6 mt-2 flex-row items-center gap-1">
-    <InfoIcon width={12} height={12} />
-    <Text className="font-notoSansKRRegular text-sm text-gray">{message}</Text>
+  <View className="ml-6 mt-2">
+    <Text className="font-notoSansKRRegular text-sm text-danger">{message}</Text>
   </View>
 );
 

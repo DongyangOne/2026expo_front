@@ -3,7 +3,7 @@ import { View, Text, Image } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import type { RootStackParamList } from '@/navigation/types';
-import CheckImage from '@/assets/images/체크이미지.png';
+import CheckImage from '@/assets/images/check_image.png';
 
 const AUTO_ADVANCE_DELAY = 1000;
 const FOUND_USER_ID = 'asdf1234'; // TODO: 임시 아이디, 실제 인증 API 연동 시 제거

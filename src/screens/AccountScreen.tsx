@@ -48,12 +48,6 @@ const AccountScreen = () => {
         <Text className="text-gray-500 font-notoSansKRRegular text-base">프로필 수정</Text>
         <Text className="text-gray-500 font-notoSansKRRegular text-2xl">›</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        className="mt-6 rounded-full bg-purple px-8 py-3"
-        onPress={() => navigation.navigate('FindPassword')}
-        activeOpacity={0.8}>
-        <Text className="font-notoSansKRBold text-base text-white">비밀번호 찾기</Text>
-      </TouchableOpacity>
 
       <TouchableOpacity className="border-gray-200 ml-3 mr-3 mt-3 flex-row items-center justify-between rounded-xl border px-5 py-3">
         <Text className="text-gray-500 font-notoSansKRRegular text-base">로그아웃</Text>
