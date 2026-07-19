@@ -16,7 +16,9 @@ module.exports = {
           start: '#FF6363',
           end: '#FF7A59',
         },
+
         background: '#F8F9FC', // 배경
+
         black: '#111827', // 검은글씨
         gray: '#9CA3AF', // 회색글씨
         body: '#4B5563', // 본문
