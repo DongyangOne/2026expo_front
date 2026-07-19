@@ -2,17 +2,17 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import type { RootTabParamList } from '@/navigation/types';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@/navigation/types';
 
 import ProfileImage from '../assets/images/profile.svg';
 import Arrow from '../assets/images/arrow.svg';
 
 const AccountScreen = () => {
-  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleCheck = () => navigation.navigate('UserAuth');
+  const handleLogout = () => navigation.navigate('Login');
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <View className="mx-11 flex-1">
@@ -59,7 +59,9 @@ const AccountScreen = () => {
           <Arrow></Arrow>
         </TouchableOpacity>
 
-        <TouchableOpacity className="android:elevation-md mt-2 flex-row items-center justify-between rounded-xl border border-border bg-white px-3 py-4 shadow-md">
+        <TouchableOpacity
+          className="android:elevation-md mt-2 flex-row items-center justify-between rounded-xl border border-border bg-white px-3 py-4 shadow-md"
+          onPress={handleLogout}>
           <Text className="font-notoSansKRDemiLight text-sm text-body">로그아웃</Text>
           <Arrow></Arrow>
         </TouchableOpacity>

@@ -2,29 +2,26 @@ import React from 'react';
 import { useWindowDimensions } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import RootTabNavigator from './RootTabNavigator';
-import EditProfileScreen from '@/screens/EditProfileScreen';
-import UserAuthScreen from '@/screens/UserAuthScreen';
+import FeedbackdetailScreen from '@/screens/FeedbackdetailScreen';
+import FindIdScreen from '@/screens/FindIdScreen';
+import FindIdSuccessScreen from '@/screens/FindIdSuccessScreen';
+import FindIdResultScreen from '@/screens/FindIdResultScreen';
+
 import TabletMain from '@/screens/tablet/TabletMain';
 import TabletLogin from '@/screens/tablet/TabletLogin';
 import TabletReport from '@/screens/tablet/TabletReport';
 import TabletSignup from '@/screens/tablet/TabletSignup';
+import TabNavigator from './TabNavigator';
 import TabletTrashFeedbackScreen from '@/screens/tablet/TabletTrashFeedbackScreen';
 
 import type { RootStackParamList } from './types';
+import EditProfileScreen from '@/screens/EditProfileScreen';
+import UserAuthScreen from '@/screens/UserAuthScreen';
+import LoginScreen from '@/screens/LoginScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const TABLET_MIN_DP = 600;
-
-// 모바일용 Stack: 탭 구조(RootTabNavigator) + EditProfile/UserAuth
-const MobileTabs = () => {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Tabs" component={RootTabNavigator} />
-    </Stack.Navigator>
-  );
-};
 
 const RootNavigator = () => {
   const { width, height } = useWindowDimensions();
@@ -32,14 +29,21 @@ const RootNavigator = () => {
 
   return (
     <Stack.Navigator
-      initialRouteName={isTablet ? 'TabletMain' : 'MobileTabs'}
+      initialRouteName={isTablet ? 'TabletLogin' : 'MobileTabs'}
       screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="MobileTabs" component={MobileTabs} />
+      <Stack.Screen name="MobileTabs" component={TabNavigator} />
       <Stack.Screen name="TabletMain" component={TabletMain} />
       <Stack.Screen name="TabletLogin" component={TabletLogin} />
       <Stack.Screen name="TabletSignup" component={TabletSignup} />
       <Stack.Screen name="TabletReport" component={TabletReport} />
+      <Stack.Screen name="FindId" component={FindIdScreen} />
+      <Stack.Screen name="FindIdSuccess" component={FindIdSuccessScreen} />
+      <Stack.Screen name="FindIdResult" component={FindIdResultScreen} />
       <Stack.Screen name="TabletTrashFeedback" component={TabletTrashFeedbackScreen} />
+      <Stack.Screen name="FeedbackDetail" component={FeedbackdetailScreen} />
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+      <Stack.Screen name="UserAuth" component={UserAuthScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
     </Stack.Navigator>
   );
 };

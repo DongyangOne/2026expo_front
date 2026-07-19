@@ -5,23 +5,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useCallback } from 'react';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import type { RootTabParamList } from '@/navigation/types';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@/navigation/types';
 
 cssInterop(LinearGradient, {
   className: 'style',
 });
-import BackArrow from '../assets/images/vector.svg';
+import BackArrow from '../assets/images/Vector.svg';
 
 const AUTH_CODE_DURATION = 300; // 5분 (초 단위)
 
-// 이메일 형식 체크용 정규식
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
-// TODO: 실제로는 서버에서 전송한 인증코드와 비교해야 함. 지금은 임의값으로 고정.
 const MOCK_CORRECT_AUTH_CODE = '123456';
 
-// TODO: 실제로는 서버에 등록된 사용자인지 조회해야 함. 지금은 임의값으로 고정.
 const MOCK_REGISTERED_USERS = [{ id: 'testuser', email: 'test@example.com' }];
 
 const formatTime = (totalSeconds: number): string => {
@@ -30,26 +27,35 @@ const formatTime = (totalSeconds: number): string => {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
+// 에러가 어느 입력칸 소속인지 구분
+type ErrorField = 'userId' | 'email' | 'authCode' | null;
+
 const UserAuthScreen = () => {
-  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const [userId, setUserId] = useState('');
   const [email, setEmail] = useState('');
   const [authCode, setAuthCode] = useState('');
 
-  // 인증코드 입력창 노출 여부
   const [isCodeSent, setIsCodeSent] = useState(false);
-  // 남은 시간(초)
   const [remainingSeconds, setRemainingSeconds] = useState(AUTH_CODE_DURATION);
-  // 시간 만료 여부
   const [isExpired, setIsExpired] = useState(false);
 
-  // 등록되지 않은 사용자 오류 문구 (아이디/이메일 공통으로 사용)
-  const [userNotFoundError, setUserNotFoundError] = useState('');
-  // 이메일 형식 오류 문구
-  const [emailError, setEmailError] = useState('');
-  // 인증코드 불일치 오류 문구
-  const [authCodeError, setAuthCodeError] = useState('');
+  const [verifiedUserId, setVerifiedUserId] = useState('');
+
+  // 화면 전체에서 에러는 항상 하나만 존재. 어느 필드 소속인지만 같이 저장
+  const [errorField, setErrorField] = useState<ErrorField>(null);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const showError = (field: ErrorField, message: string) => {
+    setErrorField(field);
+    setErrorMessage(message);
+  };
+
+  const clearError = () => {
+    setErrorField(null);
+    setErrorMessage('');
+  };
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -87,56 +93,80 @@ const UserAuthScreen = () => {
       setIsCodeSent(false);
       setRemainingSeconds(AUTH_CODE_DURATION);
       setIsExpired(false);
-      setEmailError('');
-      setAuthCodeError('');
+      setVerifiedUserId('');
+      clearError();
 
       return () => clearTimer();
     }, []),
   );
 
-  // 언마운트 시 타이머 정리
   useEffect(() => {
     return () => clearTimer();
   }, []);
 
   const handleSendCode = () => {
-    if (email.trim().length === 0) return;
-
-    // 이메일 형식 체크
-    if (!EMAIL_REGEX.test(email.trim())) {
-      setEmailError('이메일 형식이 올바르지 않아요.');
+    if (userId.trim().length === 0) {
+      showError('userId', '아이디를 입력해주세요.');
       return;
     }
 
-    setEmailError('');
+    if (email.trim().length === 0) {
+      showError('email', '이메일을 입력해주세요.');
+      return;
+    }
 
-    // 등록된 아이디/이메일인지 체크
-    // TODO: 실제로는 서버 응답으로 존재 여부를 판단해야 함
+    if (!EMAIL_REGEX.test(email.trim())) {
+      showError('email', '이메일 형식이 올바르지 않아요.');
+      return;
+    }
+
     const isRegistered = MOCK_REGISTERED_USERS.some(
       (user) => user.id === userId.trim() && user.email === email.trim(),
     );
     if (!isRegistered) {
-      setUserNotFoundError('존재하지 않는 사용자입니다.');
+      showError('email', '존재하지 않는 사용자입니다.');
       return;
     }
-    setUserNotFoundError('');
 
-    // TODO: 실제 이메일 인증코드 전송 API 호출
+    clearError();
+    setVerifiedUserId(userId.trim());
     setAuthCode('');
-    setAuthCodeError('');
     setIsCodeSent(true);
     startTimer();
   };
 
   const handleEditProfile = () => {
-    if (!isCodeSent || isExpired || authCode.trim().length === 0) return;
-
-    if (authCode.trim() !== MOCK_CORRECT_AUTH_CODE) {
-      setAuthCodeError('인증코드가 일치하지 않습니다.');
+    if (userId.trim().length === 0) {
+      showError('userId', '아이디를 입력해주세요.');
       return;
     }
 
-    setAuthCodeError('');
+    if (!isCodeSent) {
+      showError('email', '존재하지 않은 사용자입니다.');
+      return;
+    }
+
+    if (userId.trim() !== verifiedUserId) {
+      showError('userId', '아이디가 변경되었습니다. 인증을 다시 진행해주세요.');
+      return;
+    }
+
+    if (isExpired) {
+      showError('authCode', '인증 시간이 만료되었어요. 재전송 버튼을 눌러주세요.');
+      return;
+    }
+
+    if (authCode.trim().length === 0) {
+      showError('authCode', '인증코드를 입력해주세요.');
+      return;
+    }
+
+    if (authCode.trim() !== MOCK_CORRECT_AUTH_CODE) {
+      showError('authCode', '인증코드가 일치하지 않습니다.');
+      return;
+    }
+
+    clearError();
     navigation.navigate('EditProfile', { email });
   };
 
@@ -146,7 +176,7 @@ const UserAuthScreen = () => {
         <View className="relative mt-[37px] flex-row items-center justify-center">
           {/* 뒤로가기 버튼 */}
           <TouchableOpacity
-            onPress={() => navigation.navigate('Account')}
+            onPress={() => navigation.navigate('MobileTabs', { screen: 'Account' })}
             className="absolute left-0">
             <BackArrow />
           </TouchableOpacity>
@@ -163,17 +193,15 @@ const UserAuthScreen = () => {
               value={userId}
               onChangeText={(text) => {
                 setUserId(text);
-                setUserNotFoundError('');
+                if (errorField === 'userId') clearError();
               }}
               autoCapitalize="none"
               autoCorrect={false}
               placeholder="아이디를 입력해 주세요"
             />
           </View>
-          {userNotFoundError !== '' && (
-            <Text className="mt-1 font-notoSansKRRegular text-xs text-red">
-              {userNotFoundError}
-            </Text>
+          {errorField === 'userId' && (
+            <Text className="mt-1 font-notoSansKRRegular text-xs text-red">{errorMessage}</Text>
           )}
         </View>
 
@@ -187,8 +215,7 @@ const UserAuthScreen = () => {
                 value={email}
                 onChangeText={(text) => {
                   setEmail(text);
-                  setEmailError('');
-                  setUserNotFoundError('');
+                  if (errorField === 'email') clearError();
                 }}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -196,7 +223,7 @@ const UserAuthScreen = () => {
                 placeholder="이메일을 입력해 주세요"
               />
             </View>
-            <TouchableOpacity onPress={handleSendCode} disabled={email.trim().length === 0}>
+            <TouchableOpacity onPress={handleSendCode}>
               <LinearGradient
                 colors={['#7B61FF', '#FF4FD8']}
                 start={{ x: 0, y: 0 }}
@@ -206,8 +233,8 @@ const UserAuthScreen = () => {
               </LinearGradient>
             </TouchableOpacity>
           </View>
-          {emailError !== '' && (
-            <Text className="mt-1 font-notoSansKRRegular text-xs text-red">{emailError}</Text>
+          {errorField === 'email' && (
+            <Text className="mt-1 font-notoSansKRRegular text-xs text-red">{errorMessage}</Text>
           )}
         </View>
 
@@ -221,7 +248,7 @@ const UserAuthScreen = () => {
                 value={authCode}
                 onChangeText={(text) => {
                   setAuthCode(text);
-                  setAuthCodeError('');
+                  if (errorField === 'authCode') clearError();
                 }}
                 keyboardType="number-pad"
                 placeholder="인증코드를 입력해 주세요"
@@ -231,13 +258,8 @@ const UserAuthScreen = () => {
                 {isExpired ? '시간 만료' : formatTime(remainingSeconds)}
               </Text>
             </View>
-            {isExpired && (
-              <Text className="mt-1 font-notoSansKRRegular text-xs text-red">
-                인증 시간이 만료되었어요. 재전송 버튼을 눌러주세요.
-              </Text>
-            )}
-            {authCodeError !== '' && (
-              <Text className="mt-1 font-notoSansKRRegular text-xs text-red">{authCodeError}</Text>
+            {errorField === 'authCode' && (
+              <Text className="mt-1 font-notoSansKRRegular text-xs text-red">{errorMessage}</Text>
             )}
           </View>
         )}

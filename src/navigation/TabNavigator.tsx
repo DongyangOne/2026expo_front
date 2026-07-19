@@ -12,13 +12,11 @@ import {
   TabBarLabel,
 } from '@/components/ui';
 import { COLORS } from '@/constants';
-import HomeScreen from '@/screens/HomeScreen';
+import HomeScreen from '@/screens/Home';
 import SearchScreen from '@/screens/SearchScreen';
 import QuizScreen from '@/screens/QuizScreen';
 import FeedbackScreen from '@/screens/FeedbackScreen';
 import AccountScreen from '@/screens/AccountScreen';
-import EditProfileScreen from '@/screens/EditProfileScreen';
-import UserAuthScreen from '@/screens/UserAuthScreen';
 
 import type { RootTabParamList } from './types';
 
@@ -26,7 +24,7 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 
 const INACTIVE_COLOR = '#9CA3AF';
 
-const RootTabNavigator = () => {
+const TabNavigator = () => {
   const insets = useSafeAreaInsets();
 
   const screenOptions: BottomTabNavigationOptions = {
@@ -94,26 +92,8 @@ const RootTabNavigator = () => {
           tabBarLabel: ({ focused }) => <TabBarLabel label="마이" focused={focused} />,
         }}
       />
-
-      {/* 탭바에는 아이콘이 안 보이지만, navigation.navigate로는 이동 가능한 화면 */}
-      <Tab.Screen
-        name="EditProfile"
-        component={EditProfileScreen}
-        options={{
-          tabBarButton: () => null, // 탭바에서 숨김
-          tabBarItemStyle: { display: 'none' }, // 자리 자체도 차지 안 하게
-        }}
-      />
-      <Tab.Screen
-        name="UserAuth"
-        component={UserAuthScreen}
-        options={{
-          tabBarButton: () => null,
-          tabBarItemStyle: { display: 'none' },
-        }}
-      />
     </Tab.Navigator>
   );
 };
 
-export default RootTabNavigator;
+export default TabNavigator;

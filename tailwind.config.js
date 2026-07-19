@@ -7,6 +7,7 @@ module.exports = {
       colors: {
         primary: {
           //메인
+          backgorund: '#F8F9FC',
           start: '#7B61FF',
           end: '#FF4FD8',
         },
@@ -28,6 +29,8 @@ module.exports = {
         danger: '#EF4444', //에러
         success: '#00AA58', //성공/정상
         trashAction: '#CB79EF',
+        placeholder: '#E4E4E4', // 이미지 미로딩 시 플레이스홀더 배경
+        placeholderBorder: '#A8A8A8', // 플레이스홀더 테두리
       },
       fontFamily: {
         notoSansKRDemiLight: ['NotoSansKR-DemiLight'],

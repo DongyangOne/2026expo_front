@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cssInterop } from 'nativewind';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import type { RootTabParamList } from '@/navigation/types';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import type { RootStackParamList } from '@/navigation/types';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-type EditProfileRouteProp = RouteProp<RootTabParamList, 'EditProfile'>;
+type EditProfileRouteProp = RouteProp<RootStackParamList, 'EditProfile'>;
 
 cssInterop(LinearGradient, {
   className: 'style',
@@ -18,7 +17,7 @@ import ProfileImage from '../assets/images/profile.svg';
 import BackArrow from '../assets/images/vector.svg';
 
 const EditProfileScreen = () => {
-  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const route = useRoute<EditProfileRouteProp>();
 
@@ -31,6 +30,24 @@ const EditProfileScreen = () => {
   const [idError, setIdError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [passwordCheckError, setPasswordCheckError] = useState('');
+
+  // TODO: 실제 프로필 조회 API로 교체 (예: GET /user/profile)
+  // 화면 진입 시 서버에서 현재 아이디/비밀번호를 받아와 TextInput에 채워 넣습니다.
+  useEffect(() => {
+    const fetchProfile = async () => {
+      // 예: const response = await api.get('/user/profile');
+      // setId(response.id);
+      // setPassword(response.password);
+      // setPasswordCheck(response.password);
+
+      // 임시 값 (실제 API 연동 전 테스트용)
+      setId('cye4526');
+      setPassword('tempPassword1!');
+      setPasswordCheck('tempPassword1!');
+    };
+
+    fetchProfile();
+  }, []);
 
   // 아이디 : 4~12자, 영문 소문자+숫자
   const ID_REGEX = /^(?=.*[a-z])(?=.*\d)[a-z\d]{4,12}$/;
@@ -54,12 +71,26 @@ const EditProfileScreen = () => {
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // 아이디 중복 등 서버 응답 기반 에러 (예: 이미 사용중인 아이디)
   const [submitError, setSubmitError] = useState('');
 
+  const goToAccount = () => {
+    navigation.navigate('MobileTabs', { screen: 'Account' });
+  };
+
   const handleSubmit = async () => {
+    // 빈 값 체크 먼저
+    if (id.trim() === '') {
+      setIdError('아이디를 입력해주세요.');
+      return;
+    }
+
     if (!ID_REGEX.test(id)) {
       setIdError('최소 4자 이상, 최대 12자 이하, 영문 소문자와 숫자만 사용할 수 있습니다.');
+      return;
+    }
+
+    if (password.trim() === '') {
+      setPasswordError('비밀번호를 입력해주세요.');
       return;
     }
 
@@ -78,6 +109,11 @@ const EditProfileScreen = () => {
       return;
     }
 
+    if (passwordCheck.trim() === '') {
+      setPasswordCheckError('비밀번호 확인을 입력해주세요.');
+      return;
+    }
+
     if (password !== passwordCheck) {
       setPasswordCheckError('비밀번호가 일치하지 않습니다.');
       return;
@@ -88,30 +124,22 @@ const EditProfileScreen = () => {
 
     try {
       // TODO: 실제 프로필 수정 API 호출로 교체
-      // 예: const response = await api.patch('/user/profile', { id, password, email });
-      await new Promise((resolve) => setTimeout(resolve, 500)); // 임시: 서버 응답 흉내
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // TODO: 서버가 "이미 사용중인 아이디입니다" 같은 에러를 응답하면 여기서 처리
-      // if (response.error === 'DUPLICATE_ID') {
-      //   setIdError('이미 사용중인 아이디입니다.');
-      //   return;
-      // }
-
-      navigation.navigate('Account');
+      goToAccount();
     } catch (error) {
       setSubmitError('프로필 수정에 실패했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
       setIsSubmitting(false);
     }
   };
+
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <View className="mx-11 flex-1">
-        <View className="relative flex-row items-center justify-center">
+        <View className="relative mt-[37px] flex-row items-center justify-center">
           {/* 뒤로가기 버튼 */}
-          <TouchableOpacity
-            className="absolute left-5 z-10"
-            onPress={() => navigation.navigate('Account')}>
+          <TouchableOpacity className="absolute left-0" onPress={goToAccount}>
             <BackArrow />
           </TouchableOpacity>
           {/* 타이틀 */}
@@ -139,9 +167,8 @@ const EditProfileScreen = () => {
                 setIdError('');
               }}
             />
-
-            {idError !== '' && <Text className="mt-1 text-xs text-red">{idError}</Text>}
           </View>
+          {idError !== '' && <Text className="mt-1 text-xs text-red">{idError}</Text>}
         </View>
 
         {/* 이메일 */}
@@ -164,9 +191,8 @@ const EditProfileScreen = () => {
                 setPasswordError('');
               }}
             />
-
-            {passwordError !== '' && <Text className="mt-1 text-xs text-red">{passwordError}</Text>}
           </View>
+          {passwordError !== '' && <Text className="mt-1 text-xs text-red">{passwordError}</Text>}
         </View>
 
         <View className="mt-4">
@@ -180,23 +206,34 @@ const EditProfileScreen = () => {
                 setPasswordCheckError('');
               }}
             />
-
-            {passwordCheckError !== '' && (
-              <Text className="mt-1 text-xs text-red">{passwordCheckError}</Text>
-            )}
           </View>
+          {passwordCheckError !== '' && (
+            <Text className="mt-1 text-xs text-red">{passwordCheckError}</Text>
+          )}
         </View>
 
         {/* 확인 버튼 */}
-        <TouchableOpacity className="mx-5 mt-40" onPress={() => handleSubmit()}>
+        <TouchableOpacity
+          className="mx-5 mt-40"
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+          activeOpacity={isSubmitting ? 1 : 0.7}>
           <LinearGradient
             colors={['#7B61FF', '#FF4FD8']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            className="mx-7 items-center justify-center rounded-full py-5">
-            <Text className="text-center font-notoSansKRBold text-base text-white">확인</Text>
+            className="mx-7 items-center justify-center rounded-full py-5"
+            style={{ opacity: isSubmitting ? 0.6 : 1 }}>
+            <Text className="text-center font-notoSansKRBold text-base text-white">
+              {isSubmitting ? '처리 중...' : '확인'}
+            </Text>
           </LinearGradient>
         </TouchableOpacity>
+
+        {/* 서버 에러 메시지 */}
+        {submitError !== '' && (
+          <Text className="mx-5 mt-2 text-center text-xs text-red">{submitError}</Text>
+        )}
       </View>
     </SafeAreaView>
   );
