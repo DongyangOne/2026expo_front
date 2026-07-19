@@ -15,6 +15,9 @@ import TabNavigator from './TabNavigator';
 import TabletTrashFeedbackScreen from '@/screens/tablet/TabletTrashFeedbackScreen';
 
 import type { RootStackParamList } from './types';
+import DeleteAccountScreen from '@/screens/DeleteAccountScreen';
+import DeleteCompleteScreen from '@/screens/DeleteCompleteScreen';
+import UserAuthScreen from '@/screens/UserAuthScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -37,6 +40,9 @@ const RootNavigator = () => {
       <Stack.Screen name="FindIdSuccess" component={FindIdSuccessScreen} />
       <Stack.Screen name="FindIdResult" component={FindIdResultScreen} />
       <Stack.Screen name="TabletTrashFeedback" component={TabletTrashFeedbackScreen} />
+      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteComplete" component={DeleteCompleteScreen} />
+      <Stack.Screen name="UserAuth" component={UserAuthScreen} />
       <Stack.Screen name="FeedbackDetail" component={FeedbackdetailScreen} />
     </Stack.Navigator>
   );
