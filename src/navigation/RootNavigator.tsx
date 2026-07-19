@@ -11,6 +11,10 @@ import TabletMain from '@/screens/tablet/TabletMain';
 import TabletLogin from '@/screens/tablet/TabletLogin';
 import TabletReport from '@/screens/tablet/TabletReport';
 import TabletSignup from '@/screens/tablet/TabletSignup';
+import FindPasswordScreen from '@/screens/FindPasswordScreen';
+import FindPasswordSuccessScreen from '@/screens/FindPasswordSuccessScreen';
+import ResetPasswordScreen from '@/screens/ResetPasswordScreen';
+import ResetPasswordSuccessScreen from '@/screens/ResetPasswordSuccessScreen';
 import TabNavigator from './TabNavigator';
 import TabletTrashFeedbackScreen from '@/screens/tablet/TabletTrashFeedbackScreen';
 
@@ -39,6 +43,10 @@ const RootNavigator = () => {
       <Stack.Screen name="FindId" component={FindIdScreen} />
       <Stack.Screen name="FindIdSuccess" component={FindIdSuccessScreen} />
       <Stack.Screen name="FindIdResult" component={FindIdResultScreen} />
+      <Stack.Screen name="FindPassword" component={FindPasswordScreen} />
+      <Stack.Screen name="FindPasswordSuccess" component={FindPasswordSuccessScreen} />
+      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+      <Stack.Screen name="ResetPasswordSuccess" component={ResetPasswordSuccessScreen} />
       <Stack.Screen name="TabletTrashFeedback" component={TabletTrashFeedbackScreen} />
       <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
       <Stack.Screen name="DeleteComplete" component={DeleteCompleteScreen} />

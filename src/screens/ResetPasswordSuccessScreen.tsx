@@ -6,14 +6,16 @@ import type { RootStackParamList } from '@/navigation/types';
 import CheckImage from '@/assets/images/check_image.png';
 
 const AUTO_ADVANCE_DELAY = 1000;
-const FOUND_USER_ID = 'asdf1234'; // TODO: 임시 아이디, 실제 인증 API 연동 시 제거
 
-type FindIdSuccessScreenProps = NativeStackScreenProps<RootStackParamList, 'FindIdSuccess'>;
+type ResetPasswordSuccessScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'ResetPasswordSuccess'
+>;
 
-const FindIdSuccessScreen = ({ navigation }: FindIdSuccessScreenProps) => {
+const ResetPasswordSuccessScreen = ({ navigation }: ResetPasswordSuccessScreenProps) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.replace('FindIdResult', { userId: FOUND_USER_ID });
+      navigation.replace('MobileTabs');
     }, AUTO_ADVANCE_DELAY);
 
     return () => clearTimeout(timer);
@@ -32,15 +34,22 @@ const FindIdSuccessScreen = ({ navigation }: FindIdSuccessScreenProps) => {
 
       <View className="flex-1 items-center justify-center">
         <View className="h-64 w-full">
-          <Image source={CheckImage} resizeMode="contain" style={{ width: '100%', height: '100%' }} />
+          <Image
+            source={CheckImage}
+            resizeMode="contain"
+            style={{ width: '100%', height: '100%' }}
+          />
         </View>
 
-        <Text className="mt-8 font-notoSansKRBold text-lg text-black">
-          인증이 <Text className="text-purple">완료</Text>되었습니다
+        <Text className="font-notoSansKRBold text-lg text-black">
+          변경이 <Text className="text-purple">완료</Text>되었습니다
+        </Text>
+        <Text className="mt-[18px] font-notoSansKRDemiLight text-[15px] text-black">
+          새로운 비밀번호로 로그인 해 주세요
         </Text>
       </View>
     </View>
   );
 };
 
-export default FindIdSuccessScreen;
+export default ResetPasswordSuccessScreen;
