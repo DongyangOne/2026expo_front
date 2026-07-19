@@ -11,7 +11,7 @@ const AccountScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleCheck = () => navigation.navigate('UserAuth');
-  const handleLogout = () => navigation.navigate('DeleteAccountScreen');
+  const handleLogout = () => navigation.navigate('DeleteAccount');
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-white px-5 pt-6">
       {/* 타이틀 */}

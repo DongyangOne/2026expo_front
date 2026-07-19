@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { cssInterop } from 'nativewind';
 import LinearGradient from 'react-native-linear-gradient';
+import type { RootStackParamList } from '../navigation/types';
 
 cssInterop(LinearGradient, {
   className: 'style',
@@ -10,7 +11,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import type { MobileStackParamList } from '@/navigation/types';
 import BackArrow from '../assets/images/vector.svg';
 
 import tailwindConfig from '../../tailwind.config.js';
@@ -105,7 +105,7 @@ const validatePasswordFormat = (password: string): { isValid: boolean; message: 
 const DeleteAccountScreen = () => {
   const { colors } = tailwindConfig.theme.extend;
 
-  const navigation = useNavigation<NativeStackNavigationProp<MobileStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const [selected, setSelected] = useState<string | null>(null);
   const [etcText, setEtcText] = useState('');
@@ -229,6 +229,11 @@ const DeleteAccountScreen = () => {
                 placeholder="8~16자 영문, 숫자, 특수문자를 입력해 주세요"
               />
             </View>
+            {passwordFormatResult.message.length > 0 && (
+              <Text className="mt-1 font-notoSansKRRegular text-xs text-red">
+                {passwordFormatResult.message}
+              </Text>
+            )}
           </View>
 
           {/* 비밀번호 확인 */}
@@ -249,7 +254,7 @@ const DeleteAccountScreen = () => {
             {confirmDisplay.message.length > 0 && (
               <Text
                 className={`mt-1 font-notoSansKRRegular text-xs ${
-                  confirmDisplay.isValid ? 'text-green-500' : 'text-red-500'
+                  confirmDisplay.isValid ? 'text-green' : 'text-red'
                 }`}>
                 {confirmDisplay.message}
               </Text>
@@ -259,7 +264,7 @@ const DeleteAccountScreen = () => {
 
         {/* 기타 선택 시에만 입력창 노출 */}
         {selected === '기타' && (
-          <View className="mx-11 mt-11 min-h-[200px] rounded-xl border border-border bg-white px-5 py-3">
+          <View className="mx-11 mt-[42px] min-h-[200px] rounded-xl border border-border bg-white px-5">
             <TextInput
               className="flex-1 font-notoSansKRRegular text-sm text-black"
               placeholder="떠나시는 이유를 작성해 주세요."

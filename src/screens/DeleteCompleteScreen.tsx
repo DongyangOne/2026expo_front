@@ -5,12 +5,11 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
 import { cssInterop } from 'nativewind';
+import type { RootStackParamList } from '../navigation/types';
 
 cssInterop(LinearGradient, {
   className: 'style',
 });
-
-import type { MobileStackParamList } from '@/navigation/types';
 
 import CompleteImage from '../assets/images/leave.svg';
 
@@ -19,7 +18,7 @@ import tailwindConfig from '../../tailwind.config.js';
 const DeleteCompleteScreen = () => {
   const { colors } = tailwindConfig.theme.extend;
 
-  const navigation = useNavigation<NativeStackNavigationProp<MobileStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleGoHome = () => {
     navigation.reset({

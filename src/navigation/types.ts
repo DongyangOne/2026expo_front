@@ -20,17 +20,6 @@ export type RootStackParamList = {
   UserAuth: undefined;
   DeleteAccount: undefined;
   DeleteComplete: undefined;
-};
-
-/**
- * 루트 스택 네비게이터의 파라미터 타입 정의
- * 모바일 스택 전체와 태블릿 화면들을 등록합니다.
- */
-export type RootStackParamList = {
-  // 모바일
-  MobileStack: NavigatorScreenParams<MobileStackParamList> | undefined;
-
-  // 태블릿
   TabletMain: undefined;
   TabletLogin: undefined;
   TabletSignup: undefined;

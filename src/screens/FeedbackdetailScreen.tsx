@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
 import { cssInterop } from 'nativewind';
-import BackArrow from '../assets/images/Vector.svg';
+import BackArrow from '../assets/images/vector.svg';
 import SmallArrowR from '../assets/images/ChevronRight.svg';
 import SmallArrowL from '../assets/images/ChevronLeft.svg';
 import tailwindConfig from '../../tailwind.config.js';

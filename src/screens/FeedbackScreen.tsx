@@ -48,11 +48,6 @@ const FeedbackScreen = () => {
   const navigation = useNavigation<FeedbackScreenNavigationProp>();
 
   return (
-<<<<<<< HEAD
-    <View className="flex-1 items-center  bg-white">
-      <Text className="font-notoSansKRRegular text-xl text-gray-800">피드백 목록</Text>
-    </View>
-=======
     <SafeAreaView edges={['top']} className="flex-1 items-center bg-primary-backgorund px-6">
       <Text className="text-gray-800 pt-9 font-notoSansKRBold text-xl">피드백 목록</Text>
       <ScrollView className="w-full">
@@ -83,7 +78,6 @@ const FeedbackScreen = () => {
         ))}
       </ScrollView>
     </SafeAreaView>
->>>>>>> develop
   );
 };
 
