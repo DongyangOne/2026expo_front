@@ -120,11 +120,18 @@ const UserAuthScreen = () => {
       return;
     }
 
-    const isRegistered = MOCK_REGISTERED_USERS.some(
-      (user) => user.id === userId.trim() && user.email === email.trim(),
-    );
-    if (!isRegistered) {
-      showError('email', '존재하지 않는 사용자입니다.');
+    // 입력한 이메일로 등록된 사용자를 먼저 찾음
+    const matchedUser = MOCK_REGISTERED_USERS.find((user) => user.email === email.trim());
+
+    if (!matchedUser) {
+      // 이메일 자체가 등록되어 있지 않은 경우
+      showError('email', '존재하지 않는 이메일입니다.');
+      return;
+    }
+
+    if (matchedUser.id !== userId.trim()) {
+      // 이메일은 맞는데, 그 이메일에 등록된 아이디와 다른 경우
+      showError('userId', '존재하지 않는 사용자입니다.');
       return;
     }
 
@@ -141,8 +148,13 @@ const UserAuthScreen = () => {
       return;
     }
 
+    if (email.trim().length === 0) {
+      showError('email', '이메일을 입력해주세요.');
+      return;
+    }
+
     if (!isCodeSent) {
-      showError('email', '존재하지 않은 사용자입니다.');
+      showError('email', '이메일 인증을 진행해주세요.');
       return;
     }
 
@@ -255,7 +267,7 @@ const UserAuthScreen = () => {
                 editable={!isExpired}
               />
               <Text className="font-notoSansKRRegular text-sm text-red">
-                {isExpired ? '시간 만료' : formatTime(remainingSeconds)}
+                {isExpired ? '00:00' : formatTime(remainingSeconds)}
               </Text>
             </View>
             {errorField === 'authCode' && (

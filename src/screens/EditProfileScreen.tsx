@@ -14,7 +14,7 @@ cssInterop(LinearGradient, {
 });
 
 import ProfileImage from '../assets/images/profile.svg';
-import BackArrow from '../assets/images/vector.svg';
+import BackArrow from '../assets/images/Vector.svg';
 
 const EditProfileScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -143,13 +143,11 @@ const EditProfileScreen = () => {
             <BackArrow />
           </TouchableOpacity>
           {/* 타이틀 */}
-          <Text className="mb-[20px] text-center font-notoSansKRBold text-xl text-black">
-            프로필 수정
-          </Text>
+          <Text className=" text-center font-notoSansKRBold text-xl text-black">프로필 수정</Text>
         </View>
 
         {/* 프로필 이미지 */}
-        <View className="items-center">
+        <View className="mt-[28px] items-center">
           <ProfileImage />
         </View>
 
@@ -224,9 +222,7 @@ const EditProfileScreen = () => {
             end={{ x: 1, y: 0 }}
             className="mx-7 items-center justify-center rounded-full py-5"
             style={{ opacity: isSubmitting ? 0.6 : 1 }}>
-            <Text className="text-center font-notoSansKRBold text-base text-white">
-              {isSubmitting ? '처리 중...' : '확인'}
-            </Text>
+            <Text className="text-center font-notoSansKRBold text-base text-white">확인</Text>
           </LinearGradient>
         </TouchableOpacity>
 
