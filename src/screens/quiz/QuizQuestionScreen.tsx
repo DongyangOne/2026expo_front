@@ -142,11 +142,15 @@ const QuizQuestionScreen = ({
         </Svg>
       </View>
 
-      <View className="mt-10 flex-1 items-center rounded-2xl bg-purple/10 px-8 py-8">
-        <Text className="font-notoSansKRBold text-3xl text-purple">Q</Text>
-        <Text className="mt-20 text-center font-notoSansKRRegular text-base leading-7 text-black">
-          {question.question}
-        </Text>
+      <View
+        className="mt-10 flex-1 items-center rounded-2xl bg-purple/10 px-8 pt-8"
+        style={{ position: 'relative' }}>
+        <Text className="h-12 font-notoSansKRBold text-4xl text-purple">Q</Text>
+        <View className="absolute inset-0 items-center justify-center">
+          <Text className="text-center font-notoSansKRRegular text-base leading-7 text-black">
+            {question.question}
+          </Text>
+        </View>
       </View>
 
       <View className="mb-10 mt-10 flex-row gap-4">
@@ -158,7 +162,7 @@ const QuizQuestionScreen = ({
         <Pressable
           className="aspect-square flex-1 items-center justify-center rounded-2xl bg-danger/10"
           onPress={() => onAnswer(false)}>
-          <QuizXIcon width={110} height={110} />
+          <QuizXIcon width={100} height={100} />
         </Pressable>
       </View>
 

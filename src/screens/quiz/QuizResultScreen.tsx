@@ -75,10 +75,10 @@ const QuizResultScreen = ({
       </View>
 
       <View
-        className={`mt-10 flex-1 items-center rounded-2xl px-8 ${
+        className={`mt-10 flex-1 items-center justify-center rounded-2xl px-8 ${
           isCorrect ? 'bg-success/10' : 'bg-danger/10'
         }`}>
-        <View className="mt-20 h-28 w-28 items-center justify-center">
+        <View className="-mt-10 h-28 w-28 items-center justify-center">
           {isCorrect ? (
             <Image source={quizOImage} style={{ width: 78, height: 78 }} resizeMode="contain" />
           ) : (

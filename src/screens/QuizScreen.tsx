@@ -1,5 +1,4 @@
-import React, { useRef, useState } from 'react';
-import { View } from 'react-native';
+import React, { useState } from 'react';
 
 import QuizFinalResultScreen from '@/screens/quiz/QuizFinalResultScreen';
 import QuizQuestionScreen, { QUESTION_POOL, QuizQuestion } from '@/screens/quiz/QuizQuestionScreen';
@@ -11,9 +10,6 @@ const MOCK_CURRENT_XP = 500;
 
 const QuizScreen = () => {
   const [quizCount, setQuizCount] = useState<number | null>(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
-  const triggerRef = useRef<View>(null);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -21,18 +17,6 @@ const QuizScreen = () => {
   const [isExitConfirmOpen, setIsExitConfirmOpen] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
-
-  const handleSelectCount = (count: number): void => {
-    setQuizCount(count);
-    setIsDropdownOpen(false);
-  };
-
-  const handleToggleDropdown = (): void => {
-    triggerRef.current?.measureInWindow((x, y, _width, height) => {
-      setDropdownPosition({ top: y + height, left: x });
-      setIsDropdownOpen(true);
-    });
-  };
 
   const handleSolveQuiz = (): void => {
     if (!quizCount) return;
@@ -127,12 +111,7 @@ const QuizScreen = () => {
   return (
     <QuizStartScreen
       quizCount={quizCount}
-      isDropdownOpen={isDropdownOpen}
-      dropdownPosition={dropdownPosition}
-      triggerRef={triggerRef}
-      onToggleDropdown={handleToggleDropdown}
-      onCloseDropdown={() => setIsDropdownOpen(false)}
-      onSelectCount={handleSelectCount}
+      onSelectCount={setQuizCount}
       onSolveQuiz={handleSolveQuiz}
     />
   );
