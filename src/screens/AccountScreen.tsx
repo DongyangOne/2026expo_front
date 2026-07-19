@@ -11,7 +11,7 @@ const AccountScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleCheck = () => navigation.navigate('UserAuth');
-  const handleLogout = () => navigation.navigate('DeleteAccount');
+  const handleLogout = () => navigation.navigate('DeleteAccountScreen');
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-white px-5 pt-6">
       {/* 타이틀 */}
@@ -27,36 +27,36 @@ const AccountScreen = () => {
 
       {/* 아이디 */}
       <View className="ml-3 mr-3 mt-6">
-        <Text className="mb-2 font-notoSansKRRegular text-sm text-gray-500">아이디</Text>
-        <View className="rounded-xl border border-gray-200 px-5 py-3">
+        <Text className="text-gray-500 mb-2 font-notoSansKRRegular text-sm">아이디</Text>
+        <View className="border-gray-200 rounded-xl border px-5 py-3">
           <Text className="font-notoSansKRRegular text-base text-black">cye4526</Text>
         </View>
       </View>
 
       {/* 이메일 */}
       <View className="ml-3 mr-3 mt-4">
-        <Text className="mb-2 font-notoSansKRRegular text-sm text-gray-500">이메일</Text>
-        <View className="rounded-xl border border-gray-200 px-5 py-3">
+        <Text className="text-gray-500 mb-2 font-notoSansKRRegular text-sm">이메일</Text>
+        <View className="border-gray-200 rounded-xl border px-5 py-3">
           <Text className="font-notoSansKRRegular text-base text-black">cye4526@naver.com</Text>
         </View>
       </View>
 
       {/* 프로필 수정 / 로그아웃 */}
       <TouchableOpacity
-        className="ml-3 mr-3 mt-12 flex-row items-center justify-between rounded-xl border border-gray-200 px-5 py-3"
+        className="border-gray-200 ml-3 mr-3 mt-12 flex-row items-center justify-between rounded-xl border px-5 py-3"
         onPress={handleCheck}>
-        <Text className="font-notoSansKRRegular text-base text-gray-500">프로필 수정</Text>
-        <Text className="font-notoSansKRRegular text-2xl text-gray-500">›</Text>
+        <Text className="text-gray-500 font-notoSansKRRegular text-base">프로필 수정</Text>
+        <Text className="text-gray-500 font-notoSansKRRegular text-2xl">›</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity className="ml-3 mr-3 mt-3 flex-row items-center justify-between rounded-xl border border-gray-200 px-5 py-3">
-        <Text className="font-notoSansKRRegular text-base text-gray-500">로그아웃</Text>
-        <Text className="font-notoSansKRRegular text-2xl text-gray-500">›</Text>
+      <TouchableOpacity className="border-gray-200 ml-3 mr-3 mt-3 flex-row items-center justify-between rounded-xl border px-5 py-3">
+        <Text className="text-gray-500 font-notoSansKRRegular text-base">로그아웃</Text>
+        <Text className="text-gray-500 font-notoSansKRRegular text-2xl">›</Text>
       </TouchableOpacity>
 
       {/* 회원 탈퇴 */}
       <TouchableOpacity onPress={handleLogout}>
-        <Text className="mt-14 text-center font-notoSansKRRegular text-sm text-gray-400">
+        <Text className="text-gray-400 mt-14 text-center font-notoSansKRRegular text-sm">
           회원 탈퇴
         </Text>
       </TouchableOpacity>
