@@ -60,7 +60,7 @@ const getStrengthLevel = (length: number, typeCount: number) => {
 };
 
 const InlineError = ({ message }: { message: string }) => (
-  <View className="ml-6 mt-2">
+  <View className="ml-2 mt-2">
     <Text className="font-notoSansKRRegular text-sm text-danger">{message}</Text>
   </View>
 );
