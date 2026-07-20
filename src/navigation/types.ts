@@ -16,10 +16,16 @@ export type RootStackParamList = {
   Tabs: NavigatorScreenParams<RootTabParamList>;
   FeedbackDetail: { id: number };
   MobileTabs: NavigatorScreenParams<RootTabParamList> | undefined;
+  DeleteAccount: undefined;
+  DeleteComplete: undefined;
   TabletMain: undefined;
   TabletLogin: undefined;
   TabletSignup: undefined;
   TabletReport: undefined;
+  FindPassword: undefined;
+  FindPasswordSuccess: undefined;
+  ResetPassword: undefined;
+  ResetPasswordSuccess: undefined;
   FindId: undefined;
   FindIdSuccess: undefined;
   FindIdResult: { userId: string };

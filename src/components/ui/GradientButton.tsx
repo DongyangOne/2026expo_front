@@ -13,6 +13,7 @@ interface GradientButtonProps {
   borderTopRightRadius?: number;
   borderBottomRightRadius?: number;
   fontSize?: number;
+  fontWeight?: 'regular' | 'bold';
   opacity?: number;
 }
 
@@ -27,6 +28,7 @@ const GradientButton = ({
   borderTopRightRadius,
   borderBottomRightRadius,
   fontSize = 16,
+  fontWeight = 'bold',
   opacity = 1,
 }: GradientButtonProps) => {
   const [width, setWidth] = useState(0);
@@ -61,7 +63,9 @@ const GradientButton = ({
           <Rect width={width} height={height} fill="url(#btnGrad)" />
         </Svg>
       )}
-      <Text className="text-base font-notoSansKRBold text-white" style={{ fontSize }}>
+      <Text
+        className={`text-base text-white ${fontWeight === 'bold' ? 'font-notoSansKRBold' : 'font-notoSansKRRegular'}`}
+        style={{ fontSize }}>
         {label}
       </Text>
     </TouchableOpacity>

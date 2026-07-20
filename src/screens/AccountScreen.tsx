@@ -13,6 +13,8 @@ const AccountScreen = () => {
 
   const handleCheck = () => navigation.navigate('UserAuth');
   const handleLogout = () => navigation.navigate('Login');
+  const handleDeleteAccount = () => navigation.navigate('DeleteAccount');
+
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <View className="mx-11 flex-1">
@@ -67,7 +69,7 @@ const AccountScreen = () => {
         </TouchableOpacity>
 
         {/* 회원 탈퇴 */}
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleDeleteAccount}>
           <Text
             className="mt-16 text-center font-notoSansKRBold text-sm text-body"
             style={{
