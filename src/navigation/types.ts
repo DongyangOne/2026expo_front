@@ -16,8 +16,6 @@ export type RootStackParamList = {
   Tabs: NavigatorScreenParams<RootTabParamList>;
   FeedbackDetail: { id: number };
   MobileTabs: NavigatorScreenParams<RootTabParamList> | undefined;
-  EditProfile: undefined;
-  UserAuth: undefined;
   DeleteAccount: undefined;
   DeleteComplete: undefined;
   TabletMain: undefined;
@@ -32,4 +30,9 @@ export type RootStackParamList = {
   FindIdSuccess: undefined;
   FindIdResult: { userId: string };
   TabletTrashFeedback: undefined;
+  EditProfile: {
+    email: string;
+  };
+  UserAuth: undefined;
+  Login: undefined;
 };

@@ -20,7 +20,6 @@ const config = {
     sourceExts: [...sourceExts, 'svg'],
   },
 };
-
 module.exports = withNativeWind(mergeConfig(defaultConfig, config), {
   input: './global.css',
 });
