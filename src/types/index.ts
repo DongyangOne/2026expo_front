@@ -10,3 +10,12 @@ export type {
   AdminReissueRequest,
   AdminSignupRequest,
 } from './auth.types';
+export type {
+  EmailCheckRequest,
+  EmailCheckResponse,
+  EmailSendRequest,
+  EmailSendResponse,
+  ExistsCheckResponse,
+  SignupRequest,
+  SignupResponse,
+} from './signup.types';
