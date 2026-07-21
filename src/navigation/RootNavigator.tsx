@@ -1,5 +1,5 @@
-import React from 'react';
-import { useWindowDimensions } from 'react-native';
+import React, { useEffect } from 'react';
+import { useWindowDimensions, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -24,6 +24,7 @@ import TabletMain from '@/screens/tablet/TabletMain';
 import TabletLogin from '@/screens/tablet/TabletLogin';
 import TabletReport from '@/screens/tablet/TabletReport';
 import TabletSignup from '@/screens/tablet/TabletSignup';
+import { useAuthStore } from '@/store';
 
 import type { RootStackParamList, RootTabParamList } from './types';
 
@@ -109,10 +110,34 @@ const RootNavigator = () => {
   const { width, height } = useWindowDimensions();
   const isTablet = Math.min(width, height) >= TABLET_MIN_DP;
 
+  const isRestoring = useAuthStore((state) => state.isRestoring);
+  const hasSession = useAuthStore((state) => !!state.accessToken);
+  const restoreSession = useAuthStore((state) => state.restoreSession);
+
+  useEffect(() => {
+    restoreSession();
+  }, [restoreSession]);
+
+  if (isRestoring) {
+    return <View className="flex-1 bg-background" />;
+  }
+
+  const getInitialRouteName = (): keyof RootStackParamList => {
+    if (isTablet) {
+      return 'TabletMain';
+    }
+
+    if (hasSession) {
+      return 'MobileTabs';
+    }
+
+    return 'Login';
+  };
+
+  const initialRouteName = getInitialRouteName();
+
   return (
-    <Stack.Navigator
-      initialRouteName={isTablet ? 'TabletMain' : 'Login'}
-      screenOptions={{ headerShown: false }}>
+    <Stack.Navigator initialRouteName={initialRouteName} screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="MobileTabs" component={MobileTabs} />
       <Stack.Screen name="TabletMain" component={TabletMain} />
