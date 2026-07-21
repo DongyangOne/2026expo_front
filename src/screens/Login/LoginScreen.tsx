@@ -8,7 +8,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import CheckedIcon from '@/components/ui/icons/checked.svg';
 import { STORAGE_KEYS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
-import { apiInstance, login } from '@/services';
+import { login } from '@/services';
 import { useAuthStore } from '@/store';
 
 import LoginField from './components/LoginField';
@@ -106,24 +106,11 @@ const LoginScreen = ({ navigation }: Props) => {
     // TODO: 소셜 로그인 화면/SDK 연동
   };
 
-  const handleDebugReissueTest = async () => {
-    try {
-      const { data } = await login({ loginId: 'user123', password: 'password123*', rememberMe: 'Y' });
-      setAuth(data);
-      useAuthStore.setState({ accessToken: 'debug-corrupted-access-token' });
-      await apiInstance.get('/api/v1/__reissue_test__');
-      setToastMessage('TEST: 요청 성공 (예상 밖)');
-    } catch (error) {
-      setToastMessage(`TEST: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  };
-
   return (
     <View className="flex-1 bg-background">
       <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
         <ScrollView contentContainerClassName="px-11 pb-[40px]" keyboardShouldPersistTaps="handled">
           <Text
-            onLongPress={handleDebugReissueTest}
             className="mb-[55px] mt-[80px] text-center font-notoSansKRBold text-4xl leading-[52px] text-black"
             style={{ includeFontPadding: false }}>
             Log in
