@@ -97,7 +97,7 @@ const LoginScreen = ({ navigation }: Props) => {
             placeholder="아이디를 입력해 주세요."
             maxLength={12}
             value={id}
-            errorText={submitAttempted && !id ? idError : ''}
+            errorText={submitAttempted ? idError : ''}
             onChangeText={(value) => setId(value.replace(/[^a-z0-9]/g, ''))}
           />
 
@@ -108,7 +108,7 @@ const LoginScreen = ({ navigation }: Props) => {
               maxLength={16}
               secureTextEntry
               value={password}
-              errorText={submitAttempted && !password ? passwordError : ''}
+              errorText={submitAttempted ? passwordError : ''}
               onChangeText={(value) => setPassword(value.replace(/[^\x21-\x7E]/g, ''))}
             />
           </View>
