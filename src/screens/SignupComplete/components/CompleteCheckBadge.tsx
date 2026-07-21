@@ -40,8 +40,12 @@ const CompleteCheckBadge = () => {
       {SPARKLES.map((sparkle, index) => (
         <SparkleIcon key={index} {...sparkle} />
       ))}
-      <View className="size-[160px] items-center justify-center rounded-full border border-border bg-white">
-        <Svg height={64} viewBox="0 0 60 55" width={70}>
+      <View
+        className="absolute size-[200px] rounded-full bg-purple"
+        style={{ opacity: 0.06 }}
+      />
+      <View className="size-[140px] items-center justify-center rounded-full border border-border bg-white">
+        <Svg height={56} viewBox="0 0 60 55" width={61}>
           <IconGradient id={CHECK_GRADIENT_ID} />
           <Path
             d="M3.5 26L20.5 43L53.5 3"
@@ -49,7 +53,7 @@ const CompleteCheckBadge = () => {
             stroke={`url(#${CHECK_GRADIENT_ID})`}
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeWidth={6}
+            strokeWidth={5}
           />
         </Svg>
       </View>

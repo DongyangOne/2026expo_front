@@ -353,15 +353,7 @@ const SignupScreen = ({ navigation }: Props) => {
 
   const renderAgreementIcon = () => {
     if (agreed) {
-      return (
-        <View className="size-[16px] items-center justify-center rounded-[4px] bg-purple">
-          <CheckedIcon height={9} width={10} />
-        </View>
-      );
-    }
-
-    if (submitAttempted && agreedInvalid) {
-      return <View className="size-[16px] rounded-[4px] border-2 border-error bg-white" />;
+      return <CheckedIcon height={16} width={16} />;
     }
 
     return <UncheckedIcon height={16} width={16} />;
