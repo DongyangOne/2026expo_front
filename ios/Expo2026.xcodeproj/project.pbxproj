@@ -11,10 +11,10 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		CBC75DE5112D45F6A2E01DB2 /* NotoSansKR-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 741F2DEF8A3D4F389AEBEAF0 /* NotoSansKR-Bold.ttf */; };
-		A318350CB3D040589A976568 /* NotoSansKR-DemiLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CA8E23C30B134658ACBB4A69 /* NotoSansKR-DemiLight.ttf */; };
-		5C976D7797B348BA9570A3D1 /* NotoSansKR-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 629E60C50BA54F0B9B1D1691 /* NotoSansKR-Regular.ttf */; };
-		DE1FDA5EC35D46F79D085C0F /* .gitkeep in Resources */ = {isa = PBXBuildFile; fileRef = 226E009CCAA445C486838BCE /* .gitkeep */; };
+		08E4F0CFC9ED4EF0BEE79EE0 /* NotoSansKR-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0475EC1B0FDE4064A1190D06 /* NotoSansKR-Bold.ttf */; };
+		47CA0F8A1E534633AF09E22C /* NotoSansKR-DemiLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A72E70FBEFCE4D539C09D042 /* NotoSansKR-DemiLight.ttf */; };
+		630B97E9AFE44E4CB1B923EF /* NotoSansKR-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DFA30198F1DD4780AE00D71B /* NotoSansKR-Regular.ttf */; };
+		1F80D59E18024DC9B7E1297C /* .gitkeep in Resources */ = {isa = PBXBuildFile; fileRef = 8AF467554627470AAFE6D416 /* .gitkeep */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,10 +28,10 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Expo2026/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Expo2026/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		741F2DEF8A3D4F389AEBEAF0 /* NotoSansKR-Bold.ttf */ = {isa = PBXFileReference; name = "NotoSansKR-Bold.ttf"; path = "../src/assets/fonts/NotoSansKR-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		CA8E23C30B134658ACBB4A69 /* NotoSansKR-DemiLight.ttf */ = {isa = PBXFileReference; name = "NotoSansKR-DemiLight.ttf"; path = "../src/assets/fonts/NotoSansKR-DemiLight.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		629E60C50BA54F0B9B1D1691 /* NotoSansKR-Regular.ttf */ = {isa = PBXFileReference; name = "NotoSansKR-Regular.ttf"; path = "../src/assets/fonts/NotoSansKR-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		226E009CCAA445C486838BCE /* .gitkeep */ = {isa = PBXFileReference; name = ".gitkeep"; path = "../src/assets/fonts/.gitkeep"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		0475EC1B0FDE4064A1190D06 /* NotoSansKR-Bold.ttf */ = {isa = PBXFileReference; name = "NotoSansKR-Bold.ttf"; path = "../src/assets/fonts/NotoSansKR-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		A72E70FBEFCE4D539C09D042 /* NotoSansKR-DemiLight.ttf */ = {isa = PBXFileReference; name = "NotoSansKR-DemiLight.ttf"; path = "../src/assets/fonts/NotoSansKR-DemiLight.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		DFA30198F1DD4780AE00D71B /* NotoSansKR-Regular.ttf */ = {isa = PBXFileReference; name = "NotoSansKR-Regular.ttf"; path = "../src/assets/fonts/NotoSansKR-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		8AF467554627470AAFE6D416 /* .gitkeep */ = {isa = PBXFileReference; name = ".gitkeep"; path = "../src/assets/fonts/.gitkeep"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,10 +109,10 @@
 		FAE7379E6E4745C697B67944 /* Resources */ = {
 			isa = "PBXGroup";
 			children = (
-				741F2DEF8A3D4F389AEBEAF0 /* NotoSansKR-Bold.ttf */,
-				CA8E23C30B134658ACBB4A69 /* NotoSansKR-DemiLight.ttf */,
-				629E60C50BA54F0B9B1D1691 /* NotoSansKR-Regular.ttf */,
-				226E009CCAA445C486838BCE /* .gitkeep */,
+				0475EC1B0FDE4064A1190D06 /* NotoSansKR-Bold.ttf */,
+				A72E70FBEFCE4D539C09D042 /* NotoSansKR-DemiLight.ttf */,
+				DFA30198F1DD4780AE00D71B /* NotoSansKR-Regular.ttf */,
+				8AF467554627470AAFE6D416 /* .gitkeep */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -180,10 +180,10 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
-				CBC75DE5112D45F6A2E01DB2 /* NotoSansKR-Bold.ttf in Resources */,
-				A318350CB3D040589A976568 /* NotoSansKR-DemiLight.ttf in Resources */,
-				5C976D7797B348BA9570A3D1 /* NotoSansKR-Regular.ttf in Resources */,
-				DE1FDA5EC35D46F79D085C0F /* .gitkeep in Resources */,
+				08E4F0CFC9ED4EF0BEE79EE0 /* NotoSansKR-Bold.ttf in Resources */,
+				47CA0F8A1E534633AF09E22C /* NotoSansKR-DemiLight.ttf in Resources */,
+				630B97E9AFE44E4CB1B923EF /* NotoSansKR-Regular.ttf in Resources */,
+				1F80D59E18024DC9B7E1297C /* .gitkeep in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
