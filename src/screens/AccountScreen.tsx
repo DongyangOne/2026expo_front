@@ -20,20 +20,18 @@ interface Profile {
 const AccountScreen = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
 
-  const [debugInfo, setDebugInfo] = useState<string>('');
-
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const res = await getProfile();
-        setDebugInfo(JSON.stringify(res.data));
         setProfile(res.data.data);
-      } catch (e: any) {
-        setDebugInfo('에러: ' + (e?.message || JSON.stringify(e)));
+      } catch (e) {
+        console.log('에러:', e);
       }
     };
     fetchProfile();
   }, []);
+
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleCheck = () => navigation.navigate('UserAuth');
@@ -53,10 +51,6 @@ const AccountScreen = () => {
           }}>
           프로필
         </Text>
-
-        {__DEV__ && debugInfo ? (
-          <Text style={{ color: 'red', fontSize: 10 }}>{debugInfo}</Text>
-        ) : null}
 
         {/* 프로필 이미지 */}
         <View className="mb-9 items-center">

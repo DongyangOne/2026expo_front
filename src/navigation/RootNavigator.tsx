@@ -2,11 +2,12 @@ import React from 'react';
 import { useWindowDimensions } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import SplashScreen from '@/screens/SplashScreen';
 import FeedbackdetailScreen from '@/screens/FeedbackdetailScreen';
 import FindIdScreen from '@/screens/FindIdScreen';
 import FindIdSuccessScreen from '@/screens/FindIdSuccessScreen';
 import FindIdResultScreen from '@/screens/FindIdResultScreen';
-
+import LoginScreen from '@/screens/Login';
 import TabletMain from '@/screens/tablet/TabletMain';
 import TabletLogin from '@/screens/tablet/TabletLogin';
 import TabletReport from '@/screens/tablet/TabletReport';
@@ -21,7 +22,7 @@ import TabletTrashFeedbackScreen from '@/screens/tablet/TabletTrashFeedbackScree
 import type { RootStackParamList } from './types';
 import EditProfileScreen from '@/screens/EditProfileScreen';
 import UserAuthScreen from '@/screens/UserAuthScreen';
-import LoginScreen from '@/screens/LoginScreen';
+
 import DeleteAccountScreen from '@/screens/DeleteAccountScreen';
 import DeleteCompleteScreen from '@/screens/DeleteCompleteScreen';
 
@@ -35,8 +36,10 @@ const RootNavigator = () => {
 
   return (
     <Stack.Navigator
-      initialRouteName={isTablet ? 'TabletLogin' : 'MobileTabs'}
+      initialRouteName={isTablet ? 'TabletLogin' : 'Splash'}
       screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Splash" component={SplashScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="MobileTabs" component={TabNavigator} />
       <Stack.Screen name="TabletMain" component={TabletMain} />
       <Stack.Screen name="TabletLogin" component={TabletLogin} />
@@ -55,7 +58,6 @@ const RootNavigator = () => {
       <Stack.Screen name="FeedbackDetail" component={FeedbackdetailScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       <Stack.Screen name="UserAuth" component={UserAuthScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} />
     </Stack.Navigator>
   );
 };

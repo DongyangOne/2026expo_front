@@ -1,6 +1,5 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BackIcon from '@/assets/icons/backicon.svg';
 
@@ -12,7 +11,6 @@ export interface TopBarProps {
 }
 
 export const TopBar: React.FC<TopBarProps> = ({ title, onBack, onPress, className }) => {
-  const insets = useSafeAreaInsets();
   const handleBack = onPress ?? onBack;
 
   return (

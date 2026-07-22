@@ -16,7 +16,7 @@ import CompleteImage from '../assets/images/leave.svg';
 import tailwindConfig from '../../tailwind.config.js';
 
 const DeleteCompleteScreen = () => {
-  const { colors } = tailwindConfig.theme.extend;
+  const { colors } = tailwindConfig.theme!.extend! as { colors: Record<string, string> };
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
