@@ -1,5 +1,5 @@
-import React, { useCallback, useRef } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import { TabletBackgroundCircles } from '@/components/layout';
 import LogoIcon from '@/assets/icons/Logo.svg';
 import { FONTS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
+import { issueQrToken } from '@/services';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TabletMain'>;
 
@@ -17,20 +18,33 @@ interface QrTapState {
   count: number;
 }
 
-const TEMPORARY_QR_VALUE = 'expo-2026-temporary-session';
 const QR_SIZE = 250;
 const LOGIN_TAP_WINDOW_MS = 5000;
 const LOGIN_TAP_COUNT = 5;
+const QR_TOKEN_ERROR_MESSAGE = 'QR 코드를 불러오지 못했습니다.';
 
-const TemporaryQrCode = (): React.JSX.Element => {
+interface QrCodeProps {
+  qrToken: string | null;
+  isLoading: boolean;
+}
+
+const QrCode = ({ qrToken, isLoading }: QrCodeProps): React.JSX.Element => {
   return (
     <View className="h-[250px] w-[250px] items-center justify-center rounded-[8px] bg-[#E5E7EB] p-[14px]">
-      <QRCode
-        backgroundColor="#FFFFFF"
-        color="#404040"
-        size={QR_SIZE - 28}
-        value={TEMPORARY_QR_VALUE}
-      />
+      {isLoading ? <ActivityIndicator color="#7B61FF" size="large" /> : null}
+      {!isLoading && qrToken ? (
+        <QRCode
+          backgroundColor="#FFFFFF"
+          color="#404040"
+          size={QR_SIZE - 28}
+          value={qrToken}
+        />
+      ) : null}
+      {!isLoading && !qrToken ? (
+        <Text className="text-center font-notoSansKRRegular text-[16px] text-body">
+          {QR_TOKEN_ERROR_MESSAGE}
+        </Text>
+      ) : null}
     </View>
   );
 };
@@ -59,6 +73,34 @@ const GradientGuideText = (): React.JSX.Element => {
 
 const TabletMain = ({ navigation }: Props): React.JSX.Element => {
   const qrTapState = useRef<QrTapState>({ firstTapAt: 0, count: 0 });
+  const [qrToken, setQrToken] = useState<string | null>(null);
+  const [isQrLoading, setIsQrLoading] = useState(true);
+
+  useEffect((): (() => void) => {
+    let isMounted = true;
+
+    const fetchQrToken = async (): Promise<void> => {
+      try {
+        const qrTokenResponse = await issueQrToken();
+
+        if (isMounted && qrTokenResponse.success) {
+          setQrToken(qrTokenResponse.data.qrToken);
+        }
+      } catch (error: unknown) {
+        console.error('[TabletMain] QR 토큰 발급 실패', error);
+      } finally {
+        if (isMounted) {
+          setIsQrLoading(false);
+        }
+      }
+    };
+
+    void fetchQrToken();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleQrPress = useCallback((): void => {
     const currentTime = Date.now();
@@ -98,7 +140,7 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
             accessibilityRole="button"
             className="mt-[80px] items-center"
             onPress={handleQrPress}>
-            <TemporaryQrCode />
+            <QrCode isLoading={isQrLoading} qrToken={qrToken} />
           </Pressable>
 
           <Text className="mt-[20px] text-center font-notoSansKRBold text-[40px] leading-[48px] text-black">
