@@ -2,6 +2,8 @@ import React from 'react';
 import { useWindowDimensions } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+
+import SplashScreen from '@/screens/SplashScreen';
 import FeedbackdetailScreen from '@/screens/FeedbackdetailScreen';
 import FindIdScreen from '@/screens/FindIdScreen';
 import FindIdSuccessScreen from '@/screens/FindIdSuccessScreen';
@@ -34,8 +36,9 @@ const RootNavigator = () => {
 
   return (
     <Stack.Navigator
-      initialRouteName={isTablet ? 'TabletLogin' : 'Login'}
+      initialRouteName={isTablet ? 'TabletLogin' : 'Splash'}
       screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="MobileTabs" component={TabNavigator} />
       <Stack.Screen name="TabletMain" component={TabletMain} />
