@@ -5,11 +5,10 @@ import { Defs, LinearGradient as SvgLinearGradient, Rect, Stop, Svg } from 'reac
 import { GradientButton } from '@/components/ui';
 import QuitIcon from '@/assets/icons/quit.svg';
 import { useCharacterLevel } from '@/screens/Home/hooks/useCharacterLevel';
+import congratsImage from '@/assets/images/congrats.png';
+import charEggImage from '@/assets/images/char-egg.png';
 
 import { getRandomResultComment } from './quizResultComments';
-
-const congratsImage = require('@/assets/images/congrats.png');
-const charEggImage = require('@/assets/images/char-egg.png');
 
 const LEVEL_BAR_HEIGHT = 20;
 const LEVEL_GRADIENT_START = '#7B61FF';

@@ -4,6 +4,7 @@ import { Image, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import { GradientButton } from '@/components/ui';
 import DownIcon from '@/assets/icons/downicon.svg';
 import UpIcon from '@/assets/icons/upicon.svg';
+import charEggImage from '@/assets/images/char-egg.png';
 
 import { QUIZ_COUNT_OPTIONS } from './QuizQuestionScreen';
 
@@ -28,11 +29,7 @@ const QuizStartScreen = ({ quizCount, onSelectCount, onSolveQuiz }: QuizStartScr
       </Text>
 
       <View className="mt-12 aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-2xl bg-background">
-        <Image
-          source={require('@/assets/images/char-egg.png')}
-          className="h-2/3 w-2/3"
-          resizeMode="contain"
-        />
+        <Image source={charEggImage} className="h-2/3 w-2/3" resizeMode="contain" />
       </View>
 
       <View className="z-20 ml-2 mt-12 flex-row items-center">

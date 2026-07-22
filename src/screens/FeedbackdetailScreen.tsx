@@ -17,7 +17,7 @@ cssInterop(LinearGradient, {
 import type { RootStackParamList } from '@/navigation/types';
 
 const FeedbackDetailScreen = () => {
-  const { colors } = tailwindConfig.theme.extend;
+  const { colors } = tailwindConfig.theme!.extend! as { colors: Record<string, string> };
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 

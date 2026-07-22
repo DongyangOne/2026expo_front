@@ -1,9 +1,13 @@
 declare module '*.png' {
-  const content: number;
+  import type { ImageSourcePropType } from 'react-native';
+
+  const content: ImageSourcePropType;
   export default content;
 }
 
 declare module '*.jpg' {
-  const content: number;
+  import type { ImageSourcePropType } from 'react-native';
+
+  const content: ImageSourcePropType;
   export default content;
 }

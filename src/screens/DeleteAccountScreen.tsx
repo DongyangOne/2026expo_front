@@ -103,7 +103,9 @@ const validatePasswordFormat = (password: string): { isValid: boolean; message: 
 };
 
 const DeleteAccountScreen = () => {
-  const { colors } = tailwindConfig.theme.extend;
+  const { colors } = tailwindConfig.theme!.extend! as {
+    colors: { linear: { start: string; end: string } };
+  };
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 

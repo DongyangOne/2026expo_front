@@ -13,6 +13,7 @@ export type RootTabParamList = {
 };
 
 export type RootStackParamList = {
+  Login: undefined;
   Tabs: NavigatorScreenParams<RootTabParamList>;
   FeedbackDetail: { id: number };
   MobileTabs: NavigatorScreenParams<RootTabParamList> | undefined;
@@ -34,5 +35,4 @@ export type RootStackParamList = {
     email: string;
   };
   UserAuth: undefined;
-  Login: undefined;
 };

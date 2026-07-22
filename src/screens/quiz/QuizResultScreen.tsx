@@ -4,9 +4,8 @@ import { Defs, LinearGradient as SvgLinearGradient, Rect, Stop, Svg } from 'reac
 
 import { GradientButton } from '@/components/ui';
 import QuitIcon from '@/assets/icons/quit.svg';
-
-const quizOImage = require('@/assets/images/quizO.png');
-const quizXImage = require('@/assets/images/quizX.png');
+import quizOImage from '@/assets/images/quizO.png';
+import quizXImage from '@/assets/images/quizX.png';
 
 const PROGRESS_BAR_HEIGHT = 20;
 const PROGRESS_GRADIENT_START = '#7B61FF';

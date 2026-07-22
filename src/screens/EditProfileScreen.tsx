@@ -127,7 +127,7 @@ const EditProfileScreen = () => {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       goToAccount();
-    } catch (error) {
+    } catch {
       setSubmitError('프로필 수정에 실패했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
       setIsSubmitting(false);
