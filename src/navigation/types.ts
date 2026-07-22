@@ -13,6 +13,7 @@ export type RootTabParamList = {
 };
 
 export type RootStackParamList = {
+  Splash: undefined;
   Login: undefined;
   Tabs: NavigatorScreenParams<RootTabParamList>;
   FeedbackDetail: { id: number };
