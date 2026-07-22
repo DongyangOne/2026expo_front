@@ -364,11 +364,11 @@ const SignupScreen = ({ navigation }: Props) => {
       <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
         <ScrollView
           className="flex-1 px-11"
-          contentContainerStyle={{ paddingBottom: 24, paddingTop: 24 }}
+          contentContainerStyle={{ paddingBottom: 16, paddingTop: 12 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           <Text
-            className="mb-[54px] text-center font-notoSansKRBold text-xl text-black"
+            className="mb-[28px] text-center font-notoSansKRBold text-xl text-black"
             style={{ includeFontPadding: false }}>
             회원가입
           </Text>
@@ -383,7 +383,7 @@ const SignupScreen = ({ navigation }: Props) => {
             onChangeText={(value) => setName(value.replace(/[^가-힣ㄱ-ㆎa-zA-Z]/g, ''))}
           />
 
-          <View className="mt-[5px]">
+          <View className="mt-[4px]">
             <SignupFieldWithAction
               actionLabel="이메일 인증"
               blinkToken={getBlinkToken('email')}
@@ -400,7 +400,7 @@ const SignupScreen = ({ navigation }: Props) => {
           </View>
 
           {(emailStatus === 'sent' || emailStatus === 'verified') && (
-            <View className="mt-[5px]">
+            <View className="mt-[4px]">
               <VerificationCodeField
                 actionDisabled={code.length !== 6 || codeExpired}
                 actionLabel="확인"
@@ -420,7 +420,7 @@ const SignupScreen = ({ navigation }: Props) => {
             </View>
           )}
 
-          <View className="mt-[5px]">
+          <View className="mt-[4px]">
             <SignupFieldWithAction
               actionLabel="중복 확인"
               blinkToken={getBlinkToken('id')}
@@ -436,7 +436,7 @@ const SignupScreen = ({ navigation }: Props) => {
             />
           </View>
 
-          <View className="mt-[5px]">
+          <View className="mt-[4px]">
             <SignupField
               blinkToken={getBlinkToken('password')}
               helperText={submitAttempted ? passwordError : ''}
@@ -449,7 +449,7 @@ const SignupScreen = ({ navigation }: Props) => {
             />
           </View>
 
-          <View className="mt-[5px]">
+          <View className="mt-[4px]">
             <SignupField
               blinkToken={getBlinkToken('passwordConfirm')}
               helperText={passwordConfirmHelper.text}
@@ -476,7 +476,7 @@ const SignupScreen = ({ navigation }: Props) => {
           </Pressable>
 
           <GradientButton
-            className="mt-[45px] h-[50px] w-[250px] self-center rounded-full"
+            className="mt-[24px] h-[50px] w-[250px] self-center rounded-full"
             gradientId="signup-submit-gradient"
             label="가입하기"
             radius={25}
@@ -484,7 +484,7 @@ const SignupScreen = ({ navigation }: Props) => {
             onPress={handleSubmit}
           />
 
-          <View className="mt-[33px] flex-row items-center justify-center">
+          <View className="mt-[18px] flex-row items-center justify-center">
             <Text
               className="font-notoSansKRDemiLight text-sm text-gray"
               style={{ includeFontPadding: false }}>
