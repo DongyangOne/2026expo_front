@@ -4,11 +4,36 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@/navigation/types';
+import { useEffect, useState } from 'react';
+import { getProfile } from '@/services';
 
 import ProfileImage from '../assets/images/profile.svg';
 import Arrow from '../assets/images/arrow.svg';
 
+interface Profile {
+  userId: number;
+  profileImageUrl: string;
+  name: string;
+  loginId: string;
+  email: string;
+}
 const AccountScreen = () => {
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  const [debugInfo, setDebugInfo] = useState<string>('');
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await getProfile();
+        setDebugInfo(JSON.stringify(res.data));
+        setProfile(res.data.data);
+      } catch (e: any) {
+        setDebugInfo('에러: ' + (e?.message || JSON.stringify(e)));
+      }
+    };
+    fetchProfile();
+  }, []);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleCheck = () => navigation.navigate('UserAuth');
@@ -29,19 +54,23 @@ const AccountScreen = () => {
           프로필
         </Text>
 
+        {__DEV__ && debugInfo ? (
+          <Text style={{ color: 'red', fontSize: 10 }}>{debugInfo}</Text>
+        ) : null}
+
         {/* 프로필 이미지 */}
         <View className="mb-9 items-center">
           <ProfileImage />
         </View>
 
         {/* 이름 */}
-        <Text className="text-center font-notoSansKRBold text-xl text-black">최예은</Text>
+        <Text className="text-center font-notoSansKRBold text-xl text-black">{profile?.name}</Text>
 
         {/* 아이디 */}
         <View className="mt-7">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">아이디</Text>
           <View className="android:elevation-md rounded-xl border border-border bg-white px-3 shadow-md">
-            <Text className="py-3 text-sm text-black">cye4526</Text>
+            <Text className="py-3 text-sm text-black">{profile?.loginId}</Text>
           </View>
         </View>
 
@@ -49,7 +78,7 @@ const AccountScreen = () => {
         <View className="mt-4">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">이메일</Text>
           <View className="android:elevation-md rounded-xl border border-border bg-white px-3 shadow-md">
-            <Text className="py-3 text-sm text-black">cye4526@naver.com</Text>
+            <Text className="py-3 text-sm text-black">{profile?.email}</Text>
           </View>
         </View>
 
