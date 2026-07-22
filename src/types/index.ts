@@ -6,4 +6,12 @@ export type {
   LoginResponse,
   ReissueTokenRequest,
   ReissueTokenResponse,
+  Admin,
+  AdminExistsData,
+  AdminExistsRequest,
+  AdminLoginData,
+  AdminLoginRequest,
+  AdminReissueData,
+  AdminReissueRequest,
+  AdminSignupRequest,
 } from './auth.types';

@@ -3,7 +3,14 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
 import { STORAGE_KEYS } from '@/constants';
-import type { AuthUser, LoginResponse, User } from '@/types';
+import type {
+  Admin,
+  AdminLoginData,
+  AdminReissueData,
+  AuthUser,
+  LoginResponse,
+  User,
+} from '@/types';
 
 interface AuthTokens {
   accessToken: string;
@@ -17,6 +24,9 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   rememberMe: 'Y' | 'N' | null;
+  admin: Admin | null;
+  adminAccessToken: string | null;
+  adminRefreshToken: string | null;
   isLoading: boolean;
   isRestoring: boolean;
   // 액션
@@ -25,6 +35,9 @@ interface AuthState {
   setTokens: (tokens: AuthTokens) => void;
   restoreSession: () => Promise<boolean>;
   logout: () => Promise<void>;
+  setAdminSession: (adminLoginData: AdminLoginData) => void;
+  setAdminTokens: (tokens: AdminReissueData) => void;
+  adminLogout: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -34,6 +47,9 @@ export const useAuthStore = create<AuthState>()(
     accessToken: null,
     refreshToken: null,
     rememberMe: null,
+    admin: null,
+    adminAccessToken: null,
+    adminRefreshToken: null,
     isLoading: false,
     isRestoring: true,
 
@@ -109,5 +125,28 @@ export const useAuthStore = create<AuthState>()(
         STORAGE_KEYS.AUTH_USER,
       ]);
     },
+
+    setAdminSession: (adminLoginData) =>
+      set((state) => {
+        state.admin = {
+          adminLoginId: adminLoginData.adminLoginId,
+          team: adminLoginData.team,
+        };
+        state.adminAccessToken = adminLoginData.adminAccessToken;
+        state.adminRefreshToken = adminLoginData.adminRefreshToken;
+      }),
+
+    setAdminTokens: (tokens) =>
+      set((state) => {
+        state.adminAccessToken = tokens.accessToken;
+        state.adminRefreshToken = tokens.refreshToken;
+      }),
+
+    adminLogout: () =>
+      set((state) => {
+        state.admin = null;
+        state.adminAccessToken = null;
+        state.adminRefreshToken = null;
+      }),
   })),
 );

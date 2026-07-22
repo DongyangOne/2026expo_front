@@ -3,7 +3,9 @@ import type { TextInputProps } from 'react-native';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
-type SignupInputProps = {
+type SignupInputMessageVariant = 'error' | 'success';
+
+interface SignupInputProps {
   label: string;
   placeholder: string;
   value: string;
@@ -13,8 +15,9 @@ type SignupInputProps = {
   actionLabel?: string;
   onActionPress?: () => void;
   errorText?: string;
+  messageVariant?: SignupInputMessageVariant;
   inputProps?: TextInputProps;
-};
+}
 
 const SignupInput = ({
   label,
@@ -26,8 +29,11 @@ const SignupInput = ({
   actionLabel,
   onActionPress,
   errorText,
+  messageVariant = 'error',
   inputProps,
 }: SignupInputProps) => {
+  const messageColorClass = messageVariant === 'success' ? 'text-success' : 'text-danger';
+
   return (
     <View className="w-full">
       <Text className="mb-[5px] font-notoSansKRRegular text-sm text-body" style={{ lineHeight: 16 }}>
@@ -66,7 +72,7 @@ const SignupInput = ({
       </View>
       <Text
         adjustsFontSizeToFit
-        className="mt-[3px] h-[21px] font-notoSansKRRegular text-sm text-pink"
+        className={`mt-[3px] h-[21px] font-notoSansKRRegular text-sm ${messageColorClass}`}
         minimumFontScale={0.75}
         numberOfLines={1}>
         {errorText || ' '}
