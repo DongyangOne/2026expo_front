@@ -19,6 +19,7 @@ interface QrTapState {
 }
 
 const QR_SIZE = 250;
+const QR_TOKEN_REFRESH_INTERVAL_MS = 2 * 60 * 1000 + 50 * 1000;
 const LOGIN_TAP_WINDOW_MS = 5000;
 const LOGIN_TAP_COUNT = 5;
 const QR_TOKEN_ERROR_MESSAGE = 'QR 코드를 불러오지 못했습니다.';
@@ -96,9 +97,13 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     };
 
     void fetchQrToken();
+    const qrTokenRefreshInterval = setInterval(() => {
+      void fetchQrToken();
+    }, QR_TOKEN_REFRESH_INTERVAL_MS);
 
     return () => {
       isMounted = false;
+      clearInterval(qrTokenRefreshInterval);
     };
   }, []);
 
