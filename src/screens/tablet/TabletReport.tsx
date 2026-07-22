@@ -6,6 +6,8 @@ import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-na
 
 import { FONTS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
+import { clearAdminSession } from '@/services';
+import { useAuthStore } from '@/store';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TabletReport'>;
 
@@ -100,12 +102,18 @@ const BackGradientText = () => (
 );
 
 const TabletReport = ({ navigation }: Props) => {
+  const logout = useAuthStore((state) => state.logout);
+
   const handleBackPress = () => {
     Alert.alert('로그아웃', '로그아웃됩니다.', [
       { text: '취소', style: 'cancel' },
       {
         text: '확인',
-        onPress: () => navigation.replace('TabletMain'),
+        onPress: async () => {
+          await clearAdminSession();
+          logout();
+          navigation.replace('TabletMain');
+        },
       },
     ]);
   };
