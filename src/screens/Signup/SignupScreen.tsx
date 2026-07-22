@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CheckedIcon from '@/components/ui/icons/checked.svg';
-import UncheckedIcon from '@/components/ui/icons/unchecked.svg';
+import CheckedActiveIcon from '@/components/ui/icons/checked-active.svg';
 import type { RootStackParamList } from '@/navigation/types';
 
 import GradientButton from './components/GradientButton';
@@ -353,10 +353,10 @@ const SignupScreen = ({ navigation }: Props) => {
 
   const renderAgreementIcon = () => {
     if (agreed) {
-      return <CheckedIcon height={16} width={16} />;
+      return <CheckedActiveIcon height={16} width={16} />;
     }
 
-    return <UncheckedIcon height={16} width={16} />;
+    return <CheckedIcon height={16} width={16} />;
   };
 
   return (
@@ -490,11 +490,7 @@ const SignupScreen = ({ navigation }: Props) => {
               style={{ includeFontPadding: false }}>
               이미 계정이 있으신가요?
             </Text>
-            <LoginGradientLink
-              onPress={() => {
-                // TODO: 로그인 화면(feature-expo-2) merge 후 연결
-              }}
-            />
+            <LoginGradientLink onPress={() => navigation.navigate('Login')} />
           </View>
         </ScrollView>
       </SafeAreaView>
