@@ -1,15 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import CheckedIcon from '@/components/ui/icons/checked.svg';
-import { STORAGE_KEYS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
-import { login } from '@/services';
-import { useAuthStore } from '@/store';
 
 import LoginField from './components/LoginField';
 import LoginToast from './components/LoginToast';
@@ -18,20 +14,21 @@ import SocialLoginRow from './components/SocialLoginRow';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
+// TODO: 로그인 API 연동 전까지 임시 계정으로 동작 확인 (BE 연동 후 실제 API 호출로 교체)
+const MOCK_ID = 'expo2026';
+const MOCK_PASSWORD = 'Expo2026!';
+
 const TOAST_DURATION_MS = 2500;
 
 const ID_PATTERN = /^[a-z0-9]{4,12}$/;
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{8,16}$/;
 
 const LoginScreen = ({ navigation }: Props) => {
-  const setAuth = useAuthStore((state) => state.setAuth);
-
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [autoLogin, setAutoLogin] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastVisible, setToastVisible] = useState(false);
 
   const idError = useMemo(() => {
     if (!id) {
@@ -58,48 +55,27 @@ const LoginScreen = ({ navigation }: Props) => {
   }, [password]);
 
   useEffect(() => {
-    if (!toastMessage) {
+    if (!toastVisible) {
       return;
     }
 
-    const timer = setTimeout(() => setToastMessage(null), TOAST_DURATION_MS);
+    const timer = setTimeout(() => setToastVisible(false), TOAST_DURATION_MS);
     return () => clearTimeout(timer);
-  }, [toastMessage]);
+  }, [toastVisible]);
 
-  const handleLogin = async () => {
+  const handleSubmit = () => {
     setSubmitAttempted(true);
 
     if (idError || passwordError) {
       return;
     }
 
-    setIsLoading(true);
-
-    try {
-      const { data } = await login({
-        loginId: id,
-        password,
-        rememberMe: autoLogin ? 'Y' : 'N',
-      });
-
-      setAuth(data);
-
-      if (autoLogin) {
-        const { authUser } = useAuthStore.getState();
-
-        await AsyncStorage.multiSet([
-          [STORAGE_KEYS.ACCESS_TOKEN, data.accessToken],
-          [STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken],
-          [STORAGE_KEYS.AUTH_USER, JSON.stringify(authUser)],
-        ]);
-      }
-
-      navigation.replace('MobileTabs');
-    } catch (error) {
-      setToastMessage(error instanceof Error ? error.message : '로그인에 실패했습니다.');
-    } finally {
-      setIsLoading(false);
+    if (id !== MOCK_ID || password !== MOCK_PASSWORD) {
+      setToastVisible(true);
+      return;
     }
+
+    navigation.replace('MobileTabs');
   };
 
   const handleSocialPress = (_provider: 'google' | 'naver' | 'kakao') => {
@@ -171,8 +147,7 @@ const LoginScreen = ({ navigation }: Props) => {
 
           <Pressable
             className="mt-[52px] h-[50px] w-[250px] items-center justify-center self-center overflow-hidden rounded-full"
-            disabled={isLoading}
-            onPress={handleLogin}>
+            onPress={handleSubmit}>
             <Svg height="100%" style={StyleSheet.absoluteFill} width="100%">
               <Defs>
                 <LinearGradient id="login-submit-gradient" x1="0" y1="0" x2="1" y2="0">
@@ -206,7 +181,7 @@ const LoginScreen = ({ navigation }: Props) => {
         </ScrollView>
       </SafeAreaView>
 
-      <LoginToast message={toastMessage ?? ''} visible={!!toastMessage} />
+      <LoginToast message="아이디/ 비밀번호가 맞지 않습니다." visible={toastVisible} />
     </View>
   );
 };
