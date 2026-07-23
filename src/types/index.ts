@@ -1,6 +1,6 @@
 export type { User } from './user.types';
 export type { ApiResponse } from './api.types';
-export type { QrTokenData } from './qr.types';
+export type { QrLoginData, QrLoginSseResponse, QrTokenData } from './qr.types';
 export type {
   LoginRequest,
   AuthUser,

@@ -9,6 +9,7 @@ import FindIdScreen from '@/screens/FindIdScreen';
 import FindIdSuccessScreen from '@/screens/FindIdSuccessScreen';
 import FindIdResultScreen from '@/screens/FindIdResultScreen';
 import LoginScreen from '@/screens/Login';
+import QrLoginScreen from '@/screens/QrLoginScreen';
 import TabletMain from '@/screens/tablet/TabletMain';
 import TabletLogin from '@/screens/tablet/TabletLogin';
 import TabletReport from '@/screens/tablet/TabletReport';
@@ -47,6 +48,7 @@ const RootNavigator = () => {
       screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="QrLogin" component={QrLoginScreen} />
       <Stack.Screen name="MobileTabs" component={TabNavigator} />
       <Stack.Screen name="TabletMain" component={TabletMain} />
       <Stack.Screen name="TabletLogin" component={TabletLogin} />

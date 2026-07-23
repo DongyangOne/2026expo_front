@@ -9,7 +9,9 @@ import { TabletBackgroundCircles } from '@/components/layout';
 import LogoIcon from '@/assets/icons/Logo.svg';
 import { FONTS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
-import { issueQrToken } from '@/services';
+import { connectQrLogin, issueQrToken } from '@/services';
+import { useAuthStore, useQrLoginStore } from '@/store';
+import type { QrLoginSseResponse } from '@/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TabletMain'>;
 
@@ -18,11 +20,66 @@ interface QrTapState {
   count: number;
 }
 
-const QR_SIZE = 250;
+const QR_SIZE = 440;
 const QR_TOKEN_REFRESH_INTERVAL_MS = 2 * 60 * 1000 + 50 * 1000;
 const LOGIN_TAP_WINDOW_MS = 5000;
 const LOGIN_TAP_COUNT = 5;
 const QR_TOKEN_ERROR_MESSAGE = 'QR 코드를 불러오지 못했습니다.';
+const QR_LOGIN_DEEP_LINK_PREFIX = 'expo2026://qr-login?qrToken=';
+
+const isRecord = (candidate: unknown): candidate is Record<string, unknown> =>
+  typeof candidate === 'object' && candidate !== null;
+
+const parseQrLoginResponse = (eventData: string | null): QrLoginSseResponse | null => {
+  if (!eventData) {
+    return null;
+  }
+
+  try {
+    const response: unknown = JSON.parse(eventData);
+
+    if (
+      !isRecord(response) ||
+      response.success !== true ||
+      typeof response.message !== 'string' ||
+      typeof response.code !== 'string' ||
+      !isRecord(response.data)
+    ) {
+      return null;
+    }
+
+    const loginData = response.data;
+    const hasValidLoginData =
+      typeof loginData.userId === 'number' &&
+      typeof loginData.loginId === 'string' &&
+      typeof loginData.email === 'string' &&
+      typeof loginData.username === 'string' &&
+      typeof loginData.team === 'string' &&
+      typeof loginData.accessToken === 'string' &&
+      typeof loginData.refreshToken === 'string';
+
+    if (!hasValidLoginData) {
+      return null;
+    }
+
+    return {
+      message: response.message,
+      code: response.code,
+      success: true,
+      data: {
+        userId: loginData.userId as number,
+        loginId: loginData.loginId as string,
+        email: loginData.email as string,
+        username: loginData.username as string,
+        team: loginData.team as string,
+        accessToken: loginData.accessToken as string,
+        refreshToken: loginData.refreshToken as string,
+      },
+    };
+  } catch {
+    return null;
+  }
+};
 
 interface QrCodeProps {
   qrToken: string | null;
@@ -30,15 +87,19 @@ interface QrCodeProps {
 }
 
 const QrCode = ({ qrToken, isLoading }: QrCodeProps): React.JSX.Element => {
+  const qrLoginDeepLink = qrToken
+    ? `${QR_LOGIN_DEEP_LINK_PREFIX}${encodeURIComponent(qrToken)}`
+    : null;
+
   return (
-    <View className="h-[250px] w-[250px] items-center justify-center rounded-[8px] bg-[#E5E7EB] p-[14px]">
+    <View className="h-[440px] w-[440px] items-center justify-center rounded-[8px] bg-[#E5E7EB] p-[14px]">
       {isLoading ? <ActivityIndicator color="#7B61FF" size="large" /> : null}
-      {!isLoading && qrToken ? (
+      {!isLoading && qrLoginDeepLink ? (
         <QRCode
           backgroundColor="#FFFFFF"
           color="#404040"
           size={QR_SIZE - 28}
-          value={qrToken}
+          value={qrLoginDeepLink}
         />
       ) : null}
       {!isLoading && !qrToken ? (
@@ -74,8 +135,12 @@ const GradientGuideText = (): React.JSX.Element => {
 
 const TabletMain = ({ navigation }: Props): React.JSX.Element => {
   const qrTapState = useRef<QrTapState>({ firstTapAt: 0, count: 0 });
+  const hasHandledQrLogin = useRef(false);
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const setLoginResponse = useQrLoginStore((state) => state.setLoginResponse);
   const [qrToken, setQrToken] = useState<string | null>(null);
   const [isQrLoading, setIsQrLoading] = useState(true);
+  const [hasStartedSseConnection, setHasStartedSseConnection] = useState(false);
 
   useEffect((): (() => void) => {
     let isMounted = true;
@@ -85,6 +150,8 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
         const qrTokenResponse = await issueQrToken();
 
         if (isMounted && qrTokenResponse.success) {
+          console.warn('[TabletMain] 발급된 QR 토큰', qrTokenResponse.data.qrToken);
+          setHasStartedSseConnection(false);
           setQrToken(qrTokenResponse.data.qrToken);
         }
       } catch (error: unknown) {
@@ -106,6 +173,64 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
       clearInterval(qrTokenRefreshInterval);
     };
   }, []);
+
+  useEffect((): (() => void) | undefined => {
+    if (!qrToken) {
+      return undefined;
+    }
+
+    hasHandledQrLogin.current = false;
+    console.warn('[TabletMain] SSE 연결에 사용하는 QR 토큰', qrToken);
+    const qrLoginConnection = connectQrLogin(qrToken);
+    const qrDisplayTimer = setTimeout((): void => {
+      setHasStartedSseConnection(true);
+    }, 0);
+
+    qrLoginConnection.addEventListener('open', (): void => {
+      console.warn('[TabletMain] QR 로그인 SSE 연결 성공');
+      setHasStartedSseConnection(true);
+    });
+
+    qrLoginConnection.addEventListener('INIT', (event): void => {
+      console.warn('[TabletMain] QR 로그인 SSE 연결 준비 완료', event.data);
+    });
+
+    qrLoginConnection.addEventListener('LOGIN_SUCCESS', (event): void => {
+      console.warn('[TabletMain] QR 로그인 승인 응답 수신', event.data);
+
+      if (hasHandledQrLogin.current) {
+        return;
+      }
+
+      const loginResponse = parseQrLoginResponse(event.data);
+
+      if (!loginResponse) {
+        console.error('[TabletMain] QR 로그인 승인 응답 형식 오류');
+        return;
+      }
+
+      hasHandledQrLogin.current = true;
+      setLoginResponse(loginResponse);
+      setAuth({ ...loginResponse.data, rememberMe: 'N' });
+      navigation.replace('TabletTrashFeedback');
+    });
+
+    qrLoginConnection.addEventListener('close', (): void => {
+      console.warn('[TabletMain] QR 로그인 SSE 연결 종료');
+      setHasStartedSseConnection(false);
+    });
+
+    qrLoginConnection.addEventListener('error', (event): void => {
+      console.error('[TabletMain] QR 로그인 SSE 연결 오류', event);
+      setHasStartedSseConnection(false);
+    });
+
+    return () => {
+      clearTimeout(qrDisplayTimer);
+      qrLoginConnection.removeAllEventListeners();
+      qrLoginConnection.close();
+    };
+  }, [navigation, qrToken, setAuth, setLoginResponse]);
 
   const handleQrPress = useCallback((): void => {
     const currentTime = Date.now();
@@ -133,28 +258,34 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     <View className="flex-1 overflow-hidden bg-background">
       <TabletBackgroundCircles />
       <SafeAreaView className="flex-1 items-center" edges={['top', 'bottom']}>
-        <View className="flex-1 items-center">
+        <View className="w-full flex-1 items-center">
           <Pressable
             className="absolute top-[24px] z-10 h-[38px] min-w-[150px] items-center justify-center rounded-[10px] bg-purple px-[16px]"
             onPress={handleTemporaryFeedbackPress}>
             <Text className="font-notoSansKRBold text-[13px] text-white">임시 피드백 이동</Text>
           </Pressable>
 
-          <Pressable
-            accessibilityLabel="QR 코드"
-            accessibilityRole="button"
-            className="mt-[80px] items-center"
-            onPress={handleQrPress}>
-            <QrCode isLoading={isQrLoading} qrToken={qrToken} />
-          </Pressable>
+          <View className="w-full flex-1 flex-row items-center pt-[62px]">
+            <View className="w-1/2 items-center justify-center">
+              <Pressable
+                accessibilityLabel="QR 코드"
+                accessibilityRole="button"
+                className="items-center"
+                onPress={handleQrPress}>
+                <QrCode
+                  isLoading={isQrLoading || (!!qrToken && !hasStartedSseConnection)}
+                  qrToken={hasStartedSseConnection ? qrToken : null}
+                />
+              </Pressable>
+            </View>
 
-          <Text className="mt-[20px] text-center font-notoSansKRBold text-[40px] leading-[48px] text-black">
-            QR로 로그인 후
-          </Text>
-          <GradientGuideText />
-
-          <View className="flex-1 items-center justify-end pb-[20px]">
-            <LogoIcon height={204} width={306} />
+            <View className="w-1/2 -translate-y-[20px] items-center justify-center">
+              <LogoIcon height={307} width={460} />
+              <Text className="mt-[20px] text-center font-notoSansKRBold text-[40px] leading-[48px] text-black">
+                QR로 로그인 후
+              </Text>
+              <GradientGuideText />
+            </View>
           </View>
         </View>
       </SafeAreaView>
