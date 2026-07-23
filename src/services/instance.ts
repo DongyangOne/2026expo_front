@@ -1,9 +1,26 @@
-import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import Config from 'react-native-config';
 
+import { STORAGE_KEYS } from '@/constants';
 import { useAuthStore } from '@/store';
+import type { AdminReissueData, ApiResponse, ReissueTokenResponse } from '@/types';
 
+import { reissueToken } from './auth';
+import { reissueAdminToken } from './auth.service';
+
+interface RetryableRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
+const ADMIN_URL_PREFIX = '/api/v1/admin';
+const LOGIN_URL = '/api/v1/auth/login';
+const REISSUE_URL = '/api/v1/auth/token';
+const ADMIN_LOGIN_URL = '/api/v1/admin/login';
+const ADMIN_REISSUE_URL = '/api/v1/admin/reissue';
 const QR_TOKEN_ENDPOINT = '/api/v1/auth/qr/token';
+
+const isAdminUrl = (url?: string): boolean => !!url && url.startsWith(ADMIN_URL_PREFIX);
 
 const instance = axios.create({
   baseURL: Config.API_BASE_URL,
@@ -19,7 +36,8 @@ instance.interceptors.request.use((config) => {
     return config;
   }
 
-  const token = useAuthStore.getState().adminAccessToken;
+  const { accessToken, adminAccessToken } = useAuthStore.getState();
+  const token = isAdminUrl(config.url) ? adminAccessToken : accessToken;
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -28,10 +46,112 @@ instance.interceptors.request.use((config) => {
   return config;
 });
 
+let reissuePromise: Promise<ReissueTokenResponse> | null = null;
+
+const reissueAccessToken = (): Promise<ReissueTokenResponse> => {
+  if (!reissuePromise) {
+    reissuePromise = (async () => {
+      const { refreshToken, rememberMe } = useAuthStore.getState();
+
+      if (!refreshToken) {
+        throw new Error('저장된 refreshToken이 없습니다.');
+      }
+
+      const { data } = await reissueToken(refreshToken);
+
+      useAuthStore.getState().setTokens(data);
+
+      if (rememberMe === 'Y') {
+        await AsyncStorage.multiSet([
+          [STORAGE_KEYS.ACCESS_TOKEN, data.accessToken],
+          [STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken],
+        ]);
+      }
+
+      return data;
+    })().finally(() => {
+      reissuePromise = null;
+    });
+  }
+
+  return reissuePromise;
+};
+
+let adminReissuePromise: Promise<AdminReissueData> | null = null;
+
+const reissueAdminAccessToken = (): Promise<AdminReissueData> => {
+  if (!adminReissuePromise) {
+    adminReissuePromise = (async () => {
+      const { adminRefreshToken } = useAuthStore.getState();
+
+      if (!adminRefreshToken) {
+        throw new Error('저장된 관리자 refreshToken이 없습니다.');
+      }
+
+      const { data } = await reissueAdminToken({ refreshToken: adminRefreshToken });
+
+      useAuthStore.getState().setAdminTokens(data);
+
+      return data;
+    })().finally(() => {
+      adminReissuePromise = null;
+    });
+  }
+
+  return adminReissuePromise;
+};
+
 instance.interceptors.response.use(
   (response) => response,
-  (error) => {
-    return Promise.reject(error);
+  async (error: AxiosError<ApiResponse<never>>) => {
+    const config = error.config as RetryableRequestConfig | undefined;
+    const status = error.response?.status;
+
+    if (isAdminUrl(config?.url)) {
+      const isAdminLoginRequest = config?.url === ADMIN_LOGIN_URL;
+      const isAdminReissueRequest = config?.url === ADMIN_REISSUE_URL;
+
+      if (status === 401 && !isAdminLoginRequest) {
+        const canReissue = !isAdminReissueRequest && config !== undefined && !config._retry;
+
+        if (canReissue) {
+          try {
+            await reissueAdminAccessToken();
+            config._retry = true;
+            return instance(config);
+          } catch {
+            useAuthStore.getState().adminLogout();
+          }
+        } else {
+          useAuthStore.getState().adminLogout();
+        }
+      }
+
+      const adminMessage = error.response?.data?.message ?? error.message;
+      return Promise.reject(new Error(adminMessage));
+    }
+
+    const isLoginRequest = config?.url === LOGIN_URL;
+    const isReissueRequest = config?.url === REISSUE_URL;
+
+    if (status === 401 && !isLoginRequest) {
+      const canReissue = !isReissueRequest && config !== undefined && !config._retry;
+
+      if (canReissue) {
+        try {
+          await reissueAccessToken();
+          config._retry = true;
+          return instance(config);
+        } catch {
+          await useAuthStore.getState().logout();
+        }
+      } else {
+        await useAuthStore.getState().logout();
+      }
+    }
+
+    const message = error.response?.data?.message ?? error.message;
+    return Promise.reject(new Error(message));
   },
 );
 

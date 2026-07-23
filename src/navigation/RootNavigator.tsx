@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -13,6 +13,7 @@ import TabletMain from '@/screens/tablet/TabletMain';
 import TabletLogin from '@/screens/tablet/TabletLogin';
 import TabletReport from '@/screens/tablet/TabletReport';
 import TabletSignup from '@/screens/tablet/TabletSignup';
+import { useAuthStore } from '@/store';
 import FindPasswordScreen from '@/screens/FindPasswordScreen';
 import FindPasswordSuccessScreen from '@/screens/FindPasswordSuccessScreen';
 import ResetPasswordScreen from '@/screens/ResetPasswordScreen';
@@ -33,6 +34,12 @@ const TABLET_MIN_DP = 600;
 const RootNavigator = () => {
   const { width, height } = useWindowDimensions();
   const isTablet = Math.min(width, height) >= TABLET_MIN_DP;
+
+  const restoreSession = useAuthStore((state) => state.restoreSession);
+
+  useEffect(() => {
+    restoreSession();
+  }, [restoreSession]);
 
   return (
     <Stack.Navigator

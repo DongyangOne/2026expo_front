@@ -102,7 +102,7 @@ const BackGradientText = () => (
 );
 
 const TabletReport = ({ navigation }: Props) => {
-  const logout = useAuthStore((state) => state.logout);
+  const adminLogout = useAuthStore((state) => state.adminLogout);
 
   const handleBackPress = () => {
     Alert.alert('로그아웃', '로그아웃됩니다.', [
@@ -111,7 +111,7 @@ const TabletReport = ({ navigation }: Props) => {
         text: '확인',
         onPress: async () => {
           await clearAdminSession();
-          logout();
+          adminLogout();
           navigation.replace('TabletMain');
         },
       },

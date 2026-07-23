@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import LogoIcon from '@/assets/icons/Logo.svg';
 import type { RootStackParamList } from '@/navigation/types';
+import { useAuthStore } from '@/store';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
@@ -12,13 +13,23 @@ const LOGO_WIDTH = 352;
 const LOGO_HEIGHT = 235;
 
 const SplashScreen = ({ navigation }: Props) => {
+  const isRestoring = useAuthStore((state) => state.isRestoring);
+  const hasSession = useAuthStore((state) => !!state.accessToken);
+  const [minDurationElapsed, setMinDurationElapsed] = useState(false);
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('MobileTabs');
-    }, SPLASH_DURATION_MS);
+    const timer = setTimeout(() => setMinDurationElapsed(true), SPLASH_DURATION_MS);
 
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, []);
+
+  useEffect(() => {
+    if (isRestoring || !minDurationElapsed) {
+      return;
+    }
+
+    navigation.replace(hasSession ? 'MobileTabs' : 'Login');
+  }, [isRestoring, minDurationElapsed, hasSession, navigation]);
 
   return (
     <View className="flex-1 items-center justify-center overflow-hidden bg-background">
