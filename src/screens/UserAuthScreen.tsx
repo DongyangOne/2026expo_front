@@ -107,8 +107,6 @@ const UserAuthScreen = () => {
   const [isConfirming, setIsConfirming] = useState(false);
 
   const handleSendCode = async () => {
-    console.log('authUser:', JSON.stringify(authUser));
-    console.log('입력한 email:', JSON.stringify(email.trim()));
     if (userId.trim().length === 0) {
       showError('userId', '아이디를 입력해주세요.');
       return;
