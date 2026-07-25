@@ -1,3 +1,5 @@
+import { useAuthStore } from '@/store';
+import { confirmVerificationEmail, sendVerificationEmail } from '@/services';
 import React, { useEffect, useRef, useState } from 'react';
 import { cssInterop } from 'nativewind';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -16,10 +18,6 @@ import BackArrow from '../assets/images/vector.svg';
 const AUTH_CODE_DURATION = 300; // 5분 (초 단위)
 
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-
-const MOCK_CORRECT_AUTH_CODE = '123456';
-
-const MOCK_REGISTERED_USERS = [{ id: 'testuser', email: 'test@example.com' }];
 
 const formatTime = (totalSeconds: number): string => {
   const minutes = Math.floor(totalSeconds / 60);
@@ -104,82 +102,94 @@ const UserAuthScreen = () => {
     return () => clearTimer();
   }, []);
 
-  const handleSendCode = () => {
+  const authUser = useAuthStore((state) => state.authUser);
+  const [isSending, setIsSending] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  const handleSendCode = async () => {
+    console.log('authUser:', JSON.stringify(authUser));
+    console.log('입력한 email:', JSON.stringify(email.trim()));
     if (userId.trim().length === 0) {
       showError('userId', '아이디를 입력해주세요.');
       return;
     }
-
     if (email.trim().length === 0) {
       showError('email', '이메일을 입력해주세요.');
       return;
     }
-
     if (!EMAIL_REGEX.test(email.trim())) {
       showError('email', '이메일 형식이 올바르지 않아요.');
       return;
     }
-
-    // 입력한 이메일로 등록된 사용자를 먼저 찾음
-    const matchedUser = MOCK_REGISTERED_USERS.find((user) => user.email === email.trim());
-
-    if (!matchedUser) {
-      // 이메일 자체가 등록되어 있지 않은 경우
-      showError('email', '존재하지 않는 이메일입니다.');
+    if (!authUser) {
+      showError('userId', '로그인 정보를 확인할 수 없어요. 다시 로그인해주세요.');
       return;
     }
-
-    if (matchedUser.id !== userId.trim()) {
-      // 이메일은 맞는데, 그 이메일에 등록된 아이디와 다른 경우
-      showError('userId', '존재하지 않는 사용자입니다.');
+    if (authUser.loginId !== userId.trim()) {
+      showError('userId', '로그인된 계정의 아이디와 일치하지 않아요.');
+      return;
+    }
+    if (authUser.email !== email.trim()) {
+      showError('email', '로그인된 계정의 이메일과 일치하지 않아요.');
       return;
     }
 
     clearError();
-    setVerifiedUserId(userId.trim());
-    setAuthCode('');
-    setIsCodeSent(true);
-    startTimer();
+    setIsSending(true);
+    try {
+      await sendVerificationEmail();
+      setVerifiedUserId(userId.trim());
+      setAuthCode('');
+      setIsCodeSent(true);
+      startTimer();
+    } catch (err) {
+      showError('email', err instanceof Error ? err.message : '인증 코드 발송에 실패했어요.');
+    } finally {
+      setIsSending(false);
+    }
   };
 
-  const handleEditProfile = () => {
+  const handleEditProfile = async () => {
     if (userId.trim().length === 0) {
       showError('userId', '아이디를 입력해주세요.');
       return;
     }
-
     if (email.trim().length === 0) {
       showError('email', '이메일을 입력해주세요.');
       return;
     }
-
     if (!isCodeSent) {
       showError('email', '이메일 인증을 진행해주세요.');
       return;
     }
-
     if (userId.trim() !== verifiedUserId) {
       showError('userId', '아이디가 변경되었습니다. 인증을 다시 진행해주세요.');
       return;
     }
-
     if (isExpired) {
       showError('authCode', '인증 시간이 만료되었어요. 재전송 버튼을 눌러주세요.');
       return;
     }
-
     if (authCode.trim().length === 0) {
       showError('authCode', '인증코드를 입력해주세요.');
       return;
     }
 
-    if (authCode.trim() !== MOCK_CORRECT_AUTH_CODE) {
-      showError('authCode', '인증코드가 일치하지 않습니다.');
-      return;
-    }
-
     clearError();
-    navigation.navigate('EditProfile', { email });
+    setIsConfirming(true);
+    try {
+      const res = await confirmVerificationEmail(authCode.trim());
+      if (!res.data.data.verified) {
+        showError('authCode', res.data.data.message || '인증코드가 일치하지 않습니다.');
+        return;
+      }
+      clearError();
+      navigation.navigate('EditProfile', { email });
+    } catch (err) {
+      showError('authCode', err instanceof Error ? err.message : '인증코드 확인에 실패했어요.');
+    } finally {
+      setIsConfirming(false);
+    }
   };
 
   return (
@@ -235,7 +245,7 @@ const UserAuthScreen = () => {
                 placeholder="이메일을 입력해 주세요"
               />
             </View>
-            <TouchableOpacity onPress={handleSendCode}>
+            <TouchableOpacity onPress={handleSendCode} disabled={isSending}>
               <LinearGradient
                 colors={['#7B61FF', '#FF4FD8']}
                 start={{ x: 0, y: 0 }}
@@ -277,7 +287,10 @@ const UserAuthScreen = () => {
         )}
 
         {/* 확인 버튼 */}
-        <TouchableOpacity className="mx-5 mt-40" onPress={handleEditProfile}>
+        <TouchableOpacity
+          className="mx-5 mt-40"
+          onPress={handleEditProfile}
+          disabled={isConfirming}>
           <LinearGradient
             colors={['#7B61FF', '#FF4FD8']}
             start={{ x: 0, y: 0 }}
