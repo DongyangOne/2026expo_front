@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-
 import SplashScreen from '@/screens/SplashScreen';
 import FeedbackdetailScreen from '@/screens/FeedbackdetailScreen';
 import FindIdScreen from '@/screens/FindIdScreen';
@@ -25,6 +24,7 @@ import TabletTrashFeedbackScreen from '@/screens/tablet/TabletTrashFeedbackScree
 import type { RootStackParamList } from './types';
 import EditProfileScreen from '@/screens/EditProfileScreen';
 import UserAuthScreen from '@/screens/UserAuthScreen';
+
 import DeleteAccountScreen from '@/screens/DeleteAccountScreen';
 import DeleteCompleteScreen from '@/screens/DeleteCompleteScreen';
 
