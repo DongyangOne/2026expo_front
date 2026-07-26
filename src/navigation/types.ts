@@ -14,7 +14,7 @@ export type RootTabParamList = {
 
 export type RootStackParamList = {
   Splash: undefined;
-  Login: undefined;
+  Login: { qrToken?: string } | undefined;
   Tabs: NavigatorScreenParams<RootTabParamList>;
   FeedbackDetail: { id: number };
   MobileTabs: NavigatorScreenParams<RootTabParamList> | undefined;
@@ -36,4 +36,5 @@ export type RootStackParamList = {
     email: string;
   };
   UserAuth: undefined;
+  QrLogin: { qrToken?: string };
 };

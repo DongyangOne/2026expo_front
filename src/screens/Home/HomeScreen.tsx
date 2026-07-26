@@ -46,7 +46,7 @@ const HomeScreen = ({ navigation }: Props) => {
     }
 
     try {
-      await Linking.sendIntent('android.media.action.IMAGE_CAPTURE');
+      await Linking.sendIntent('android.media.action.STILL_IMAGE_CAMERA');
     } catch {
       // TODO: 카메라 인텐트 실패 시 사용자 피드백 처리
     }
