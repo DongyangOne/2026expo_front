@@ -40,6 +40,7 @@ const UserAuthScreen = () => {
   const [isExpired, setIsExpired] = useState(false);
 
   const [verifiedUserId, setVerifiedUserId] = useState('');
+  const [verifiedEmail, setVerifiedEmail] = useState(''); // 추가: 코드 발송 시점의 이메일 기록
 
   // 화면 전체에서 에러는 항상 하나만 존재. 어느 필드 소속인지만 같이 저장
   const [errorField, setErrorField] = useState<ErrorField>(null);
@@ -92,6 +93,7 @@ const UserAuthScreen = () => {
       setRemainingSeconds(AUTH_CODE_DURATION);
       setIsExpired(false);
       setVerifiedUserId('');
+      setVerifiedEmail(''); // 추가
       clearError();
 
       return () => clearTimer();
@@ -137,6 +139,7 @@ const UserAuthScreen = () => {
     try {
       await sendVerificationEmail();
       setVerifiedUserId(userId.trim());
+      setVerifiedEmail(email.trim()); // 추가: 실제로 코드가 발송된 이메일을 기록
       setAuthCode('');
       setIsCodeSent(true);
       startTimer();
@@ -162,6 +165,12 @@ const UserAuthScreen = () => {
     }
     if (userId.trim() !== verifiedUserId) {
       showError('userId', '아이디가 변경되었습니다. 인증을 다시 진행해주세요.');
+      return;
+    }
+    if (email.trim() !== verifiedEmail) {
+      // 추가: 코드를 발송한 이메일과 현재 입력된 이메일이 다르면
+      // 인증코드 검증을 시도하기 전에 여기서 막아준다.
+      showError('email', '이메일이 변경되었습니다. 인증을 다시 진행해주세요.');
       return;
     }
     if (isExpired) {
