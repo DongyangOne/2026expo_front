@@ -23,7 +23,7 @@ const DeleteCompleteScreen = () => {
   const handleGoHome = () => {
     navigation.reset({
       index: 0,
-      routes: [{ name: 'MobileTabs' }],
+      routes: [{ name: 'Login' }],
     });
   };
 

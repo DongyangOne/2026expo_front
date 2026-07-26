@@ -156,6 +156,14 @@ const DeleteAccountScreen = () => {
     setSubmitError('');
     setIsSubmitting(true);
 
+    const payload = {
+      password,
+      withdrawReason: REASON_CODE_MAP[selected],
+      withdrawReasonDetail: selected === '기타' ? etcText.trim() : '',
+    };
+
+    console.log('[탈퇴 요청 payload]', JSON.stringify(payload)); // 👈 이 줄 추가
+
     try {
       const { success } = await withdrawUser({
         password,
