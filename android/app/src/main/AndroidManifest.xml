@@ -4,7 +4,7 @@
 
     <queries>
         <intent>
-            <action android:name="android.media.action.IMAGE_CAPTURE" />
+            <action android:name="android.media.action.STILL_IMAGE_CAMERA" />
         </intent>
     </queries>
 
@@ -27,6 +27,12 @@
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="expo2026" android:host="qr-login" />
         </intent-filter>
       </activity>
     </application>
