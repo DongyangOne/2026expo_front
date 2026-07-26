@@ -111,7 +111,6 @@ export const useAuthStore = create<AuthState>()(
     },
 
     logout: async () => {
-      console.log('a. set 시작');
       set((state) => {
         state.user = null;
         state.authUser = null;
@@ -119,7 +118,6 @@ export const useAuthStore = create<AuthState>()(
         state.refreshToken = null;
         state.rememberMe = null;
       });
-      console.log('b. set 완료');
 
       try {
         await AsyncStorage.multiRemove([
@@ -127,9 +125,9 @@ export const useAuthStore = create<AuthState>()(
           STORAGE_KEYS.REFRESH_TOKEN,
           STORAGE_KEYS.AUTH_USER,
         ]);
-        console.log('c. multiRemove 완료');
       } catch (err) {
-        console.log('c. multiRemove 실패:', err);
+        console.error('[authStore] AsyncStorage 토큰 삭제 실패:', err);
+        // TODO: 에러 리포팅 도구 연동 시 여기에 추가 (예: Sentry.captureException(err))
       }
     },
 

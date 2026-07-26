@@ -22,7 +22,10 @@ const AccountScreen = () => {
       console.log('로그아웃 요청 실패:', err);
     } finally {
       await clearAuth();
-      navigation.navigate('Login');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
     }
   };
   const handleDeleteAccount = () => navigation.navigate('DeleteAccount');
