@@ -21,6 +21,24 @@ export interface FeedbackListData {
   last: boolean;
 }
 
+export interface AdminFeedback {
+  feedbackId: number;
+  content: string;
+  date: string;
+  isSuccess: boolean;
+  time: string;
+  username: string;
+}
+
+export interface AdminFeedbackListData {
+  content: AdminFeedback[];
+  page: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}
+
 export interface FeedbackDetailData {
   feedbackId: number;
   date: string;
