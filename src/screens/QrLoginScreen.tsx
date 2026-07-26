@@ -47,6 +47,8 @@ const QrLoginScreen = ({ navigation, route }: Props): React.JSX.Element => {
           throw new Error(approvalResponse.message || APPROVAL_ERROR_MESSAGE);
         }
 
+        console.warn('[QrLoginScreen] QR 로그인 승인 성공', approvalResponse);
+
         if (isActive) {
           navigation.replace('MobileTabs');
         }

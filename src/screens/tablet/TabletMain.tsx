@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import axios from 'axios';
 import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Stop, Text as SvgText } from 'react-native-svg';
@@ -25,6 +26,7 @@ const QR_TOKEN_REFRESH_INTERVAL_MS = 2 * 60 * 1000 + 50 * 1000;
 const LOGIN_TAP_WINDOW_MS = 5000;
 const LOGIN_TAP_COUNT = 5;
 const QR_TOKEN_ERROR_MESSAGE = 'QR 코드를 불러오지 못했습니다.';
+const QR_NETWORK_ERROR_MESSAGE = '네트워크 연결을 확인한 후 다시 시도해주세요.';
 const QR_LOGIN_DEEP_LINK_PREFIX = 'expo2026://qr-login?qrToken=';
 
 const isRecord = (candidate: unknown): candidate is Record<string, unknown> =>
@@ -84,9 +86,16 @@ const parseQrLoginResponse = (eventData: string | null): QrLoginSseResponse | nu
 interface QrCodeProps {
   qrToken: string | null;
   isLoading: boolean;
+  errorMessage: string | null;
+  onRetry: () => void;
 }
 
-const QrCode = ({ qrToken, isLoading }: QrCodeProps): React.JSX.Element => {
+const QrCode = ({
+  qrToken,
+  isLoading,
+  errorMessage,
+  onRetry,
+}: QrCodeProps): React.JSX.Element => {
   const qrLoginDeepLink = qrToken
     ? `${QR_LOGIN_DEEP_LINK_PREFIX}${encodeURIComponent(qrToken)}`
     : null;
@@ -102,10 +111,19 @@ const QrCode = ({ qrToken, isLoading }: QrCodeProps): React.JSX.Element => {
           value={qrLoginDeepLink}
         />
       ) : null}
-      {!isLoading && !qrToken ? (
-        <Text className="text-center font-notoSansKRRegular text-[16px] text-body">
-          {QR_TOKEN_ERROR_MESSAGE}
-        </Text>
+      {!isLoading && errorMessage ? (
+        <View className="items-center">
+          <Text className="text-center font-notoSansKRRegular text-[16px] text-body">
+            {errorMessage}
+          </Text>
+          <Pressable
+            accessibilityLabel="QR 코드 다시 시도"
+            accessibilityRole="button"
+            className="mt-[20px] h-[48px] items-center justify-center rounded-[10px] bg-purple px-[24px]"
+            onPress={onRetry}>
+            <Text className="font-notoSansKRBold text-[15px] text-white">다시 시도</Text>
+          </Pressable>
+        </View>
       ) : null}
     </View>
   );
@@ -140,39 +158,53 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
   const setLoginResponse = useQrLoginStore((state) => state.setLoginResponse);
   const [qrToken, setQrToken] = useState<string | null>(null);
   const [isQrLoading, setIsQrLoading] = useState(true);
+  const [qrErrorMessage, setQrErrorMessage] = useState<string | null>(null);
   const [hasStartedSseConnection, setHasStartedSseConnection] = useState(false);
 
-  useEffect((): (() => void) => {
-    let isMounted = true;
+  const fetchQrToken = useCallback(async (): Promise<void> => {
+    setIsQrLoading(true);
+    setQrErrorMessage(null);
+    setHasStartedSseConnection(false);
+    setQrToken(null);
 
-    const fetchQrToken = async (): Promise<void> => {
-      try {
-        const qrTokenResponse = await issueQrToken();
+    try {
+      const qrTokenResponse = await issueQrToken();
 
-        if (isMounted && qrTokenResponse.success) {
-          console.warn('[TabletMain] 발급된 QR 토큰', qrTokenResponse.data.qrToken);
-          setHasStartedSseConnection(false);
-          setQrToken(qrTokenResponse.data.qrToken);
-        }
-      } catch (error: unknown) {
-        console.error('[TabletMain] QR 토큰 발급 실패', error);
-      } finally {
-        if (isMounted) {
-          setIsQrLoading(false);
-        }
+      if (!qrTokenResponse.success || !qrTokenResponse.data.qrToken) {
+        throw new Error(qrTokenResponse.message || QR_TOKEN_ERROR_MESSAGE);
       }
-    };
 
-    void fetchQrToken();
+      console.warn('[TabletMain] 발급된 QR 토큰', qrTokenResponse.data.qrToken);
+      setQrToken(qrTokenResponse.data.qrToken);
+    } catch (error: unknown) {
+      console.error('[TabletMain] QR 토큰 발급 실패', error);
+      const errorMessage =
+        axios.isAxiosError(error) && !error.response
+          ? QR_NETWORK_ERROR_MESSAGE
+          : QR_TOKEN_ERROR_MESSAGE;
+      setQrErrorMessage(errorMessage);
+    } finally {
+      setIsQrLoading(false);
+    }
+  }, []);
+
+  useEffect((): (() => void) => {
+    const initialQrTokenTimer = setTimeout(() => {
+      void fetchQrToken();
+    }, 0);
     const qrTokenRefreshInterval = setInterval(() => {
+      console.warn('[TabletMain] QR 토큰 정기 재발급 요청', {
+        intervalMilliseconds: QR_TOKEN_REFRESH_INTERVAL_MS,
+        requestedAt: new Date().toISOString(),
+      });
       void fetchQrToken();
     }, QR_TOKEN_REFRESH_INTERVAL_MS);
 
     return () => {
-      isMounted = false;
+      clearTimeout(initialQrTokenTimer);
       clearInterval(qrTokenRefreshInterval);
     };
-  }, []);
+  }, [fetchQrToken]);
 
   useEffect((): (() => void) | undefined => {
     if (!qrToken) {
@@ -273,7 +305,9 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
                 className="items-center"
                 onPress={handleQrPress}>
                 <QrCode
+                  errorMessage={qrErrorMessage}
                   isLoading={isQrLoading || (!!qrToken && !hasStartedSseConnection)}
+                  onRetry={() => void fetchQrToken()}
                   qrToken={hasStartedSseConnection ? qrToken : null}
                 />
               </Pressable>
