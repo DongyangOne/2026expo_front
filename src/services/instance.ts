@@ -9,12 +9,15 @@ import type { AdminReissueData, ApiResponse, ReissueTokenResponse } from '@/type
 import { reissueToken } from './auth';
 import { reissueAdminToken } from './auth.service';
 
+import { resetToLogin } from '@/navigation/navigationRef';
+
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
 const ADMIN_URL_PREFIX = '/api/v1/admin';
 const LOGIN_URL = '/api/v1/auth/login';
+const LOGOUT_URL = '/api/v1/auth/logout';
 const REISSUE_URL = '/api/v1/auth/token';
 const ADMIN_LOGIN_URL = '/api/v1/admin/login';
 const ADMIN_REISSUE_URL = '/api/v1/admin/reissue';
@@ -132,9 +135,10 @@ instance.interceptors.response.use(
     }
 
     const isLoginRequest = config?.url === LOGIN_URL;
+    const isLogoutRequest = config?.url === LOGOUT_URL;
     const isReissueRequest = config?.url === REISSUE_URL;
 
-    if (status === 401 && !isLoginRequest) {
+    if (status === 401 && !isLoginRequest && !isLogoutRequest) {
       const canReissue = !isReissueRequest && config !== undefined && !config._retry;
 
       if (canReissue) {
@@ -144,9 +148,11 @@ instance.interceptors.response.use(
           return instance(config);
         } catch {
           await useAuthStore.getState().logout();
+          resetToLogin(); // 추가
         }
       } else {
         await useAuthStore.getState().logout();
+        resetToLogin(); // 추가
       }
     }
 
