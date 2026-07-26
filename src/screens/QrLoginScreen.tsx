@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -10,41 +10,68 @@ import { useAuthStore } from '@/store';
 type Props = NativeStackScreenProps<RootStackParamList, 'QrLogin'>;
 
 const QR_TOKEN_ERROR_MESSAGE = '유효한 QR 로그인 정보가 없습니다.';
-const LOGIN_REQUIRED_MESSAGE = 'QR 로그인을 승인하려면 먼저 로그인해 주세요.';
+const APPROVAL_ERROR_MESSAGE = '태블릿 로그인 승인에 실패했습니다.';
 
 const QrLoginScreen = ({ navigation, route }: Props): React.JSX.Element => {
   const accessToken = useAuthStore((state) => state.accessToken);
-  const [isApproving, setIsApproving] = useState(false);
+  const isRestoring = useAuthStore((state) => state.isRestoring);
+  const attemptedQrTokenRef = useRef<string | null>(null);
+  const [approvalErrorMessage, setApprovalErrorMessage] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const qrToken = route.params?.qrToken;
 
-  const handleApprove = useCallback(async (): Promise<void> => {
-    if (!qrToken || !accessToken || isApproving) {
+  useEffect((): (() => void) | void => {
+    if (isRestoring || !qrToken) {
       return;
     }
 
-    setIsApproving(true);
-
-    try {
-      console.warn('[QrLoginScreen] 승인 요청 body의 QR 토큰', qrToken);
-      await approveQrLogin(qrToken);
-      Alert.alert('승인 완료', '태블릿 로그인이 승인되었습니다.', [
-        {
-          text: '확인',
-          onPress: (): void => navigation.replace('MobileTabs'),
-        },
-      ]);
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : '태블릿 로그인 승인에 실패했습니다.';
-      Alert.alert('승인 실패', errorMessage);
-    } finally {
-      setIsApproving(false);
+    if (!accessToken) {
+      navigation.replace('Login', { qrToken });
+      return;
     }
-  }, [accessToken, isApproving, navigation, qrToken]);
 
-  const handleLogin = useCallback((): void => {
-    navigation.navigate('Login', { qrToken });
-  }, [navigation, qrToken]);
+    if (attemptedQrTokenRef.current === qrToken) {
+      return;
+    }
+
+    attemptedQrTokenRef.current = qrToken;
+    let isActive = true;
+
+    const approveLogin = async (): Promise<void> => {
+      setApprovalErrorMessage(null);
+
+      try {
+        const approvalResponse = await approveQrLogin(qrToken);
+
+        if (!approvalResponse.success) {
+          throw new Error(approvalResponse.message || APPROVAL_ERROR_MESSAGE);
+        }
+
+        if (isActive) {
+          navigation.replace('MobileTabs');
+        }
+      } catch (error: unknown) {
+        if (!isActive) {
+          return;
+        }
+
+        const errorMessage =
+          error instanceof Error ? error.message : APPROVAL_ERROR_MESSAGE;
+        setApprovalErrorMessage(errorMessage);
+      }
+    };
+
+    void approveLogin();
+
+    return (): void => {
+      isActive = false;
+    };
+  }, [accessToken, isRestoring, navigation, qrToken, retryCount]);
+
+  const handleRetry = (): void => {
+    attemptedQrTokenRef.current = null;
+    setRetryCount((currentRetryCount) => currentRetryCount + 1);
+  };
 
   if (!qrToken) {
     return (
@@ -56,31 +83,32 @@ const QrLoginScreen = ({ navigation, route }: Props): React.JSX.Element => {
     );
   }
 
+  if (approvalErrorMessage) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-background px-[32px]">
+        <View className="w-full rounded-[20px] border border-border bg-white px-[24px] py-[32px]">
+          <Text className="text-center font-notoSansKRBold text-[24px] text-black">
+            승인 실패
+          </Text>
+          <Text className="mt-[16px] text-center font-notoSansKRRegular text-[16px] leading-[24px] text-body">
+            {approvalErrorMessage}
+          </Text>
+          <Pressable
+            className="mt-[28px] h-[52px] items-center justify-center rounded-[12px] bg-purple"
+            onPress={handleRetry}>
+            <Text className="font-notoSansKRBold text-[16px] text-white">다시 시도</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 items-center justify-center bg-background px-[32px]">
-      <View className="w-full rounded-[20px] border border-border bg-white px-[24px] py-[32px]">
-        <Text className="text-center font-notoSansKRBold text-[24px] text-black">
-          태블릿 로그인
-        </Text>
-        <Text className="mt-[16px] text-center font-notoSansKRRegular text-[16px] leading-[24px] text-body">
-          {accessToken
-            ? '현재 계정으로 태블릿 로그인을 승인하시겠습니까?'
-            : LOGIN_REQUIRED_MESSAGE}
-        </Text>
-
-        <Pressable
-          className="mt-[28px] h-[52px] items-center justify-center rounded-[12px] bg-purple"
-          disabled={isApproving}
-          onPress={accessToken ? handleApprove : handleLogin}>
-          {isApproving ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text className="font-notoSansKRBold text-[16px] text-white">
-              {accessToken ? '로그인 승인' : '로그인하기'}
-            </Text>
-          )}
-        </Pressable>
-      </View>
+      <ActivityIndicator color="#7866FF" size="large" />
+      <Text className="mt-[16px] text-center font-notoSansKRRegular text-[16px] text-body">
+        태블릿 로그인을 승인하고 있습니다.
+      </Text>
     </SafeAreaView>
   );
 };
