@@ -6,6 +6,8 @@ export type {
   LoginResponse,
   ReissueTokenRequest,
   ReissueTokenResponse,
+  WithdrawalRequest,
+  WithdrawalResponse,
   Admin,
   AdminExistsData,
   AdminExistsRequest,

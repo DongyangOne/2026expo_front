@@ -11,6 +11,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+import { withdrawUser } from '@/services/auth'; // 실제 경로에 맞게 수정
+import { useAuthStore } from '@/store';
+
 import BackArrow from '../assets/images/vector.svg';
 
 import tailwindConfig from '../../tailwind.config.js';
@@ -22,26 +25,24 @@ const WITHDRAW_REASONS = [
   '기타',
 ] as const;
 
-// TODO: 실제로는 서버에서 현재 로그인된 사용자의 비밀번호를 검증해야 합니다.
-// 백엔드 연동 전까지 임시로 고정된 값을 사용합니다.
-const TEMP_CURRENT_PASSWORD = 'Test1423!';
+// UI에 노출되는 한글 사유 -> 서버 enum 코드 매핑
+// (서버가 정의한 실제 enum 값으로 맞춰주세요)
+const REASON_CODE_MAP: Record<(typeof WITHDRAW_REASONS)[number], string> = {
+  '기록을 삭제하고 싶어서': 'DELETE_RECORDS',
+  '서비스 장애가 너무 많아서': 'SERVICE_ISSUE',
+  '사용 빈도가 낮아서': 'LOW_FREQUENCY',
+  기타: 'ETC',
+};
 
-// TODO: 실제로는 서버에서 "최근 사용한 비밀번호 3개" 이력을 받아와야 합니다.
-// 백엔드 연동 전까지 임시로 고정된 값을 사용합니다.
-const TEMP_RECENT_PASSWORDS = ['OldPass12!', 'OldPass34!', 'OldPass56!'];
-
-// ---- 비밀번호 형식 규칙 ----
+// ---- 비밀번호 형식 규칙 (그대로 유지) ----
 const SPECIAL_CHARS = `!@#$%^&*()_+\\-=\\[\\]{};':"\\\\|,.<>/?~\``;
-// 영문 + 숫자 + 특수문자만 허용 (한글/공백 등은 이 셋에 없으므로 자동 차단됨), 8~16자
 const ALLOWED_LENGTH_REGEX = new RegExp(`^[A-Za-z0-9${SPECIAL_CHARS}]{8,16}$`);
 const HAS_LETTER_REGEX = /[A-Za-z]/;
 const HAS_DIGIT_REGEX = /\d/;
 const HAS_SPECIAL_REGEX = new RegExp(`[${SPECIAL_CHARS}]`);
 
-// 키보드 상단 행 기준 연속 문자열 (필요 시 다른 행 추가 가능)
 const KEYBOARD_ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', '1234567890'];
 
-// 문자 코드가 1씩 증가/감소하는 연속 문자인지 확인 (예: abcd, 4321)
 const isCodeSequential = (slice: string) => {
   let ascending = true;
   let descending = true;
@@ -53,14 +54,12 @@ const isCodeSequential = (slice: string) => {
   return ascending || descending;
 };
 
-// 키보드 배열 기준 연속 문자인지 확인 (예: qwer, rewq)
 const isKeyboardSequential = (slice: string) => {
   return KEYBOARD_ROWS.some((row) => {
     return row.includes(slice) || row.split('').reverse().join('').includes(slice);
   });
 };
 
-// 비밀번호 내에 4자리 이상 연속된 문자/숫자가 있는지 검사
 const hasSequentialChars = (password: string, minLength = 4) => {
   const lower = password.toLowerCase();
   for (let i = 0; i <= lower.length - minLength; i += 1) {
@@ -72,7 +71,6 @@ const hasSequentialChars = (password: string, minLength = 4) => {
   return false;
 };
 
-// 비밀번호 "형식" 검증 결과와 안내 메시지를 함께 반환
 const validatePasswordFormat = (password: string): { isValid: boolean; message: string } => {
   if (password.length === 0) {
     return { isValid: false, message: '' };
@@ -109,17 +107,15 @@ const DeleteAccountScreen = () => {
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<(typeof WITHDRAW_REASONS)[number] | null>(null);
   const [etcText, setEtcText] = useState('');
 
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
 
-  // 버튼 클릭(다음 페이지 이동) 시에만 사용할 에러 메시지
-  // (실제 비밀번호 불일치 / 최근 사용 비밀번호 재사용 등 "제출 시점"에만 확인 가능한 오류)
   const [submitError, setSubmitError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 비밀번호 "형식" 검증 (실제 계정 비밀번호와의 일치 여부와는 무관)
   const passwordFormatResult = useMemo(() => validatePasswordFormat(password), [password]);
 
   const confirmResult = useMemo(() => {
@@ -132,8 +128,6 @@ const DeleteAccountScreen = () => {
     return { isValid: true, message: '비밀번호가 일치해요.' };
   }, [password, passwordConfirm]);
 
-  // 비밀번호 확인 밑에 보여줄 메시지를 하나로 통합
-  // 우선순위: 제출 시점 에러(비밀번호 불일치, 최근 비밀번호 재사용 등) > 단순 확인 일치 여부
   const confirmDisplay = useMemo(() => {
     if (submitError.length > 0) {
       return { message: submitError, isValid: false };
@@ -141,8 +135,6 @@ const DeleteAccountScreen = () => {
     return confirmResult;
   }, [submitError, confirmResult]);
 
-  // 버튼 활성화 조건: 형식 조건 + 비밀번호 확인 일치 여부만 체크
-  // (실제 계정 비밀번호와 같은지는 여기서 체크하지 않음)
   const isNextEnabled = useMemo(() => {
     if (selected === null) {
       return false;
@@ -150,39 +142,46 @@ const DeleteAccountScreen = () => {
     if (selected === '기타' && etcText.trim().length === 0) {
       return false;
     }
-    return passwordFormatResult.isValid && confirmResult.isValid;
-  }, [selected, etcText, passwordFormatResult.isValid, confirmResult.isValid]);
+    return passwordFormatResult.isValid && confirmResult.isValid && !isSubmitting;
+  }, [selected, etcText, passwordFormatResult.isValid, confirmResult.isValid, isSubmitting]);
 
   const handlePasswordChange = (text: string) => {
     setPassword(text);
     if (submitError) setSubmitError('');
   };
 
-  const handleNext = () => {
-    if (!isNextEnabled) return;
-
-    // 1) 실제 계정 비밀번호와 다르면 페이지 이동 없이 에러만 표시
-    if (password !== TEMP_CURRENT_PASSWORD) {
-      setSubmitError('비밀번호가 올바르지 않아요. 다시 확인해 주세요.');
-      return;
-    }
-
-    // 2) 최근 사용한 비밀번호 3개와 동일하면 페이지 이동 없이 에러만 표시
-    // TODO: 실제로는 서버 응답으로 재사용 여부를 판단해야 합니다.
-    if (TEMP_RECENT_PASSWORDS.includes(password)) {
-      setSubmitError('최근에 사용한 비밀번호는 다시 사용할 수 없어요.');
-      return;
-    }
+  const handleNext = async () => {
+    if (!isNextEnabled || selected === null) return;
 
     setSubmitError('');
-    navigation.navigate('DeleteComplete');
+    setIsSubmitting(true);
+
+    try {
+      const { success } = await withdrawUser({
+        password,
+        withdrawReason: REASON_CODE_MAP[selected],
+        withdrawReasonDetail: selected === '기타' ? etcText.trim() : '',
+      });
+
+      if (success) {
+        // 기존 로그아웃 로직 재사용 (토큰/스토리지 정리 포함)
+        await useAuthStore.getState().logout();
+
+        navigation.navigate('DeleteComplete');
+      }
+    } catch (err: any) {
+      // instance.ts 인터셉터에서 error.response.data.message만 실어서 Error로 던지고 있어서
+      // code(INVALID_INPUT 등)로는 분기 불가. message로 처리.
+      setSubmitError(err?.message ?? '탈퇴 처리 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background px-5 pb-6 pt-6">
       <ScrollView>
         <View className="relative flex-row items-center ">
-          {/* 뒤로가기 버튼 */}
           <TouchableOpacity onPress={() => navigation.goBack()} className="ml-[23px] mt-[32px]">
             <BackArrow />
           </TouchableOpacity>
@@ -194,7 +193,6 @@ const DeleteAccountScreen = () => {
           떠나시면 계정은 다시 복구할 수 없어요
         </Text>
 
-        {/* 라디오 목록 */}
         {WITHDRAW_REASONS.map((reason) => {
           const isSelected = selected === reason;
 
@@ -216,7 +214,6 @@ const DeleteAccountScreen = () => {
         })}
 
         <>
-          {/* 비밀번호 */}
           <View className="mx-11 mt-14">
             <Text className="mb-2 font-notoSansKRRegular text-sm text-body">비밀번호</Text>
             <View className="rounded-xl border border-border bg-white px-3">
@@ -238,7 +235,6 @@ const DeleteAccountScreen = () => {
             )}
           </View>
 
-          {/* 비밀번호 확인 */}
           <View className="mx-11 mt-4">
             <Text className="mb-2 font-notoSansKRRegular text-sm text-body">비밀번호 확인</Text>
             <View className="rounded-xl border border-border bg-white px-3">
@@ -264,7 +260,6 @@ const DeleteAccountScreen = () => {
           </View>
         </>
 
-        {/* 기타 선택 시에만 입력창 노출 */}
         {selected === '기타' && (
           <View className="mx-11 mt-[42px] min-h-[200px] rounded-xl border border-border bg-white px-5">
             <TextInput
@@ -282,7 +277,6 @@ const DeleteAccountScreen = () => {
           </View>
         )}
 
-        {/* 버튼 */}
         <TouchableOpacity
           className="mx-14 mt-20"
           onPress={handleNext}
