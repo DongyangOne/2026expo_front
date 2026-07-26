@@ -176,9 +176,9 @@ const UserAuthScreen = () => {
     clearError();
     setIsConfirming(true);
     try {
-      const res = await confirmVerificationEmail(authCode.trim());
-      if (!res.data.data.verified) {
-        showError('authCode', res.data.data.message || '인증코드가 일치하지 않습니다.');
+      const res = await confirmVerificationEmail(email.trim(), authCode.trim());
+      if (!res.data.verified) {
+        showError('authCode', res.data.message || '인증코드가 일치하지 않습니다.');
         return;
       }
       clearError();
