@@ -150,6 +150,10 @@ instance.interceptors.response.use(
       }
     }
 
+    if (!error.response) {
+      return Promise.reject(error);
+    }
+
     const message = error.response?.data?.message ?? error.message;
     return Promise.reject(new Error(message));
   },
