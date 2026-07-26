@@ -4,4 +4,4 @@ export { checkAdminIdExists, loginAdmin, reissueAdminToken, signupAdmin } from '
 export { clearAdminSession } from './authStorage.service';
 export { approveQrLogin, connectQrLogin, issueQrToken } from './qr.service';
 export * from './user.service';
-export { getFeedbackList } from './feedback.service';
+export { getFeedbackList, getFeedbackDetail } from './feedback.service';
