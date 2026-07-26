@@ -15,4 +15,4 @@ export type {
   AdminReissueRequest,
   AdminSignupRequest,
 } from './auth.types';
-export type { PageRequest, Feedback, FeedbackListData } from './feedback.types';
+export type { PageRequest, Feedback, FeedbackListData, FeedbackDetailData } from './feedback.types';
