@@ -16,6 +16,7 @@ interface RetryableRequestConfig extends InternalAxiosRequestConfig {
 }
 
 const ADMIN_URL_PREFIX = '/api/v1/admin';
+const ADMIN_FEEDBACK_LIST_URL = '/api/v1/feedback-detail';
 const LOGIN_URL = '/api/v1/auth/login';
 const LOGOUT_URL = '/api/v1/auth/logout';
 const REISSUE_URL = '/api/v1/auth/token';
@@ -23,7 +24,8 @@ const ADMIN_LOGIN_URL = '/api/v1/admin/login';
 const ADMIN_REISSUE_URL = '/api/v1/admin/reissue';
 const QR_TOKEN_ENDPOINT = '/api/v1/auth/qr/token';
 
-const isAdminUrl = (url?: string): boolean => !!url && url.startsWith(ADMIN_URL_PREFIX);
+const isAdminUrl = (url?: string): boolean =>
+  !!url && (url.startsWith(ADMIN_URL_PREFIX) || url === ADMIN_FEEDBACK_LIST_URL);
 
 const instance = axios.create({
   baseURL: Config.API_BASE_URL,
