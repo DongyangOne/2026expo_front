@@ -193,6 +193,10 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
       void fetchQrToken();
     }, 0);
     const qrTokenRefreshInterval = setInterval(() => {
+      console.warn('[TabletMain] QR 토큰 정기 재발급 요청', {
+        intervalMilliseconds: QR_TOKEN_REFRESH_INTERVAL_MS,
+        requestedAt: new Date().toISOString(),
+      });
       void fetchQrToken();
     }, QR_TOKEN_REFRESH_INTERVAL_MS);
 

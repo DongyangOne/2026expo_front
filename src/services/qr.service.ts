@@ -23,8 +23,6 @@ export const connectQrLogin = (qrToken: string): EventSource<QrLoginSseEvent> =>
   const encodedQrToken = encodeURIComponent(qrToken);
   const qrLoginConnectionUrl = `${apiBaseUrl}/api/v1/auth/qr/connect/${encodedQrToken}`;
 
-  console.warn('[qr.service] SSE 최종 요청 URL', qrLoginConnectionUrl);
-
   return new EventSource<QrLoginSseEvent>(qrLoginConnectionUrl, {
     headers: {
       Accept: 'text/event-stream',
