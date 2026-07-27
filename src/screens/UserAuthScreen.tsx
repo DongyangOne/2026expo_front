@@ -7,6 +7,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useCallback } from 'react';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@/navigation/types';
+import { sendVerificationEmail, confirmVerificationEmail } from '@/services';
 
 cssInterop(LinearGradient, {
   className: 'style',
@@ -16,10 +17,6 @@ import BackArrow from '../assets/images/vector.svg';
 const AUTH_CODE_DURATION = 300; // 5분 (초 단위)
 
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-
-const MOCK_CORRECT_AUTH_CODE = '123456';
-
-const MOCK_REGISTERED_USERS = [{ id: 'testuser', email: 'test@example.com' }];
 
 const formatTime = (totalSeconds: number): string => {
   const minutes = Math.floor(totalSeconds / 60);
@@ -104,7 +101,7 @@ const UserAuthScreen = () => {
     return () => clearTimer();
   }, []);
 
-  const handleSendCode = () => {
+  const handleSendCode = async () => {
     if (userId.trim().length === 0) {
       showError('userId', '아이디를 입력해주세요.');
       return;
@@ -119,30 +116,19 @@ const UserAuthScreen = () => {
       showError('email', '이메일 형식이 올바르지 않아요.');
       return;
     }
-
-    // 입력한 이메일로 등록된 사용자를 먼저 찾음
-    const matchedUser = MOCK_REGISTERED_USERS.find((user) => user.email === email.trim());
-
-    if (!matchedUser) {
-      // 이메일 자체가 등록되어 있지 않은 경우
-      showError('email', '존재하지 않는 이메일입니다.');
-      return;
+    try {
+      await sendVerificationEmail();
+      clearError();
+      setVerifiedUserId(userId.trim());
+      setAuthCode('');
+      setIsCodeSent(true);
+      startTimer();
+    } catch (err) {
+      showError('email', err instanceof Error ? err.message : '인증 코드 발송에 실패했어요.');
     }
-
-    if (matchedUser.id !== userId.trim()) {
-      // 이메일은 맞는데, 그 이메일에 등록된 아이디와 다른 경우
-      showError('userId', '존재하지 않는 사용자입니다.');
-      return;
-    }
-
-    clearError();
-    setVerifiedUserId(userId.trim());
-    setAuthCode('');
-    setIsCodeSent(true);
-    startTimer();
   };
 
-  const handleEditProfile = () => {
+  const handleEditProfile = async () => {
     if (userId.trim().length === 0) {
       showError('userId', '아이디를 입력해주세요.');
       return;
@@ -173,13 +159,19 @@ const UserAuthScreen = () => {
       return;
     }
 
-    if (authCode.trim() !== MOCK_CORRECT_AUTH_CODE) {
-      showError('authCode', '인증코드가 일치하지 않습니다.');
-      return;
-    }
+    try {
+      const res = await confirmVerificationEmail(email.trim(), authCode.trim());
 
-    clearError();
-    navigation.navigate('EditProfile', { email });
+      if (!res.data.verified) {
+        // 이제 한 단계만 파면 됨
+        showError('authCode', res.data.message || '인증코드가 일치하지 않습니다.');
+        return;
+      }
+      clearError();
+      navigation.navigate('EditProfile');
+    } catch (err) {
+      showError('authCode', err instanceof Error ? err.message : '인증코드 확인에 실패했어요.');
+    }
   };
 
   return (

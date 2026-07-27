@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { cssInterop } from 'nativewind';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import type { RootStackParamList } from '@/navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { updateProfile } from '@/services';
+import { updateProfile, getProfile } from '@/services';
 import { useAuthStore } from '@/store';
-
-type EditProfileRouteProp = RouteProp<RootStackParamList, 'EditProfile'>;
 
 cssInterop(LinearGradient, {
   className: 'style',
@@ -21,12 +19,9 @@ import BackArrow from '../assets/images/vector.svg';
 const EditProfileScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const route = useRoute<EditProfileRouteProp>();
-
   const authUser = useAuthStore((state) => state.authUser);
 
-  const { email } = route.params;
-
+  const [email, setEmail] = useState('');
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [passwordCheck, setPasswordCheck] = useState('');
@@ -39,13 +34,18 @@ const EditProfileScreen = () => {
   // 화면 진입 시 서버에서 현재 아이디/비밀번호를 받아와 TextInput에 채워 넣습니다.
   useEffect(() => {
     const fetchProfile = async () => {
-      setId(authUser?.loginId ?? '');
+      try {
+        const res = await getProfile();
+        setEmail(res.data.data.email);
+        setId(res.data.data.loginId);
+      } catch (e) {
+        console.log('프로필 조회 실패:', e);
+      }
       setPassword('');
       setPasswordCheck('');
     };
-
     fetchProfile();
-  }, [authUser]);
+  }, []);
 
   // 아이디 : 4~12자, 영문 소문자+숫자
   const ID_REGEX = /^(?=.*[a-z])(?=.*\d)[a-z\d]{4,12}$/;
@@ -76,6 +76,7 @@ const EditProfileScreen = () => {
   };
 
   const handleSubmit = async () => {
+    console.log('handleSubmit 시작, id:', id, 'password:', password);
     // 빈 값 체크 먼저
     if (id.trim() === '') {
       setIdError('아이디를 입력해주세요.');
@@ -83,6 +84,7 @@ const EditProfileScreen = () => {
     }
 
     if (!ID_REGEX.test(id)) {
+      console.log('ID_REGEX 실패');
       setIdError('최소 4자 이상, 최대 12자 이하, 영문 소문자와 숫자만 사용할 수 있습니다.');
       return;
     }
@@ -93,42 +95,50 @@ const EditProfileScreen = () => {
     }
 
     if (!PASSWORD_REGEX.test(password)) {
+      console.log('PASSWORD_REGEX 실패, password:', password);
       setPasswordError('8~16자, 영문/숫자/특수문자를 모두 포함해야 합니다.');
       return;
     }
 
     if (/[ㄱ-ㅎㅏ-ㅣ가-힣\s]/.test(password)) {
+      console.log('한글/공백 포함');
       setPasswordError('한글과 공백은 사용할 수 없습니다.');
       return;
     }
 
     if (hasSequentialChars(password)) {
+      console.log('연속문자 감지, password:', password);
       setPasswordError('연속된 문자 또는 숫자는 사용할 수 없습니다.');
       return;
     }
 
     if (passwordCheck.trim() === '') {
+      console.log('passwordCheck 비어있음');
       setPasswordCheckError('비밀번호 확인을 입력해주세요.');
       return;
     }
 
     if (password !== passwordCheck) {
+      console.log('불일치, password:', password, 'passwordCheck:', passwordCheck);
       setPasswordCheckError('비밀번호가 일치하지 않습니다.');
       return;
     }
 
+    console.log('모든 검증 통과, updateProfile 호출 직전');
     setSubmitError('');
     setIsSubmitting(true);
 
     try {
-      await updateProfile({
+      const res = await updateProfile({
         loginId: id,
         password,
         passwordConfirm: passwordCheck,
       });
+      console.log('updateProfile 응답:', JSON.stringify(res));
 
       goToAccount();
     } catch (error) {
+      console.log('updateProfile 에러:', error);
       const message = error instanceof Error ? error.message : '프로필 수정에 실패했어요.';
 
       if (message.includes('이미 사용 중인 아이디')) {
