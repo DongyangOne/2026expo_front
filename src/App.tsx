@@ -1,8 +1,8 @@
 import React from 'react';
 import { NavigationContainer, type LinkingOptions } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
 import RootNavigator from '@/navigation/RootNavigator';
+import { navigationRef } from '@/navigation/navigationRef';
 import type { RootStackParamList } from '@/navigation/types';
 
 const linking: LinkingOptions<RootStackParamList> = {
@@ -22,7 +22,7 @@ const linking: LinkingOptions<RootStackParamList> = {
 const App = (): React.JSX.Element => {
   return (
     <SafeAreaProvider>
-      <NavigationContainer linking={linking}>
+      <NavigationContainer ref={navigationRef} linking={linking}>
         <RootNavigator />
       </NavigationContainer>
     </SafeAreaProvider>
