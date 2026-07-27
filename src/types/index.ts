@@ -1,5 +1,6 @@
 export type { User, UpdateProfileRequest, UpdateProfileData } from './user.types';
 export type { ApiResponse } from './api.types';
+export type { QrLoginData, QrLoginSseResponse, QrTokenData } from './qr.types';
 export type {
   LoginRequest,
   AuthUser,
@@ -15,4 +16,4 @@ export type {
   AdminReissueRequest,
   AdminSignupRequest,
 } from './auth.types';
-export type { PageRequest, Feedback, FeedbackListData } from './feedback.types';
+export type { PageRequest, Feedback, FeedbackListData, FeedbackDetailData } from './feedback.types';

@@ -1,3 +1,5 @@
+import { useAuthStore } from '@/store';
+import { logout } from '@/services';
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -33,9 +35,22 @@ const AccountScreen = () => {
   }, []);
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const clearAuth = useAuthStore((state) => state.logout);
 
   const handleCheck = () => navigation.navigate('UserAuth');
-  const handleLogout = () => navigation.navigate('Login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (err) {
+      console.log('로그아웃 요청 실패:', err);
+    } finally {
+      await clearAuth();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    }
+  };
   const handleDeleteAccount = () => navigation.navigate('DeleteAccount');
 
   return (
