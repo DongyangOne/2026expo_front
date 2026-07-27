@@ -32,9 +32,8 @@ export type RootStackParamList = {
   FindIdSuccess: undefined;
   FindIdResult: { userId: string };
   TabletTrashFeedback: undefined;
-  EditProfile: {
-    email: string;
-  };
+  EditProfile: undefined;
+
   UserAuth: undefined;
   QrLogin: { qrToken?: string };
 };
