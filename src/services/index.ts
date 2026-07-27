@@ -1,4 +1,5 @@
 export { default as apiInstance } from './instance';
 export { login, reissueToken } from './auth';
+export { getMyDashboard } from './dashboard';
 export { checkAdminIdExists, loginAdmin, reissueAdminToken, signupAdmin } from './auth.service';
 export { clearAdminSession } from './authStorage.service';

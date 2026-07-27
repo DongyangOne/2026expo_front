@@ -80,6 +80,14 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
+    // 로컬 전용 임시 조치: CMake 3.22.1의 NDK 버전 인식 버그(-fuse-ld=gold 오요청)를
+    // 피하기 위해 로컬에 설치한 3.31.6을 명시적으로 사용하도록 지정. 커밋 금지.
+    externalNativeBuild {
+        cmake {
+            version "3.31.6"
+        }
+    }
+
     namespace "com.expo2026"
     defaultConfig {
         applicationId "com.expo2026"

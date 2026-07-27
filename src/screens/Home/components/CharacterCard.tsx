@@ -7,6 +7,7 @@ import { useCharacterLevel } from '../hooks/useCharacterLevel';
 import PlaceholderCircle from './PlaceholderCircle';
 
 interface CharacterCardProps {
+  characterName: string;
   level: number;
   currentXp: number;
   characterImage?: ImageSourcePropType;
@@ -15,15 +16,17 @@ interface CharacterCardProps {
 const AVATAR_SIZE = 137;
 const XP_BAR_HEIGHT = 17;
 
-/** 캐릭터 박스: 캐릭터 이미지 + 레벨 + 경험치 바 + 다음 레벨까지 남은 경험치 */
-const CharacterCard = ({ level, currentXp, characterImage }: CharacterCardProps) => {
+/** 캐릭터 박스: 캐릭터 이미지 + 이름 + 레벨 + 경험치 바 + 다음 레벨까지 남은 경험치 */
+const CharacterCard = ({ characterName, level, currentXp, characterImage }: CharacterCardProps) => {
   const { remainingXp, progressRatio, isMaxStage } = useCharacterLevel(level, currentXp);
 
   return (
     <View className="items-center rounded-[10px] bg-purple/[0.08] px-[19px] py-[20px]">
       <PlaceholderCircle size={AVATAR_SIZE} source={characterImage} />
 
-      <Text className="mt-[22px] font-notoSansKRBold text-lg text-black">Lv {level}</Text>
+      <Text className="mt-[14px] font-notoSansKRBold text-base text-black">{characterName}</Text>
+
+      <Text className="mt-[8px] font-notoSansKRBold text-lg text-black">Lv {level}</Text>
 
       <View
         className="mt-[20px] w-full overflow-hidden rounded-full border border-border bg-white"

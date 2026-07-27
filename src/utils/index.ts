@@ -1,1 +1,1 @@
-export { formatKoreanDate } from './formatDate';
+export { formatKoreanDate, formatDotDate } from './formatDate';
