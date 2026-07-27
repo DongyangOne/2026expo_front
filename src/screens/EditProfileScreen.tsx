@@ -6,6 +6,8 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import type { RootStackParamList } from '@/navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { updateProfile } from '@/services';
+import { useAuthStore } from '@/store';
 
 type EditProfileRouteProp = RouteProp<RootStackParamList, 'EditProfile'>;
 
@@ -21,6 +23,8 @@ const EditProfileScreen = () => {
 
   const route = useRoute<EditProfileRouteProp>();
 
+  const authUser = useAuthStore((state) => state.authUser);
+
   const { email } = route.params;
 
   const [id, setId] = useState('');
@@ -35,19 +39,13 @@ const EditProfileScreen = () => {
   // 화면 진입 시 서버에서 현재 아이디/비밀번호를 받아와 TextInput에 채워 넣습니다.
   useEffect(() => {
     const fetchProfile = async () => {
-      // 예: const response = await api.get('/user/profile');
-      // setId(response.id);
-      // setPassword(response.password);
-      // setPasswordCheck(response.password);
-
-      // 임시 값 (실제 API 연동 전 테스트용)
-      setId('cye4526');
-      setPassword('tempPassword1!');
-      setPasswordCheck('tempPassword1!');
+      setId(authUser?.loginId ?? '');
+      setPassword('');
+      setPasswordCheck('');
     };
 
     fetchProfile();
-  }, []);
+  }, [authUser]);
 
   // 아이디 : 4~12자, 영문 소문자+숫자
   const ID_REGEX = /^(?=.*[a-z])(?=.*\d)[a-z\d]{4,12}$/;
@@ -123,12 +121,21 @@ const EditProfileScreen = () => {
     setIsSubmitting(true);
 
     try {
-      // TODO: 실제 프로필 수정 API 호출로 교체
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await updateProfile({
+        loginId: id,
+        password,
+        passwordConfirm: passwordCheck,
+      });
 
       goToAccount();
     } catch (error) {
-      setSubmitError('프로필 수정에 실패했어요. 잠시 후 다시 시도해 주세요.');
+      const message = error instanceof Error ? error.message : '프로필 수정에 실패했어요.';
+
+      if (message.includes('이미 사용 중인 아이디')) {
+        setIdError(message);
+      } else {
+        setSubmitError(message);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -152,7 +159,9 @@ const EditProfileScreen = () => {
         </View>
 
         {/* 이름 */}
-        <Text className="mt-[35px] text-center font-notoSansKRBold text-xl text-black">최예은</Text>
+        <Text className="mt-[35px] text-center font-notoSansKRBold text-xl text-black">
+          {authUser?.username}
+        </Text>
 
         {/* 아이디 */}
         <View className="mt-6">
