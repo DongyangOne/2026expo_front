@@ -16,7 +16,15 @@ import VerificationCodeField from './components/VerificationCodeField';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 
-type FieldKey = 'name' | 'email' | 'code' | 'id' | 'password' | 'passwordConfirm' | 'agreed';
+type FieldKey =
+  | 'name'
+  | 'email'
+  | 'code'
+  | 'organization'
+  | 'id'
+  | 'password'
+  | 'passwordConfirm'
+  | 'agreed';
 
 const EMAIL_CODE_DURATION_SECONDS = 5 * 60;
 const TOAST_DURATION_MS = 2500;
@@ -79,6 +87,7 @@ const SignupScreen = ({ navigation }: Props) => {
   const [remainingSeconds, setRemainingSeconds] = useState(EMAIL_CODE_DURATION_SECONDS);
   const [code, setCode] = useState('');
   const [codeStatus, setCodeStatus] = useState<'idle' | 'mismatch'>('idle');
+  const [organization, setOrganization] = useState('');
   const [id, setId] = useState('');
   const [idTouched, setIdTouched] = useState(false);
   const [idStatus, setIdStatus] = useState<'idle' | 'available' | 'duplicate'>('idle');
@@ -113,6 +122,14 @@ const SignupScreen = ({ navigation }: Props) => {
     return '';
   }, [email]);
 
+  const organizationError = useMemo(() => {
+    if (!organization) {
+      return '소속을 입력해 주세요.';
+    }
+
+    return '';
+  }, [organization]);
+
   const idFormatError = useMemo(() => {
     if (!id) {
       return '아이디를 입력해 주세요.';
@@ -146,6 +163,7 @@ const SignupScreen = ({ navigation }: Props) => {
   const emailNotVerified = emailStatus !== 'sent' && emailStatus !== 'verified';
   const codeInvalid = emailStatus !== 'verified';
   const codeExpired = emailStatus === 'sent' && remainingSeconds <= 0;
+  const organizationInvalid = !!organizationError;
   const idInvalid = !!idFormatError || idStatus !== 'available';
   const passwordInvalid = !!passwordError;
   const passwordConfirmInvalid = !passwordConfirm || passwordConfirm !== password;
@@ -309,6 +327,7 @@ const SignupScreen = ({ navigation }: Props) => {
     if (nameInvalid) return 'name';
     if (emailInvalid || emailNotVerified) return 'email';
     if (codeInvalid) return 'code';
+    if (organizationInvalid) return 'organization';
     if (idInvalid) return 'id';
     if (passwordInvalid) return 'password';
     if (passwordConfirmInvalid) return 'passwordConfirm';
@@ -419,6 +438,17 @@ const SignupScreen = ({ navigation }: Props) => {
               />
             </View>
           )}
+
+          <View className="mt-[4px]">
+            <SignupField
+              blinkToken={getBlinkToken('organization')}
+              helperText={submitAttempted ? organizationError : ''}
+              label="소속"
+              placeholder="소속을 입력해 주세요."
+              value={organization}
+              onChangeText={setOrganization}
+            />
+          </View>
 
           <View className="mt-[4px]">
             <SignupFieldWithAction
