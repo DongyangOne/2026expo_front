@@ -180,7 +180,7 @@ const DeleteAccountScreen = () => {
     } catch (err: any) {
       // instance.ts 인터셉터에서 error.response.data.message만 실어서 Error로 던지고 있어서
       // code(INVALID_INPUT 등)로는 분기 불가. message로 처리.
-      setSubmitError(err?.message ?? '탈퇴 처리 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.');
+      setSubmitError('비밀번호가 틀립니다.');
     } finally {
       setIsSubmitting(false);
     }
