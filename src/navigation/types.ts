@@ -18,6 +18,9 @@ export type RootStackParamList = {
   Tabs: NavigatorScreenParams<RootTabParamList>;
   FeedbackDetail: { id: number };
   MobileTabs: NavigatorScreenParams<RootTabParamList> | undefined;
+  Signup: undefined;
+  SignupComplete: undefined;
+  Terms: { onAgree: () => void } | undefined;
   DeleteAccount: undefined;
   DeleteComplete: undefined;
   TabletMain: undefined;

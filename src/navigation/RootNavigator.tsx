@@ -2,6 +2,10 @@ import React, { useEffect } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import SignupScreen from '@/screens/Signup';
+import SignupCompleteScreen from '@/screens/SignupComplete';
+import TermsScreen from '@/screens/Terms';
+
 import SplashScreen from '@/screens/SplashScreen';
 import FeedbackdetailScreen from '@/screens/FeedbackdetailScreen';
 import FindIdScreen from '@/screens/FindIdScreen';
@@ -50,6 +54,9 @@ const RootNavigator = () => {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="QrLogin" component={QrLoginScreen} />
       <Stack.Screen name="MobileTabs" component={TabNavigator} />
+      <Stack.Screen name="Signup" component={SignupScreen} />
+      <Stack.Screen name="SignupComplete" component={SignupCompleteScreen} />
+      <Stack.Screen name="Terms" component={TermsScreen} />
       <Stack.Screen name="TabletMain" component={TabletMain} />
       <Stack.Screen name="TabletLogin" component={TabletLogin} />
       <Stack.Screen name="TabletSignup" component={TabletSignup} />

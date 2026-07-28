@@ -1,3 +1,5 @@
+import { useAuthStore } from '@/store';
+import { confirmVerificationEmail, sendVerificationEmail } from '@/services';
 import React, { useEffect, useRef, useState } from 'react';
 import { cssInterop } from 'nativewind';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -7,7 +9,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useCallback } from 'react';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@/navigation/types';
-import { sendVerificationEmail, confirmVerificationEmail } from '@/services';
 
 cssInterop(LinearGradient, {
   className: 'style',
@@ -39,6 +40,7 @@ const UserAuthScreen = () => {
   const [isExpired, setIsExpired] = useState(false);
 
   const [verifiedUserId, setVerifiedUserId] = useState('');
+  const [verifiedEmail, setVerifiedEmail] = useState(''); // 추가: 코드 발송 시점의 이메일 기록
 
   // 화면 전체에서 에러는 항상 하나만 존재. 어느 필드 소속인지만 같이 저장
   const [errorField, setErrorField] = useState<ErrorField>(null);
@@ -91,6 +93,7 @@ const UserAuthScreen = () => {
       setRemainingSeconds(AUTH_CODE_DURATION);
       setIsExpired(false);
       setVerifiedUserId('');
+      setVerifiedEmail(''); // 추가
       clearError();
 
       return () => clearTimer();
@@ -101,30 +104,49 @@ const UserAuthScreen = () => {
     return () => clearTimer();
   }, []);
 
+  const authUser = useAuthStore((state) => state.authUser);
+  const [isSending, setIsSending] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+
   const handleSendCode = async () => {
     if (userId.trim().length === 0) {
       showError('userId', '아이디를 입력해주세요.');
       return;
     }
-
     if (email.trim().length === 0) {
       showError('email', '이메일을 입력해주세요.');
       return;
     }
-
     if (!EMAIL_REGEX.test(email.trim())) {
       showError('email', '이메일 형식이 올바르지 않아요.');
       return;
     }
+    if (!authUser) {
+      showError('userId', '로그인 정보를 확인할 수 없어요. 다시 로그인해주세요.');
+      return;
+    }
+    if (authUser.loginId !== userId.trim()) {
+      showError('userId', '로그인된 계정의 아이디와 일치하지 않아요.');
+      return;
+    }
+    if (authUser.email !== email.trim()) {
+      showError('email', '로그인된 계정의 이메일과 일치하지 않아요.');
+      return;
+    }
+
+    clearError();
+    setIsSending(true);
     try {
       await sendVerificationEmail();
-      clearError();
       setVerifiedUserId(userId.trim());
+      setVerifiedEmail(email.trim()); // 추가: 실제로 코드가 발송된 이메일을 기록
       setAuthCode('');
       setIsCodeSent(true);
       startTimer();
     } catch (err) {
       showError('email', err instanceof Error ? err.message : '인증 코드 발송에 실패했어요.');
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -133,44 +155,47 @@ const UserAuthScreen = () => {
       showError('userId', '아이디를 입력해주세요.');
       return;
     }
-
     if (email.trim().length === 0) {
       showError('email', '이메일을 입력해주세요.');
       return;
     }
-
     if (!isCodeSent) {
       showError('email', '이메일 인증을 진행해주세요.');
       return;
     }
-
     if (userId.trim() !== verifiedUserId) {
       showError('userId', '아이디가 변경되었습니다. 인증을 다시 진행해주세요.');
       return;
     }
-
+    if (email.trim() !== verifiedEmail) {
+      // 추가: 코드를 발송한 이메일과 현재 입력된 이메일이 다르면
+      // 인증코드 검증을 시도하기 전에 여기서 막아준다.
+      showError('email', '이메일이 변경되었습니다. 인증을 다시 진행해주세요.');
+      return;
+    }
     if (isExpired) {
       showError('authCode', '인증 시간이 만료되었어요. 재전송 버튼을 눌러주세요.');
       return;
     }
-
     if (authCode.trim().length === 0) {
       showError('authCode', '인증코드를 입력해주세요.');
       return;
     }
 
+    clearError();
+    setIsConfirming(true);
     try {
       const res = await confirmVerificationEmail(email.trim(), authCode.trim());
-
       if (!res.data.verified) {
-        // 이제 한 단계만 파면 됨
         showError('authCode', res.data.message || '인증코드가 일치하지 않습니다.');
         return;
       }
       clearError();
-      navigation.navigate('EditProfile');
+      navigation.navigate('EditProfile', { email });
     } catch (err) {
       showError('authCode', err instanceof Error ? err.message : '인증코드 확인에 실패했어요.');
+    } finally {
+      setIsConfirming(false);
     }
   };
 
@@ -227,7 +252,7 @@ const UserAuthScreen = () => {
                 placeholder="이메일을 입력해 주세요"
               />
             </View>
-            <TouchableOpacity onPress={handleSendCode}>
+            <TouchableOpacity onPress={handleSendCode} disabled={isSending}>
               <LinearGradient
                 colors={['#7B61FF', '#FF4FD8']}
                 start={{ x: 0, y: 0 }}
@@ -269,7 +294,10 @@ const UserAuthScreen = () => {
         )}
 
         {/* 확인 버튼 */}
-        <TouchableOpacity className="mx-5 mt-40" onPress={handleEditProfile}>
+        <TouchableOpacity
+          className="mx-5 mt-40"
+          onPress={handleEditProfile}
+          disabled={isConfirming}>
           <LinearGradient
             colors={['#7B61FF', '#FF4FD8']}
             start={{ x: 0, y: 0 }}
