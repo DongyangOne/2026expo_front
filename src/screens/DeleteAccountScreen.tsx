@@ -153,7 +153,6 @@ const DeleteAccountScreen = () => {
   const handleNext = async () => {
     if (!isNextEnabled || selected === null) return;
 
-    setSubmitError('');
     setIsSubmitting(true);
 
     const payload = {
