@@ -204,11 +204,7 @@ const LoginScreen = ({ navigation, route }: Props) => {
 
           <View className="mt-[33px] flex-row items-center justify-center">
             <Text className="font-notoSansKRDemiLight text-sm text-gray">계정이 없으신가요?</Text>
-            <SignupGradientLink
-              onPress={() => {
-                // TODO: expo-3 회원가입 화면 구현 후 연결
-              }}
-            />
+            <SignupGradientLink onPress={() => navigation.navigate('Signup')} />
           </View>
         </ScrollView>
       </SafeAreaView>
