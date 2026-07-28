@@ -119,11 +119,16 @@ export const useAuthStore = create<AuthState>()(
         state.rememberMe = null;
       });
 
-      await AsyncStorage.multiRemove([
-        STORAGE_KEYS.ACCESS_TOKEN,
-        STORAGE_KEYS.REFRESH_TOKEN,
-        STORAGE_KEYS.AUTH_USER,
-      ]);
+      try {
+        await AsyncStorage.multiRemove([
+          STORAGE_KEYS.ACCESS_TOKEN,
+          STORAGE_KEYS.REFRESH_TOKEN,
+          STORAGE_KEYS.AUTH_USER,
+        ]);
+      } catch (err) {
+        console.error('[authStore] AsyncStorage 토큰 삭제 실패:', err);
+        // TODO: 에러 리포팅 도구 연동 시 여기에 추가 (예: Sentry.captureException(err))
+      }
     },
 
     setAdminSession: (adminLoginData) =>

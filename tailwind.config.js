@@ -30,6 +30,7 @@ module.exports = {
         red: '#FF0000', //빨강
         danger: '#EF4444', //에러
         success: '#00AA58', //성공/정상
+        error: '#FF3B30', //경고/에러
         trashAction: '#CB79EF',
         placeholder: '#E4E4E4', // 이미지 미로딩 시 플레이스홀더 배경
         placeholderBorder: '#A8A8A8', // 플레이스홀더 테두리

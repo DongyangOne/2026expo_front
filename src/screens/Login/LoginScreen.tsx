@@ -23,7 +23,7 @@ const TOAST_DURATION_MS = 2500;
 const ID_PATTERN = /^[a-z0-9]{4,12}$/;
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{8,16}$/;
 
-const LoginScreen = ({ navigation }: Props) => {
+const LoginScreen = ({ navigation, route }: Props) => {
   const setAuth = useAuthStore((state) => state.setAuth);
 
   const [id, setId] = useState('');
@@ -92,6 +92,13 @@ const LoginScreen = ({ navigation }: Props) => {
           [STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken],
           [STORAGE_KEYS.AUTH_USER, JSON.stringify(authUser)],
         ]);
+      }
+
+      const qrToken = route.params?.qrToken;
+
+      if (qrToken) {
+        navigation.replace('QrLogin', { qrToken });
+        return;
       }
 
       navigation.replace('MobileTabs');
@@ -197,11 +204,7 @@ const LoginScreen = ({ navigation }: Props) => {
 
           <View className="mt-[33px] flex-row items-center justify-center">
             <Text className="font-notoSansKRDemiLight text-sm text-gray">계정이 없으신가요?</Text>
-            <SignupGradientLink
-              onPress={() => {
-                // TODO: expo-3 회원가입 화면 구현 후 연결
-              }}
-            />
+            <SignupGradientLink onPress={() => navigation.navigate('Signup')} />
           </View>
         </ScrollView>
       </SafeAreaView>
