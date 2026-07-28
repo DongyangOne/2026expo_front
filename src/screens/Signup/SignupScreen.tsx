@@ -2,10 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import type { AxiosError } from 'axios';
 
 import CheckedIcon from '@/components/ui/icons/checked.svg';
 import CheckedActiveIcon from '@/components/ui/icons/checked-active.svg';
 import type { RootStackParamList } from '@/navigation/types';
+import { checkLoginIdDuplicate, sendVerificationEmail, signup, verifyEmailCode } from '@/services';
+import type { ApiResponse } from '@/types';
 
 import GradientButton from './components/GradientButton';
 import LoginGradientLink from './components/LoginGradientLink';
@@ -29,10 +32,13 @@ type FieldKey =
 const EMAIL_CODE_DURATION_SECONDS = 5 * 60;
 const TOAST_DURATION_MS = 2500;
 
-// TODO: 실제 API 연동 전까지 동작 확인용 mock 값
-const MOCK_DUPLICATE_EMAIL = 'used@example.com';
-const MOCK_VERIFICATION_CODE = '123456';
-const MOCK_DUPLICATE_ID = 'asdf1234';
+// TODO: 소셜 회원가입 연동 시 각 소셜 제공자의 고유 ID로 채워야 함. 현재는 LOCAL 가입만 지원
+const SOCIAL_TYPE = 'LOCAL' as const;
+
+const EMAIL_SEND_ERROR_MESSAGE = '인증번호 발송에 실패했습니다.';
+const EMAIL_CHECK_ERROR_MESSAGE = '인증번호 확인에 실패했습니다.';
+const ID_CHECK_ERROR_MESSAGE = '아이디 중복 확인에 실패했습니다.';
+const SIGNUP_ERROR_MESSAGE = '회원가입에 실패했습니다.';
 
 const NAME_PATTERN = /^[가-힣a-zA-Z]{2,8}$/;
 const ID_PATTERN = /^(?=.*[a-z])(?=.*[0-9])[a-z0-9]{4,12}$/;
@@ -97,6 +103,10 @@ const SignupScreen = ({ navigation }: Props) => {
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [blinkState, setBlinkState] = useState<{ field: FieldKey; token: number } | null>(null);
+  const [isEmailSending, setIsEmailSending] = useState(false);
+  const [isCodeChecking, setIsCodeChecking] = useState(false);
+  const [isIdChecking, setIsIdChecking] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const nameError = useMemo(() => {
     if (!name) {
@@ -278,48 +288,94 @@ const SignupScreen = ({ navigation }: Props) => {
     setCodeStatus('idle');
   };
 
-  const handleCodeConfirm = () => {
-    if (code === MOCK_VERIFICATION_CODE) {
-      setEmailStatus('verified');
-      setToastMessage('이메일 인증이 완료되었습니다.');
+  const handleCodeConfirm = async () => {
+    if (code.length !== 6 || codeExpired || isCodeChecking) {
       return;
     }
 
-    setCodeStatus('mismatch');
+    setIsCodeChecking(true);
+
+    try {
+      const response = await verifyEmailCode({ email, authCode: code });
+
+      if (!response.data.verified) {
+        setCodeStatus('mismatch');
+        return;
+      }
+
+      setEmailStatus('verified');
+      setToastMessage(response.data.message || '이메일 인증이 완료되었습니다.');
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiResponse<unknown>>;
+      const errorCode = axiosError.response?.data.code;
+
+      if (errorCode === 'AUTH_CODE_EXPIRED') {
+        setRemainingSeconds(0);
+        return;
+      }
+
+      if (errorCode === 'AUTH_CODE_MISMATCH') {
+        setCodeStatus('mismatch');
+        return;
+      }
+
+      setToastMessage(axiosError.response?.data.message ?? EMAIL_CHECK_ERROR_MESSAGE);
+    } finally {
+      setIsCodeChecking(false);
+    }
   };
 
-  const handleEmailVerify = () => {
+  const handleEmailVerify = async () => {
     setEmailTouched(true);
 
-    if (emailFormatError) {
+    if (emailFormatError || isEmailSending) {
       return;
     }
 
-    if (email.toLowerCase() === MOCK_DUPLICATE_EMAIL) {
-      // TODO: 이메일 중복 확인 API 연동
-      setEmailStatus('duplicate');
-      return;
-    }
+    setIsEmailSending(true);
 
-    // TODO: 이메일 인증번호 발송 API 연동
-    setEmailStatus('sent');
-    setRemainingSeconds(EMAIL_CODE_DURATION_SECONDS);
-    setCode('');
+    try {
+      const response = await sendVerificationEmail({ email });
+      const remaining = Math.max(
+        0,
+        Math.round((new Date(response.data.expiredAt).getTime() - Date.now()) / 1000),
+      );
+
+      setEmailStatus('sent');
+      setRemainingSeconds(remaining);
+      setCode('');
+      setCodeStatus('idle');
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiResponse<unknown>>;
+      setToastMessage(axiosError.response?.data.message ?? EMAIL_SEND_ERROR_MESSAGE);
+    } finally {
+      setIsEmailSending(false);
+    }
   };
 
-  const handleIdCheck = () => {
+  const handleIdCheck = async () => {
     setIdTouched(true);
 
-    if (idFormatError) {
+    if (idFormatError || isIdChecking) {
       return;
     }
 
-    // TODO: 아이디 중복 확인 API 연동
-    const isDuplicate = id === MOCK_DUPLICATE_ID;
-    setIdStatus(isDuplicate ? 'duplicate' : 'available');
+    setIsIdChecking(true);
 
-    if (!isDuplicate) {
-      setToastMessage('아이디 중복 확인 완료');
+    try {
+      const response = await checkLoginIdDuplicate(id);
+      const isDuplicate = response.data.exists === 'Y';
+
+      setIdStatus(isDuplicate ? 'duplicate' : 'available');
+
+      if (!isDuplicate) {
+        setToastMessage('아이디 중복 확인 완료');
+      }
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiResponse<unknown>>;
+      setToastMessage(axiosError.response?.data.message ?? ID_CHECK_ERROR_MESSAGE);
+    } finally {
+      setIsIdChecking(false);
     }
   };
 
@@ -335,7 +391,7 @@ const SignupScreen = ({ navigation }: Props) => {
     return null;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setSubmitAttempted(true);
 
     const firstInvalidField = getFirstInvalidField();
@@ -352,11 +408,43 @@ const SignupScreen = ({ navigation }: Props) => {
       return;
     }
 
-    // TODO: 회원가입 API 연동
-    setToastMessage('가입완료. 다시 로그인 해주세요.');
-    setTimeout(() => {
-      navigation.replace('SignupComplete');
-    }, TOAST_DURATION_MS);
+    if (isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await signup({
+        username: name,
+        loginId: id,
+        password,
+        email,
+        team: organization,
+        agreeTerms: agreed ? 'Y' : 'N',
+        social: SOCIAL_TYPE,
+      });
+
+      setToastMessage('가입완료. 다시 로그인 해주세요.');
+      setTimeout(() => {
+        navigation.replace('SignupComplete');
+      }, TOAST_DURATION_MS);
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiResponse<unknown>>;
+      const errorCode = axiosError.response?.data.code;
+
+      if (errorCode === 'DUPLICATE_USER') {
+        setIdStatus('duplicate');
+      }
+
+      if (errorCode === 'DUPLICATE_EMAIL') {
+        setEmailStatus('duplicate');
+      }
+
+      setToastMessage(axiosError.response?.data.message ?? SIGNUP_ERROR_MESSAGE);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getBlinkToken = (field: FieldKey) => (blinkState?.field === field ? blinkState.token : 0);
@@ -404,6 +492,7 @@ const SignupScreen = ({ navigation }: Props) => {
 
           <View className="mt-[4px]">
             <SignupFieldWithAction
+              actionDisabled={isEmailSending}
               actionLabel="이메일 인증"
               blinkToken={getBlinkToken('email')}
               gradientId="signup-email-verify-gradient"
@@ -421,7 +510,7 @@ const SignupScreen = ({ navigation }: Props) => {
           {(emailStatus === 'sent' || emailStatus === 'verified') && (
             <View className="mt-[4px]">
               <VerificationCodeField
-                actionDisabled={code.length !== 6 || codeExpired}
+                actionDisabled={code.length !== 6 || codeExpired || isCodeChecking}
                 actionLabel="확인"
                 blinkToken={getBlinkToken('code')}
                 gradientId="signup-code-confirm-gradient"
@@ -452,6 +541,7 @@ const SignupScreen = ({ navigation }: Props) => {
 
           <View className="mt-[4px]">
             <SignupFieldWithAction
+              actionDisabled={isIdChecking}
               actionLabel="중복 확인"
               blinkToken={getBlinkToken('id')}
               gradientId="signup-id-check-gradient"
@@ -507,6 +597,7 @@ const SignupScreen = ({ navigation }: Props) => {
 
           <GradientButton
             className="mt-[24px] h-[50px] w-[250px] self-center rounded-full"
+            disabled={isSubmitting}
             gradientId="signup-submit-gradient"
             label="가입하기"
             radius={25}
