@@ -383,7 +383,7 @@ const SignupScreen = ({ navigation }: Props) => {
       <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
         <ScrollView
           className="flex-1 px-11"
-          contentContainerStyle={{ paddingBottom: 16, paddingTop: 12 }}
+          contentContainerStyle={{ paddingBottom: 24, paddingTop: 24 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           <Text
