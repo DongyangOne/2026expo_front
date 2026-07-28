@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,7 +11,17 @@ import GradientText from './components/GradientText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignupComplete'>;
 
-const SignupCompleteScreen = (_props: Props) => {
+const REDIRECT_DURATION_MS = 1000;
+
+const SignupCompleteScreen = ({ navigation }: Props) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigation.replace('Login');
+    }, REDIRECT_DURATION_MS);
+
+    return () => clearTimeout(timer);
+  }, [navigation]);
+
   return (
     <View className="flex-1 bg-background">
       <BackgroundCircles />

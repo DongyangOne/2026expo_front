@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { AxiosError } from 'axios';
 
 import CheckedIcon from '@/components/ui/icons/checked.svg';
-import UncheckedIcon from '@/components/ui/icons/unchecked.svg';
+import CheckedActiveIcon from '@/components/ui/icons/checked-active.svg';
 import type { RootStackParamList } from '@/navigation/types';
 import { checkLoginIdDuplicate, sendVerificationEmail, signup, verifyEmailCode } from '@/services';
 import type { ApiResponse } from '@/types';
@@ -19,7 +19,15 @@ import VerificationCodeField from './components/VerificationCodeField';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 
-type FieldKey = 'name' | 'email' | 'code' | 'id' | 'password' | 'passwordConfirm' | 'agreed';
+type FieldKey =
+  | 'name'
+  | 'email'
+  | 'code'
+  | 'organization'
+  | 'id'
+  | 'password'
+  | 'passwordConfirm'
+  | 'agreed';
 
 const EMAIL_CODE_DURATION_SECONDS = 5 * 60;
 const TOAST_DURATION_MS = 2500;
@@ -88,6 +96,7 @@ const SignupScreen = ({ navigation }: Props) => {
   const [remainingSeconds, setRemainingSeconds] = useState(EMAIL_CODE_DURATION_SECONDS);
   const [code, setCode] = useState('');
   const [codeStatus, setCodeStatus] = useState<'idle' | 'mismatch'>('idle');
+  const [organization, setOrganization] = useState('');
   const [id, setId] = useState('');
   const [idTouched, setIdTouched] = useState(false);
   const [idStatus, setIdStatus] = useState<'idle' | 'available' | 'duplicate'>('idle');
@@ -126,6 +135,14 @@ const SignupScreen = ({ navigation }: Props) => {
     return '';
   }, [email]);
 
+  const organizationError = useMemo(() => {
+    if (!organization) {
+      return '소속을 입력해 주세요.';
+    }
+
+    return '';
+  }, [organization]);
+
   const idFormatError = useMemo(() => {
     if (!id) {
       return '아이디를 입력해 주세요.';
@@ -159,6 +176,7 @@ const SignupScreen = ({ navigation }: Props) => {
   const emailNotVerified = emailStatus !== 'sent' && emailStatus !== 'verified';
   const codeInvalid = emailStatus !== 'verified';
   const codeExpired = emailStatus === 'sent' && remainingSeconds <= 0;
+  const organizationInvalid = !!organizationError;
   const idInvalid = !!idFormatError || idStatus !== 'available';
   const passwordInvalid = !!passwordError;
   const passwordConfirmInvalid = !passwordConfirm || passwordConfirm !== password;
@@ -368,6 +386,7 @@ const SignupScreen = ({ navigation }: Props) => {
     if (nameInvalid) return 'name';
     if (emailInvalid || emailNotVerified) return 'email';
     if (codeInvalid) return 'code';
+    if (organizationInvalid) return 'organization';
     if (idInvalid) return 'id';
     if (passwordInvalid) return 'password';
     if (passwordConfirmInvalid) return 'passwordConfirm';
@@ -444,10 +463,10 @@ const SignupScreen = ({ navigation }: Props) => {
 
   const renderAgreementIcon = () => {
     if (agreed) {
-      return <CheckedIcon height={16} width={16} />;
+      return <CheckedActiveIcon height={16} width={16} />;
     }
 
-    return <UncheckedIcon height={16} width={16} />;
+    return <CheckedIcon height={16} width={16} />;
   };
 
   return (
@@ -459,7 +478,7 @@ const SignupScreen = ({ navigation }: Props) => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           <Text
-            className="mb-[54px] text-center font-notoSansKRBold text-xl text-black"
+            className="mb-[28px] text-center font-notoSansKRBold text-xl text-black"
             style={{ includeFontPadding: false }}>
             회원가입
           </Text>
@@ -474,7 +493,7 @@ const SignupScreen = ({ navigation }: Props) => {
             onChangeText={(value) => setName(value.replace(/[^가-힣ㄱ-ㆎa-zA-Z]/g, ''))}
           />
 
-          <View className="mt-[5px]">
+          <View className="mt-[4px]">
             <SignupFieldWithAction
               actionDisabled={isEmailSending}
               actionLabel="이메일 인증"
@@ -492,7 +511,7 @@ const SignupScreen = ({ navigation }: Props) => {
           </View>
 
           {(emailStatus === 'sent' || emailStatus === 'verified') && (
-            <View className="mt-[5px]">
+            <View className="mt-[4px]">
               <VerificationCodeField
                 actionDisabled={code.length !== 6 || codeExpired || isCodeChecking}
                 actionLabel="확인"
@@ -512,7 +531,18 @@ const SignupScreen = ({ navigation }: Props) => {
             </View>
           )}
 
-          <View className="mt-[5px]">
+          <View className="mt-[4px]">
+            <SignupField
+              blinkToken={getBlinkToken('organization')}
+              helperText={submitAttempted ? organizationError : ''}
+              label="소속"
+              placeholder="소속을 입력해 주세요."
+              value={organization}
+              onChangeText={setOrganization}
+            />
+          </View>
+
+          <View className="mt-[4px]">
             <SignupFieldWithAction
               actionDisabled={isIdChecking}
               actionLabel="중복 확인"
@@ -529,7 +559,7 @@ const SignupScreen = ({ navigation }: Props) => {
             />
           </View>
 
-          <View className="mt-[5px]">
+          <View className="mt-[4px]">
             <SignupField
               blinkToken={getBlinkToken('password')}
               helperText={submitAttempted ? passwordError : ''}
@@ -542,7 +572,7 @@ const SignupScreen = ({ navigation }: Props) => {
             />
           </View>
 
-          <View className="mt-[5px]">
+          <View className="mt-[4px]">
             <SignupField
               blinkToken={getBlinkToken('passwordConfirm')}
               helperText={passwordConfirmHelper.text}
@@ -569,7 +599,7 @@ const SignupScreen = ({ navigation }: Props) => {
           </Pressable>
 
           <GradientButton
-            className="mt-[45px] h-[50px] w-[250px] self-center rounded-full"
+            className="mt-[24px] h-[50px] w-[250px] self-center rounded-full"
             disabled={isSubmitting}
             gradientId="signup-submit-gradient"
             label="가입하기"
@@ -578,17 +608,13 @@ const SignupScreen = ({ navigation }: Props) => {
             onPress={handleSubmit}
           />
 
-          <View className="mt-[33px] flex-row items-center justify-center">
+          <View className="mt-[18px] flex-row items-center justify-center">
             <Text
               className="font-notoSansKRDemiLight text-sm text-gray"
               style={{ includeFontPadding: false }}>
               이미 계정이 있으신가요?
             </Text>
-            <LoginGradientLink
-              onPress={() => {
-                // TODO: 로그인 화면(feature-expo-2) merge 후 연결
-              }}
-            />
+            <LoginGradientLink onPress={() => navigation.navigate('Login')} />
           </View>
         </ScrollView>
       </SafeAreaView>

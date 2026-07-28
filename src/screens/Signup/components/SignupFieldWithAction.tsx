@@ -42,7 +42,7 @@ const SignupFieldWithAction = ({
   return (
     <View className="w-full">
       <Text
-        className="mb-[8px] font-notoSansKRRegular text-sm text-body"
+        className="mb-[6px] font-notoSansKRRegular text-sm text-body"
         style={{ includeFontPadding: false }}>
         {label}
         <Text className="text-pink"> *</Text>
