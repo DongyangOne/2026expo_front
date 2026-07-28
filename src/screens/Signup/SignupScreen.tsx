@@ -32,9 +32,6 @@ type FieldKey =
 const EMAIL_CODE_DURATION_SECONDS = 5 * 60;
 const TOAST_DURATION_MS = 2500;
 
-// TODO: PM 확인 후 team 값 확정. 화면에 소속 입력 UI가 없어 임시로 고정값 사용
-// (테스트 계정 user123의 로그인 응답 team이 'One'으로 실서버에 존재가 확인된 값이라 이 값으로 설정)
-const TEAM = 'One';
 // TODO: 소셜 회원가입 연동 시 각 소셜 제공자의 고유 ID로 채워야 함. 현재는 LOCAL 가입만 지원
 const SOCIAL_TYPE = 'LOCAL' as const;
 
@@ -423,7 +420,7 @@ const SignupScreen = ({ navigation }: Props) => {
         loginId: id,
         password,
         email,
-        team: TEAM,
+        team: organization,
         agreeTerms: agreed ? 'Y' : 'N',
         social: SOCIAL_TYPE,
       });
