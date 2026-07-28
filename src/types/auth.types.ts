@@ -27,6 +27,16 @@ export interface ReissueTokenResponse {
   refreshToken: string;
 }
 
+export interface WithdrawalRequest {
+  password: string;
+  withdrawReason: string;
+  withdrawReasonDetail?: string;
+}
+
+export interface WithdrawalResponse {
+  message: string;
+}
+
 export interface Admin {
   adminLoginId: string;
   team: string;
