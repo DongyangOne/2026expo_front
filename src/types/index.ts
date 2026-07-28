@@ -3,8 +3,11 @@ export type {
   ConfirmVerificationEmailRequest,
   ConfirmVerificationEmailData,
   SendVerificationEmailData,
+  UpdateProfileRequest,
+  UpdateProfileData,
 } from './user.types';
 export type { ApiResponse } from './api.types';
+export type { QrLoginData, QrLoginSseResponse, QrTokenData } from './qr.types';
 export type {
   LoginRequest,
   AuthUser,
@@ -20,3 +23,11 @@ export type {
   AdminReissueRequest,
   AdminSignupRequest,
 } from './auth.types';
+export type {
+  AdminFeedback,
+  AdminFeedbackListData,
+  Feedback,
+  FeedbackDetailData,
+  FeedbackListData,
+  PageRequest,
+} from './feedback.types';

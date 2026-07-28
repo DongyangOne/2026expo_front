@@ -2,6 +2,9 @@ import React, { useEffect } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import SignupScreen from '@/screens/Signup';
+import SignupCompleteScreen from '@/screens/SignupComplete';
+import TermsScreen from '@/screens/Terms';
 
 import SplashScreen from '@/screens/SplashScreen';
 import FeedbackdetailScreen from '@/screens/FeedbackdetailScreen';
@@ -9,6 +12,7 @@ import FindIdScreen from '@/screens/FindIdScreen';
 import FindIdSuccessScreen from '@/screens/FindIdSuccessScreen';
 import FindIdResultScreen from '@/screens/FindIdResultScreen';
 import LoginScreen from '@/screens/Login';
+import QrLoginScreen from '@/screens/QrLoginScreen';
 import TabletMain from '@/screens/tablet/TabletMain';
 import TabletLogin from '@/screens/tablet/TabletLogin';
 import TabletReport from '@/screens/tablet/TabletReport';
@@ -24,6 +28,7 @@ import TabletTrashFeedbackScreen from '@/screens/tablet/TabletTrashFeedbackScree
 import type { RootStackParamList } from './types';
 import EditProfileScreen from '@/screens/EditProfileScreen';
 import UserAuthScreen from '@/screens/UserAuthScreen';
+
 import DeleteAccountScreen from '@/screens/DeleteAccountScreen';
 import DeleteCompleteScreen from '@/screens/DeleteCompleteScreen';
 
@@ -43,11 +48,15 @@ const RootNavigator = () => {
 
   return (
     <Stack.Navigator
-      initialRouteName={isTablet ? 'TabletLogin' : 'Splash'}
+      initialRouteName={isTablet ? 'TabletMain' : 'Splash'}
       screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="QrLogin" component={QrLoginScreen} />
       <Stack.Screen name="MobileTabs" component={TabNavigator} />
+      <Stack.Screen name="Signup" component={SignupScreen} />
+      <Stack.Screen name="SignupComplete" component={SignupCompleteScreen} />
+      <Stack.Screen name="Terms" component={TermsScreen} />
       <Stack.Screen name="TabletMain" component={TabletMain} />
       <Stack.Screen name="TabletLogin" component={TabletLogin} />
       <Stack.Screen name="TabletSignup" component={TabletSignup} />
