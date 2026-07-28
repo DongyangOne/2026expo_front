@@ -1,8 +1,11 @@
 import type { ImageSourcePropType } from 'react-native';
 
+import recyclingCan from '@/assets/images/recycling-can.png';
+import recyclingEtc from '@/assets/images/recycling-etc.png';
 import recyclingGlass from '@/assets/images/recycling-glass.png';
 import recyclingPaper from '@/assets/images/recycling-paper.png';
 import recyclingPlastic from '@/assets/images/recycling-plastic.png';
+import recyclingVinyl from '@/assets/images/recycling-vinyl.png';
 import type { WasteType } from '@/types';
 
 export const WASTE_TYPE_LABEL: Record<WasteType, string> = {
@@ -16,12 +19,17 @@ export const WASTE_TYPE_LABEL: Record<WasteType, string> = {
   STYROFOAM: '스티로폼',
 };
 
-// 에셋이 없는 wasteType은 매핑에서 비워 두어 PlaceholderCircle이 회색 폴백을 그리게 한다.
-const WASTE_TYPE_IMAGE: Partial<Record<WasteType, ImageSourcePropType>> = {
+// 전용 이미지가 없는 재질은 recycling-etc.png로 폴백한다.
+const WASTE_TYPE_IMAGE: Record<WasteType, ImageSourcePropType> = {
   PLASTIC: recyclingPlastic,
+  CAN: recyclingCan,
   PAPER: recyclingPaper,
+  VINYL: recyclingVinyl,
   GLASS: recyclingGlass,
+  BATTERY: recyclingEtc,
+  FLUORESCENT: recyclingEtc,
+  STYROFOAM: recyclingEtc,
 };
 
-export const getWasteTypeImage = (wasteType: WasteType): ImageSourcePropType | undefined =>
+export const getWasteTypeImage = (wasteType: WasteType): ImageSourcePropType =>
   WASTE_TYPE_IMAGE[wasteType];
