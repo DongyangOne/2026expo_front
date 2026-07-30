@@ -1,5 +1,5 @@
 import { useAuthStore } from '@/store';
-import { confirmVerificationEmail, sendVerificationEmail } from '@/services';
+import { confirmVerificationEmail, sendProfileVerificationEmail } from '@/services';
 import React, { useEffect, useRef, useState } from 'react';
 import { cssInterop } from 'nativewind';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -137,7 +137,7 @@ const UserAuthScreen = () => {
     clearError();
     setIsSending(true);
     try {
-      await sendVerificationEmail();
+      await sendProfileVerificationEmail();
       setVerifiedUserId(userId.trim());
       setVerifiedEmail(email.trim()); // 추가: 실제로 코드가 발송된 이메일을 기록
       setAuthCode('');
@@ -191,7 +191,7 @@ const UserAuthScreen = () => {
         return;
       }
       clearError();
-      navigation.navigate('EditProfile', { email });
+      navigation.navigate('EditProfile');
     } catch (err) {
       showError('authCode', err instanceof Error ? err.message : '인증코드 확인에 실패했어요.');
     } finally {

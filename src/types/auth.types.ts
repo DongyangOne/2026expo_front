@@ -18,6 +18,26 @@ export interface LoginResponse extends AuthUser {
   refreshToken: string;
 }
 
+export interface KakaoLoginRequest {
+  code: string;
+  redirectUri: string;
+  rememberMe: 'Y' | 'N';
+}
+
+export interface KakaoSignupRequiredResponse {
+  needsSignup: 'Y';
+  socialProviderId: string;
+  socialType: 'KAKAO';
+  email: string;
+  username: string;
+}
+
+export interface KakaoLoginSuccessResponse extends LoginResponse {
+  needsSignup: 'N';
+}
+
+export type KakaoLoginResponse = KakaoSignupRequiredResponse | KakaoLoginSuccessResponse;
+
 export interface ReissueTokenRequest {
   refreshToken: string;
 }

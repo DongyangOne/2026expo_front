@@ -13,6 +13,7 @@ interface SignupFieldProps {
   helperText?: string;
   helperVariant?: 'error' | 'success';
   blinkToken?: number;
+  editable?: boolean;
   keyboardType?: TextInputProps['keyboardType'];
   onChangeText: (value: string) => void;
 }
@@ -26,6 +27,7 @@ const SignupField = ({
   helperText,
   helperVariant = 'error',
   blinkToken,
+  editable = true,
   keyboardType,
   onChangeText,
 }: SignupFieldProps) => {
@@ -42,7 +44,10 @@ const SignupField = ({
       </Text>
       <TextInput
         autoCapitalize="none"
-        className="h-[43.5px] rounded-[9.25px] border border-border bg-white px-[14px] py-0 font-notoSansKRDemiLight text-sm text-black"
+        className={`h-[43.5px] rounded-[9.25px] border border-border px-[14px] py-0 font-notoSansKRDemiLight text-sm ${
+          editable ? 'bg-white text-black' : 'bg-disabledBg text-gray'
+        }`}
+        editable={editable}
         keyboardType={keyboardType}
         maxLength={maxLength}
         placeholder={placeholder}

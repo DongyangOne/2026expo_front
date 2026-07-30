@@ -109,8 +109,16 @@ const LoginScreen = ({ navigation, route }: Props) => {
     }
   };
 
-  const handleSocialPress = (_provider: 'google' | 'naver' | 'kakao') => {
-    // TODO: 소셜 로그인 화면/SDK 연동
+  const handleSocialPress = (provider: 'google' | 'naver' | 'kakao') => {
+    if (provider === 'kakao') {
+      navigation.navigate('KakaoLogin', {
+        qrToken: route.params?.qrToken,
+        rememberMe: autoLogin ? 'Y' : 'N',
+      });
+      return;
+    }
+
+    // TODO: 구글/네이버 소셜 로그인 화면/SDK 연동
   };
 
   return (
