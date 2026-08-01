@@ -2,6 +2,8 @@ import type {
   ApiResponse,
   LoginRequest,
   LoginResponse,
+  NaverLoginRequest,
+  NaverLoginResponse,
   ReissueTokenResponse,
   WithdrawalRequest,
   WithdrawalResponse,
@@ -12,6 +14,13 @@ import apiInstance from './instance';
 export const login = (payload: LoginRequest): Promise<ApiResponse<LoginResponse>> =>
   apiInstance
     .post<ApiResponse<LoginResponse>>('/api/v1/auth/login', payload)
+    .then((res) => res.data);
+
+export const naverLogin = (
+  payload: NaverLoginRequest,
+): Promise<ApiResponse<NaverLoginResponse>> =>
+  apiInstance
+    .post<ApiResponse<NaverLoginResponse>>('/api/v1/auth/naver', payload)
     .then((res) => res.data);
 
 export const logout = (): Promise<ApiResponse<{ message: string }>> => {
