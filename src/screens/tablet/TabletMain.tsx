@@ -10,7 +10,7 @@ import { TabletBackgroundCircles } from '@/components/layout';
 import LogoIcon from '@/assets/icons/Logo.svg';
 import { FONTS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
-import { connectQrLogin, issueQrToken } from '@/services';
+import { connectQrLogin, createFeedbackDetection, issueQrToken } from '@/services';
 import { useAuthStore, useQrLoginStore } from '@/store';
 import type { QrLoginSseResponse } from '@/types';
 
@@ -27,6 +27,7 @@ const LOGIN_TAP_WINDOW_MS = 5000;
 const LOGIN_TAP_COUNT = 5;
 const QR_TOKEN_ERROR_MESSAGE = 'QR 코드를 불러오지 못했습니다.';
 const QR_NETWORK_ERROR_MESSAGE = '네트워크 연결을 확인한 후 다시 시도해주세요.';
+const CLIENT_ID_ERROR_MESSAGE = '분류 요청을 준비하지 못했습니다.';
 const QR_LOGIN_DEEP_LINK_PREFIX = 'expo2026://qr-login?qrToken=';
 
 const isRecord = (candidate: unknown): candidate is Record<string, unknown> =>
@@ -90,12 +91,7 @@ interface QrCodeProps {
   onRetry: () => void;
 }
 
-const QrCode = ({
-  qrToken,
-  isLoading,
-  errorMessage,
-  onRetry,
-}: QrCodeProps): React.JSX.Element => {
+const QrCode = ({ qrToken, isLoading, errorMessage, onRetry }: QrCodeProps): React.JSX.Element => {
   const qrLoginDeepLink = qrToken
     ? `${QR_LOGIN_DEEP_LINK_PREFIX}${encodeURIComponent(qrToken)}`
     : null;
@@ -244,7 +240,22 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
       hasHandledQrLogin.current = true;
       setLoginResponse(loginResponse);
       setAuth({ ...loginResponse.data, rememberMe: 'N' });
-      navigation.replace('TabletTrashFeedback');
+
+      void createFeedbackDetection()
+        .then((response): void => {
+          if (!response.success || !response.data.clientId) {
+            throw new Error(response.message);
+          }
+
+          const { clientId } = response.data;
+          console.warn('[TabletMain] QR 로그인 후 발급된 clientId', clientId);
+          navigation.replace('TabletTrashFeedback', { clientId });
+        })
+        .catch((error: unknown): void => {
+          console.error('[TabletMain] clientId 발급 실패', error);
+          hasHandledQrLogin.current = false;
+          setQrErrorMessage(CLIENT_ID_ERROR_MESSAGE);
+        });
     });
 
     qrLoginConnection.addEventListener('close', (): void => {

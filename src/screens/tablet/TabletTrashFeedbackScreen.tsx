@@ -13,11 +13,7 @@ import TrashIcon from '@/assets/icons/trash.svg';
 import WatchIcon from '@/assets/icons/watch.svg';
 import { GRADIENT_ACTIVE } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
-import {
-  createFeedbackDetection,
-  getTabletClassification,
-  requestHardwareClassification,
-} from '@/services';
+import { getTabletClassification, requestHardwareClassification } from '@/services';
 import type { TabletClassificationData } from '@/types';
 
 const COUNTDOWN_START_SECONDS = 20;
@@ -40,7 +36,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TabletTrashFeedback'>;
 
 type TrashFeedbackStep = 'waitingTrash' | 'loading' | 'canResult' | 'success' | 'retryGuide';
 
-const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => {
+const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Element => {
+  const clientId = route.params?.clientId;
   const [remainingSeconds, setRemainingSeconds] = useState<number>(COUNTDOWN_START_SECONDS);
   const [currentStep, setCurrentStep] = useState<TrashFeedbackStep>('waitingTrash');
   const [classificationResult, setClassificationResult] = useState<TabletClassificationData | null>(
@@ -104,7 +101,12 @@ const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => 
   };
 
   useEffect((): (() => void) | undefined => {
+    if (currentStep !== 'waitingTrash') {
+      return undefined;
+    }
+
     if (remainingSeconds <= 0) {
+      navigation.replace('TabletMain');
       return undefined;
     }
 
@@ -115,7 +117,7 @@ const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => 
     return (): void => {
       clearTimeout(timerId);
     };
-  }, [remainingSeconds]);
+  }, [currentStep, navigation, remainingSeconds]);
 
   useEffect((): (() => void) | undefined => {
     if (currentStep !== 'loading') {
@@ -180,13 +182,9 @@ const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => 
 
     const startClassification = async (): Promise<void> => {
       try {
-        const response = await createFeedbackDetection();
-
-        if (!response.success || !response.data.clientId) {
-          throw new Error(response.message);
+        if (!clientId) {
+          throw new Error('clientId가 없습니다.');
         }
-
-        const { clientId } = response.data;
 
         await requestHardwareClassification(clientId);
         await fetchClassificationResult(clientId);
@@ -209,7 +207,7 @@ const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => 
         clearTimeout(pollTimerId);
       }
     };
-  }, [classificationErrorMessage, currentStep]);
+  }, [classificationErrorMessage, clientId, currentStep]);
 
   return (
     <View className="flex-1 overflow-hidden bg-background">
