@@ -42,7 +42,7 @@ const AccountScreen = () => {
     try {
       await logout();
     } catch (err) {
-      console.log('로그아웃 요청 실패:', err);
+      console.log('로그아웃 요청s 실패:', err);
     } finally {
       await clearAuth();
       navigation.reset({
