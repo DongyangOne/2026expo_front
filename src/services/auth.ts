@@ -1,4 +1,11 @@
-import type { ApiResponse, LoginRequest, LoginResponse, ReissueTokenResponse } from '@/types';
+import type {
+  ApiResponse,
+  LoginRequest,
+  LoginResponse,
+  ReissueTokenResponse,
+  WithdrawalRequest,
+  WithdrawalResponse,
+} from '@/types';
 
 import apiInstance from './instance';
 
@@ -16,4 +23,12 @@ export const logout = (): Promise<ApiResponse<{ message: string }>> => {
 export const reissueToken = (refreshToken: string): Promise<ApiResponse<ReissueTokenResponse>> =>
   apiInstance
     .post<ApiResponse<ReissueTokenResponse>>('/api/v1/auth/token', { refreshToken })
+    .then((res) => res.data);
+
+// 회원탈퇴
+export const withdrawUser = (
+  payload: WithdrawalRequest,
+): Promise<ApiResponse<WithdrawalResponse>> =>
+  apiInstance
+    .patch<ApiResponse<WithdrawalResponse>>('/api/v1/user/withdrawal', payload)
     .then((res) => res.data);
