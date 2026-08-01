@@ -13,12 +13,7 @@ import RecyclingLogItem from './components/RecyclingLogItem';
 import CharacterCard from './components/CharacterCard';
 import QuizResultCard from './components/QuizResultCard';
 import { useDashboard } from './hooks/useDashboard';
-import {
-  computeAccuracyPercent,
-  getWasteTypeImage,
-  mapEvolutionStageToLevelInput,
-  WASTE_TYPE_LABEL,
-} from './utils';
+import { computeAccuracyPercent, getWasteTypeImage, WASTE_TYPE_LABEL } from './utils';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'Home'>;
 
@@ -26,9 +21,9 @@ const HomeScreen = ({ navigation }: Props) => {
   const { data, isLoading, isError, refetch } = useDashboard();
 
   const handleRetryQuiz = useCallback(() => {
-    // TODO: 가장 최근 틀린 문제로 바로 이동하는 파라미터 연동 (퀴즈 API 연동 후)
-    navigation.navigate('Quiz');
-  }, [navigation]);
+    const wrongQuizInfo = data?.wrongQuizInfo;
+    navigation.navigate('Quiz', wrongQuizInfo ? { wrongQuizInfo } : undefined);
+  }, [navigation, data]);
 
   const handlePressLog = useCallback(
     (_entry: RecyclingLogEntry) => {
@@ -70,7 +65,6 @@ const HomeScreen = ({ navigation }: Props) => {
   }
 
   const { characterInfo, quizProfileInfo, recyclingLogInfo } = data;
-  const { level, currentXp } = mapEvolutionStageToLevelInput(characterInfo.evolutionStage);
   const accuracyPercent = computeAccuracyPercent(
     quizProfileInfo.correctQuiz,
     quizProfileInfo.solvedQuiz,
@@ -92,8 +86,9 @@ const HomeScreen = ({ navigation }: Props) => {
           <CharacterCard
             characterImage={{ uri: characterInfo.imageUrl }}
             characterName={characterInfo.characterName}
-            currentXp={currentXp}
-            level={level}
+            level={characterInfo.level}
+            progressRatio={Math.min(Math.max(characterInfo.expPercentage / 100, 0), 1)}
+            remainingXp={characterInfo.remainingExp}
           />
 
           <View className="mt-[17px]">

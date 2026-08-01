@@ -4,10 +4,12 @@
  */
 import type { NavigatorScreenParams } from '@react-navigation/native';
 
+import type { WrongQuizInfo } from '@/types';
+
 export type RootTabParamList = {
   Home: undefined;
   Search: undefined;
-  Quiz: undefined;
+  Quiz: { wrongQuizInfo?: WrongQuizInfo } | undefined;
   Feedback: undefined;
   Account: undefined;
 };

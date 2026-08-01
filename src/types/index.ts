@@ -14,6 +14,7 @@ export type {
   CharacterInfo,
   QuizProfileInfo,
   RecyclingLogInfo,
+  WrongQuizInfo,
   MyDashboardData,
 } from './dashboard.types';
 export type {

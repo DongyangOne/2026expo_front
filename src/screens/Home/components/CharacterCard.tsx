@@ -3,30 +3,36 @@ import { Text, View } from 'react-native';
 import type { ImageSourcePropType } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
-import { useCharacterLevel } from '../hooks/useCharacterLevel';
 import PlaceholderCircle from './PlaceholderCircle';
 
 interface CharacterCardProps {
   characterName: string;
   level: number;
-  currentXp: number;
+  /** 다음 레벨까지 남은 경험치 (BE remainingExp) */
+  remainingXp: number;
+  /** 현재 레벨 진행률 0~1 (BE expPercentage / 100) */
+  progressRatio: number;
   characterImage?: ImageSourcePropType;
 }
 
 const AVATAR_SIZE = 137;
 const XP_BAR_HEIGHT = 17;
 
-/** 캐릭터 박스: 캐릭터 이미지 + 이름 + 레벨 + 경험치 바 + 다음 레벨까지 남은 경험치 */
-const CharacterCard = ({ characterName, level, currentXp, characterImage }: CharacterCardProps) => {
-  const { remainingXp, progressRatio, isMaxStage } = useCharacterLevel(level, currentXp);
+/** 캐릭터 박스: 캐릭터 이미지 + 레벨 + 경험치 바 + 다음 레벨까지 남은 경험치 (디자인상 캐릭터 이름은 화면에 표시하지 않음) */
+const CharacterCard = ({
+  characterName: _characterName,
+  level,
+  remainingXp,
+  progressRatio,
+  characterImage,
+}: CharacterCardProps) => {
+  const isMaxStage = remainingXp <= 0;
 
   return (
     <View className="items-center rounded-[10px] bg-purple/[0.08] px-[19px] py-[20px]">
       <PlaceholderCircle size={AVATAR_SIZE} source={characterImage} />
 
-      <Text className="mt-[14px] font-notoSansKRBold text-base text-black">{characterName}</Text>
-
-      <Text className="mt-[8px] font-notoSansKRBold text-lg text-black">Lv {level}</Text>
+      <Text className="mt-[14px] font-notoSansKRBold text-lg text-black">Lv {level}</Text>
 
       <View
         className="mt-[20px] w-full overflow-hidden rounded-full border border-border bg-white"

@@ -16,6 +16,10 @@ export interface CharacterInfo {
   characterName: string;
   imageUrl: string;
   evolutionStage: EvolutionStage;
+  level: number;
+  currentExp: number;
+  remainingExp: number;
+  expPercentage: number;
 }
 
 export interface QuizProfileInfo {
@@ -28,8 +32,14 @@ export interface RecyclingLogInfo {
   recycledAt: string;
 }
 
+// 실제 구조 미확인 (현재까지 확인된 값은 null뿐) — 필드 확정되면 정확한 인터페이스로 교체.
+export interface WrongQuizInfo {
+  [key: string]: unknown;
+}
+
 export interface MyDashboardData {
   characterInfo: CharacterInfo;
   quizProfileInfo: QuizProfileInfo;
   recyclingLogInfo: RecyclingLogInfo[];
+  wrongQuizInfo: WrongQuizInfo | null;
 }
