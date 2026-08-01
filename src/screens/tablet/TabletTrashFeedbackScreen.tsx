@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Animated, Easing, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, Image, Text, TouchableOpacity, View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,12 +11,15 @@ import CharacterIcon from '@/assets/icons/character.svg';
 import LoadingIcon from '@/assets/icons/loading.svg';
 import TrashIcon from '@/assets/icons/trash.svg';
 import WatchIcon from '@/assets/icons/watch.svg';
-import XIcon from '@/assets/icons/x.svg';
-import retryGuideVideo from '@/assets/videos/retryGuide.mp4';
-import { GRADIENT_ACTIVE } from '@/constants/theme';
+import { GRADIENT_ACTIVE, TABLET_CLASSIFICATION_CLIENT_ID } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
+import { getTabletClassification } from '@/services';
+import type { TabletClassificationData } from '@/types';
 
 const COUNTDOWN_START_SECONDS = 20;
+const CLASSIFICATION_POLL_INTERVAL_MS = 1000;
+const CLASSIFICATION_ERROR_MESSAGE = '분류 결과를 불러오지 못했어요.';
+const GUIDE_VIDEO_MAX_PLAY_COUNT = 3;
 
 const FEEDBACK_CARD_SHADOW_STYLE: ViewStyle = {
   elevation: 4,
@@ -31,60 +34,69 @@ const FEEDBACK_CARD_SHADOW_STYLE: ViewStyle = {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TabletTrashFeedback'>;
 
-type TrashFeedbackStep =
-  | 'waitingTrash'
-  | 'loading'
-  | 'canResult'
-  | 'success'
-  | 'failed'
-  | 'retryGuide';
+type TrashFeedbackStep = 'waitingTrash' | 'loading' | 'canResult' | 'success' | 'retryGuide';
 
 const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => {
   const [remainingSeconds, setRemainingSeconds] = useState<number>(COUNTDOWN_START_SECONDS);
   const [currentStep, setCurrentStep] = useState<TrashFeedbackStep>('waitingTrash');
+  const [classificationResult, setClassificationResult] = useState<TabletClassificationData | null>(
+    null,
+  );
+  const [classificationErrorMessage, setClassificationErrorMessage] = useState<string | null>(null);
   const [hasVideoError, setHasVideoError] = useState<boolean>(false);
+  const [guideVideoPlaybackKey, setGuideVideoPlaybackKey] = useState<number>(0);
   const [loadingRotation] = useState<Animated.Value>(() => new Animated.Value(0));
 
   const loadingSpin = loadingRotation.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
+  const currentLevel = classificationResult?.currentLevel ?? classificationResult?.level ?? 0;
+  const expProgressPercentage = classificationResult?.expPercent ?? 0;
 
   const handleNextPress = (): void => {
-    setCurrentStep((previousStep) => {
-      if (previousStep === 'waitingTrash') {
-        return 'loading';
-      }
+    if (currentStep === 'waitingTrash') {
+      setCurrentStep('loading');
+      return;
+    }
 
-      if (previousStep === 'loading') {
-        return 'canResult';
-      }
+    if (currentStep === 'canResult' && classificationResult?.status === 'ALLOWED') {
+      setCurrentStep('success');
+      return;
+    }
 
-      if (previousStep === 'canResult') {
-        return 'success';
-      }
+    setHasVideoError(false);
+    setGuideVideoPlaybackKey(0);
+    setCurrentStep('retryGuide');
+  };
 
-      return 'failed';
-    });
+  const handleClassificationRetryPress = (): void => {
+    setClassificationErrorMessage(null);
   };
 
   const handleHomePress = (): void => {
     navigation.replace('TabletMain');
   };
 
-  const handleRetryGuidePress = (): void => {
-    setHasVideoError(false);
-    setCurrentStep('retryGuide');
-  };
-
   const handleRestartPress = (): void => {
     setRemainingSeconds(COUNTDOWN_START_SECONDS);
+    setClassificationResult(null);
+    setClassificationErrorMessage(null);
     setHasVideoError(false);
+    setGuideVideoPlaybackKey(0);
     setCurrentStep('waitingTrash');
   };
 
   const handleVideoError = (): void => {
     setHasVideoError(true);
+  };
+
+  const handleVideoEnd = (): void => {
+    setGuideVideoPlaybackKey((currentPlaybackKey) =>
+      currentPlaybackKey + 1 < GUIDE_VIDEO_MAX_PLAY_COUNT
+        ? currentPlaybackKey + 1
+        : currentPlaybackKey,
+    );
   };
 
   useEffect((): (() => void) | undefined => {
@@ -122,6 +134,56 @@ const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => 
       loadingAnimation.stop();
     };
   }, [currentStep, loadingRotation]);
+
+  useEffect((): (() => void) | undefined => {
+    if (currentStep !== 'loading' || classificationErrorMessage) {
+      return undefined;
+    }
+
+    let isCancelled = false;
+    let pollTimerId: ReturnType<typeof setTimeout> | undefined;
+
+    const fetchClassificationResult = async (): Promise<void> => {
+      try {
+        const response = await getTabletClassification(TABLET_CLASSIFICATION_CLIENT_ID);
+
+        if (isCancelled) {
+          return;
+        }
+
+        if (!response.success) {
+          throw new Error(response.message);
+        }
+
+        if (response.data.completed && response.data.status !== 'WAITING') {
+          setClassificationResult(response.data);
+          setCurrentStep('canResult');
+          return;
+        }
+
+        pollTimerId = setTimeout((): void => {
+          void fetchClassificationResult();
+        }, CLASSIFICATION_POLL_INTERVAL_MS);
+      } catch (error: unknown) {
+        if (isCancelled) {
+          return;
+        }
+
+        console.error('[TabletTrashFeedbackScreen] 분류 결과 조회 실패', error);
+        setClassificationErrorMessage(CLASSIFICATION_ERROR_MESSAGE);
+      }
+    };
+
+    void fetchClassificationResult();
+
+    return (): void => {
+      isCancelled = true;
+
+      if (pollTimerId) {
+        clearTimeout(pollTimerId);
+      }
+    };
+  }, [classificationErrorMessage, currentStep]);
 
   return (
     <View className="flex-1 overflow-hidden bg-background">
@@ -178,26 +240,28 @@ const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => 
                 </>
               ) : null}
               {currentStep === 'loading' ? (
-                <>
-                  <TouchableOpacity
-                    className="absolute left-[24px] top-[24px] z-10 rounded-full border border-border px-[16px] py-[8px]"
-                    activeOpacity={0.8}
-                    onPress={handleNextPress}>
-                    <Text className="font-notoSansKRRegular text-[16px] leading-[20px] text-body">
-                      다음
-                    </Text>
-                  </TouchableOpacity>
-                  <View
-                    className="absolute inset-0 items-center justify-center"
-                    pointerEvents="none">
-                    <Animated.View style={{ transform: [{ rotate: loadingSpin }] }}>
-                      <LoadingIcon height={300} width={300} />
-                    </Animated.View>
-                    <Text className="mt-[48px] font-notoSansKRRegular text-[44px] leading-[56px] text-black">
-                      쓰레기를 <Text className="text-trashAction">인식</Text> 중입니다...
-                    </Text>
-                  </View>
-                </>
+                <View
+                  className="absolute inset-0 items-center justify-center"
+                  pointerEvents={classificationErrorMessage ? 'auto' : 'none'}>
+                  <Animated.View style={{ transform: [{ rotate: loadingSpin }] }}>
+                    <LoadingIcon height={300} width={300} />
+                  </Animated.View>
+                  <Text className="mt-[48px] font-notoSansKRRegular text-[44px] leading-[56px] text-black">
+                    {classificationErrorMessage ?? (
+                      <>
+                        쓰레기를 <Text className="text-trashAction">인식</Text> 중입니다...
+                      </>
+                    )}
+                  </Text>
+                  {classificationErrorMessage ? (
+                    <TouchableOpacity
+                      className="mt-[32px] rounded-[12px] bg-purple px-[40px] py-[16px]"
+                      activeOpacity={0.85}
+                      onPress={handleClassificationRetryPress}>
+                      <Text className="font-notoSansKRBold text-[15px] text-white">다시 조회</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
               ) : null}
               {currentStep === 'canResult' ? (
                 <>
@@ -212,113 +276,68 @@ const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => 
                   <View
                     className="absolute inset-0 items-center justify-center"
                     pointerEvents="none">
-                    <CanIcon height={300} width={300} />
+                    {classificationResult?.wasteType === 'CAN' ? (
+                      <CanIcon height={300} width={300} />
+                    ) : (
+                      <TrashIcon height={300} width={300} />
+                    )}
                     <Text className="mt-[48px] font-notoSansKRRegular text-[44px] leading-[56px] text-black">
-                      <Text className="text-trashAction">캔</Text>이네요
+                      <Text className="text-trashAction">
+                        {classificationResult?.wasteTypeLabel ?? '분류 결과'}
+                      </Text>
+                      입니다
                     </Text>
                   </View>
                 </>
               ) : null}
               {currentStep === 'success' ? (
-                <>
-                  <TouchableOpacity
-                    className="absolute left-[24px] top-[24px] z-10 rounded-full border border-border px-[16px] py-[8px]"
-                    activeOpacity={0.8}
-                    onPress={handleNextPress}>
-                    <Text className="font-notoSansKRRegular text-[16px] leading-[20px] text-body">
-                      다음
-                    </Text>
-                  </TouchableOpacity>
-                  <View className="absolute inset-0 items-center justify-center">
-                    <CharacterIcon height={260} width={260} />
-                    <Text className="mt-[8px] font-notoSansKRRegular text-[24px] leading-[30px] text-black">
-                      LV.5
-                    </Text>
-                    <View className="mt-[10px] h-[14px] w-[160px] overflow-hidden rounded-full border border-border bg-background">
-                      <View className="h-full w-[58px] overflow-hidden rounded-full">
-                        <Svg height="100%" width="100%">
-                          <Defs>
-                            <LinearGradient
-                              id="tablet-trash-feedback-progress-gradient"
-                              x1="0"
-                              y1="0"
-                              x2="1"
-                              y2="0">
-                              <Stop offset="0" stopColor={GRADIENT_ACTIVE.to} />
-                              <Stop offset="1" stopColor={GRADIENT_ACTIVE.from} />
-                            </LinearGradient>
-                          </Defs>
-                          <Rect
-                            fill="url(#tablet-trash-feedback-progress-gradient)"
-                            height="100%"
-                            rx={7}
-                            ry={7}
-                            width="100%"
-                          />
-                        </Svg>
-                      </View>
-                    </View>
-                    <Text className="mt-[36px] font-notoSansKRRegular text-[40px] leading-[50px] text-black">
-                      분리수거 성공!
-                    </Text>
-                    <TouchableOpacity
-                      className="mt-[54px] h-[60px] w-[288px] overflow-hidden rounded-[12px]"
-                      activeOpacity={0.85}
-                      onPress={handleHomePress}>
-                      <View className="absolute inset-0">
-                        <Svg height="100%" width="100%">
-                          <Defs>
-                            <LinearGradient
-                              id="tablet-trash-feedback-home-gradient"
-                              x1="0"
-                              y1="0"
-                              x2="1"
-                              y2="0">
-                              <Stop offset="0" stopColor={GRADIENT_ACTIVE.to} />
-                              <Stop offset="1" stopColor={GRADIENT_ACTIVE.from} />
-                            </LinearGradient>
-                          </Defs>
-                          <Rect
-                            fill="url(#tablet-trash-feedback-home-gradient)"
-                            height="100%"
-                            rx={12}
-                            ry={12}
-                            width="100%"
-                          />
-                        </Svg>
-                      </View>
-                      <View className="h-full items-center justify-center">
-                        <Text className="font-notoSansKRBold text-[15px] leading-[20px] text-white">
-                          홈으로 이동
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              ) : null}
-              {currentStep === 'failed' ? (
                 <View className="absolute inset-0 items-center justify-center">
-                  <TouchableOpacity
-                    className="absolute left-[24px] top-[24px] z-10 rounded-full border border-border px-[16px] py-[8px]"
-                    activeOpacity={0.8}
-                    onPress={handleRetryGuidePress}>
-                    <Text className="font-notoSansKRRegular text-[16px] leading-[20px] text-body">
-                      다음
-                    </Text>
-                  </TouchableOpacity>
-                  <XIcon height={220} width={220} />
-                  <Text className="mt-[58px] font-notoSansKRRegular text-[40px] leading-[50px] text-black">
-                    인식에 실패했어요!
+                  {classificationResult?.characterImageUrl ? (
+                    <Image
+                      className="h-[260px] w-[260px]"
+                      resizeMode="contain"
+                      source={{ uri: classificationResult.characterImageUrl }}
+                    />
+                  ) : (
+                    <CharacterIcon height={260} width={260} />
+                  )}
+                  <Text className="mt-[8px] font-notoSansKRRegular text-[24px] leading-[30px] text-black">
+                    LV.{currentLevel}
+                  </Text>
+                  <View className="mt-[10px] h-[14px] w-[160px] overflow-hidden rounded-full border border-border bg-background">
+                    <Svg height="100%" width="100%">
+                      <Defs>
+                        <LinearGradient
+                          id="tablet-trash-feedback-progress-gradient"
+                          x1="0"
+                          y1="0"
+                          x2="1"
+                          y2="0">
+                          <Stop offset="0" stopColor={GRADIENT_ACTIVE.to} />
+                          <Stop offset="1" stopColor={GRADIENT_ACTIVE.from} />
+                        </LinearGradient>
+                      </Defs>
+                      <Rect
+                        fill="url(#tablet-trash-feedback-progress-gradient)"
+                        height="100%"
+                        rx={7}
+                        ry={7}
+                        width={`${expProgressPercentage}%`}
+                      />
+                    </Svg>
+                  </View>
+                  <Text className="mt-[36px] font-notoSansKRRegular text-[40px] leading-[50px] text-black">
+                    {classificationResult?.message ?? '분리배출 성공!'}
                   </Text>
                   <TouchableOpacity
-                    className="mt-[72px] h-[60px] w-[288px] overflow-hidden rounded-[12px]"
+                    className="mt-[54px] h-[60px] w-[288px] overflow-hidden rounded-[12px]"
                     activeOpacity={0.85}
-                    onPress={handleRestartPress}>
+                    onPress={handleHomePress}>
                     <View className="absolute inset-0">
                       <Svg height="100%" width="100%">
                         <Defs>
                           <LinearGradient
-                            id="tablet-trash-feedback-retry-gradient"
+                            id="tablet-trash-feedback-home-gradient"
                             x1="0"
                             y1="0"
                             x2="1"
@@ -328,7 +347,7 @@ const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => 
                           </LinearGradient>
                         </Defs>
                         <Rect
-                          fill="url(#tablet-trash-feedback-retry-gradient)"
+                          fill="url(#tablet-trash-feedback-home-gradient)"
                           height="100%"
                           rx={12}
                           ry={12}
@@ -338,7 +357,7 @@ const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => 
                     </View>
                     <View className="h-full items-center justify-center">
                       <Text className="font-notoSansKRBold text-[15px] leading-[20px] text-white">
-                        재시도
+                        홈으로 이동
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -346,26 +365,30 @@ const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => 
               ) : null}
               {currentStep === 'retryGuide' ? (
                 <View className="absolute inset-0 items-center justify-center">
-                  <View className="h-[300px] w-[660px] overflow-hidden border border-border bg-disabledBg">
-                    {hasVideoError ? (
+                  <View className="h-[300px] w-[720px] overflow-hidden bg-white">
+                    {hasVideoError || !classificationResult?.guideVideoUrl ? (
                       <View className="h-full items-center justify-center">
                         <Text className="font-notoSansKRRegular text-[20px] leading-[28px] text-body">
-                          동영상을 불러오지 못했어요.
+                          {hasVideoError ? '동영상을 불러오지 못했어요.' : '안내 동영상이 없어요.'}
                         </Text>
                       </View>
                     ) : (
                       <Video
-                        controls
+                        key={`${classificationResult.guideVideoUrl}-${guideVideoPlaybackKey}`}
+                        controls={false}
+                        onEnd={handleVideoEnd}
                         onError={handleVideoError}
-                        repeat
+                        paused={false}
                         resizeMode={ResizeMode.CONTAIN}
-                        source={{ uri: retryGuideVideo }}
+                        source={{
+                          uri: classificationResult.guideVideoUrl,
+                        }}
                         style={{ height: '100%', width: '100%' }}
                       />
                     )}
                   </View>
-                  <Text className="mt-[58px] font-notoSansKRRegular text-[40px] leading-[50px] text-black">
-                    분리수거를 재시도해 주세요.
+                  <Text className="mt-[40px] max-w-[800px] text-center font-notoSansKRRegular text-[30px] leading-[44px] text-black">
+                    {classificationResult?.message ?? '분리수거를 재시도해 주세요.'}
                   </Text>
                   <TouchableOpacity
                     className="mt-[32px] h-[60px] w-[288px] overflow-hidden rounded-[12px]"

@@ -7,6 +7,7 @@ export type {
   UpdateProfileData,
 } from './user.types';
 export type { ApiResponse } from './api.types';
+export type { TabletClassificationData, TabletClassificationStatus } from './classification.types';
 export type { QrLoginData, QrLoginSseResponse, QrTokenData } from './qr.types';
 export type {
   LoginRequest,
