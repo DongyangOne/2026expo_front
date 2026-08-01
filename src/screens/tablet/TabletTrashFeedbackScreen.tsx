@@ -13,7 +13,11 @@ import TrashIcon from '@/assets/icons/trash.svg';
 import WatchIcon from '@/assets/icons/watch.svg';
 import { GRADIENT_ACTIVE } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
-import { createFeedbackDetection, getTabletClassification } from '@/services';
+import {
+  createFeedbackDetection,
+  getTabletClassification,
+  requestHardwareClassification,
+} from '@/services';
 import type { TabletClassificationData } from '@/types';
 
 const COUNTDOWN_START_SECONDS = 20;
@@ -182,7 +186,10 @@ const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => 
           throw new Error(response.message);
         }
 
-        await fetchClassificationResult(response.data.clientId);
+        const { clientId } = response.data;
+
+        await requestHardwareClassification(clientId);
+        await fetchClassificationResult(clientId);
       } catch (error: unknown) {
         if (isCancelled) {
           return;
