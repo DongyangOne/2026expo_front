@@ -1,11 +1,16 @@
-export type TabletClassificationStatus = 'ALLOWED' | 'REJECTED' | 'WAITING';
+export type TabletClassificationStatus =
+  | 'ALLOWED'
+  | 'GENERAL_WASTE'
+  | 'NOT_DETECTED'
+  | 'REJECTED'
+  | 'WAITING';
 
 export interface TabletClassificationData {
   clientId: string;
   completed: boolean;
   status: TabletClassificationStatus;
-  wasteType: string;
-  wasteTypeLabel: string;
+  wasteType?: string;
+  wasteTypeLabel?: string;
   message: string | null;
   guidanceCode?: string | null;
   guideVideoUrl?: string | null;

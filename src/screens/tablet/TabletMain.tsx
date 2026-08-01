@@ -224,7 +224,7 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     });
 
     qrLoginConnection.addEventListener('LOGIN_SUCCESS', (event): void => {
-      console.warn('[TabletMain] QR 로그인 승인 응답 수신', event.data);
+      console.warn('[분류 흐름 1] QR 로그인 성공 이벤트 수신');
 
       if (hasHandledQrLogin.current) {
         return;
@@ -240,6 +240,8 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
       hasHandledQrLogin.current = true;
       setLoginResponse(loginResponse);
       setAuth({ ...loginResponse.data, rememberMe: 'N' });
+      console.warn('[분류 흐름 2] QR 로그인 정보 저장 완료');
+      console.warn('[분류 흐름 3] Base API clientId 발급 요청 시작');
 
       void createFeedbackDetection()
         .then((response): void => {
@@ -248,11 +250,12 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
           }
 
           const { clientId } = response.data;
-          console.warn('[TabletMain] QR 로그인 후 발급된 clientId', clientId);
+          console.warn('[분류 흐름 4] Base API clientId 발급 성공', { clientId });
+          console.warn('[분류 흐름 5] 로딩 화면 이동', { clientId });
           navigation.replace('TabletTrashFeedback', { clientId });
         })
         .catch((error: unknown): void => {
-          console.error('[TabletMain] clientId 발급 실패', error);
+          console.error('[분류 흐름 실패 - clientId 발급]', error);
           hasHandledQrLogin.current = false;
           setQrErrorMessage(CLIENT_ID_ERROR_MESSAGE);
         });

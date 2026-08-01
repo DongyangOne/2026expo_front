@@ -4,6 +4,7 @@ import type { ViewStyle } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import type { SvgProps } from 'react-native-svg';
 import Video, { ResizeMode } from 'react-native-video';
 
 import CanIcon from '@/assets/icons/can.svg';
@@ -11,6 +12,10 @@ import CharacterIcon from '@/assets/icons/character.svg';
 import LoadingIcon from '@/assets/icons/loading.svg';
 import TrashIcon from '@/assets/icons/trash.svg';
 import WatchIcon from '@/assets/icons/watch.svg';
+import XIcon from '@/assets/icons/x.svg';
+import PaperIcon from '@/assets/images/paper.svg';
+import PlasticBagIcon from '@/assets/images/plasticBag.svg';
+import PlasticBottleIcon from '@/assets/images/plasticBottle.svg';
 import { GRADIENT_ACTIVE } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
 import { getTabletClassification, requestHardwareClassification } from '@/services';
@@ -35,11 +40,22 @@ const FEEDBACK_CARD_SHADOW_STYLE: ViewStyle = {
 type Props = NativeStackScreenProps<RootStackParamList, 'TabletTrashFeedback'>;
 
 type TrashFeedbackStep = 'waitingTrash' | 'loading' | 'canResult' | 'success' | 'retryGuide';
+type WasteTypeIcon = React.FC<SvgProps>;
+
+const WASTE_TYPE_ICONS: Record<string, WasteTypeIcon> = {
+  CAN: CanIcon,
+  PAPER: PaperIcon,
+  PET: PlasticBottleIcon,
+  PLASTIC: PlasticBottleIcon,
+  PLASTIC_BOTTLE: PlasticBottleIcon,
+  PLASTIC_BAG: PlasticBagIcon,
+  VINYL: PlasticBagIcon,
+};
 
 const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Element => {
   const clientId = route.params?.clientId;
   const [remainingSeconds, setRemainingSeconds] = useState<number>(COUNTDOWN_START_SECONDS);
-  const [currentStep, setCurrentStep] = useState<TrashFeedbackStep>('waitingTrash');
+  const [currentStep, setCurrentStep] = useState<TrashFeedbackStep>('loading');
   const [classificationResult, setClassificationResult] = useState<TabletClassificationData | null>(
     null,
   );
@@ -54,6 +70,11 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
   });
   const currentLevel = classificationResult?.currentLevel ?? classificationResult?.level ?? 0;
   const expProgressPercentage = classificationResult?.expPercent ?? 0;
+  const isRecognitionFailure =
+    classificationResult?.guidanceCode === 'LOW_CONFIDENCE' ||
+    classificationResult?.status === 'NOT_DETECTED';
+  const WasteTypeIcon =
+    WASTE_TYPE_ICONS[classificationResult?.wasteType?.toUpperCase() ?? ''] ?? TrashIcon;
 
   const handleNextPress = (): void => {
     if (currentStep === 'waitingTrash') {
@@ -162,11 +183,31 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
         }
 
         if (response.data.completed && response.data.status !== 'WAITING') {
+          console.warn('[분류 흐름 11] 분류 완료, 결과 화면 전환', {
+            clientId,
+            status: response.data.status,
+            wasteType: response.data.wasteType,
+          });
           setClassificationResult(response.data);
+
+          if (
+            response.data.guidanceCode === 'LOW_CONFIDENCE' ||
+            response.data.status === 'NOT_DETECTED' ||
+            response.data.status === 'REJECTED'
+          ) {
+            setCurrentStep('retryGuide');
+            return;
+          }
+
           setCurrentStep('canResult');
           return;
         }
 
+        console.warn('[분류 흐름 11] 분류 대기 중, 1초 후 재조회', {
+          clientId,
+          status: response.data.status,
+          completed: response.data.completed,
+        });
         pollTimerId = setTimeout((): void => {
           void fetchClassificationResult(clientId);
         }, CLASSIFICATION_POLL_INTERVAL_MS);
@@ -186,6 +227,7 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
           throw new Error('clientId가 없습니다.');
         }
 
+        console.warn('[분류 흐름 6] 로딩 화면 진입, 하드웨어 요청 시작', { clientId });
         await requestHardwareClassification(clientId);
         await fetchClassificationResult(clientId);
       } catch (error: unknown) {
@@ -300,11 +342,7 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
                   <View
                     className="absolute inset-0 items-center justify-center"
                     pointerEvents="none">
-                    {classificationResult?.wasteType === 'CAN' ? (
-                      <CanIcon height={300} width={300} />
-                    ) : (
-                      <TrashIcon height={300} width={300} />
-                    )}
+                    <WasteTypeIcon height={300} width={300} />
                     <Text className="mt-[48px] font-notoSansKRRegular text-[44px] leading-[56px] text-black">
                       <Text className="text-trashAction">
                         {classificationResult?.wasteTypeLabel ?? '분류 결과'}
@@ -389,30 +427,37 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
               ) : null}
               {currentStep === 'retryGuide' ? (
                 <View className="absolute inset-0 items-center justify-center">
-                  <View className="h-[300px] w-[720px] overflow-hidden bg-white">
-                    {hasVideoError || !classificationResult?.guideVideoUrl ? (
-                      <View className="h-full items-center justify-center">
-                        <Text className="font-notoSansKRRegular text-[20px] leading-[28px] text-body">
-                          {hasVideoError ? '동영상을 불러오지 못했어요.' : '안내 동영상이 없어요.'}
-                        </Text>
-                      </View>
-                    ) : (
-                      <Video
-                        key={`${classificationResult.guideVideoUrl}-${guideVideoPlaybackKey}`}
-                        controls={false}
-                        onEnd={handleVideoEnd}
-                        onError={handleVideoError}
-                        paused={false}
-                        resizeMode={ResizeMode.CONTAIN}
-                        source={{
-                          uri: classificationResult.guideVideoUrl,
-                        }}
-                        style={{ height: '100%', width: '100%' }}
-                      />
-                    )}
-                  </View>
+                  {isRecognitionFailure ? (
+                    <XIcon height={220} width={220} />
+                  ) : (
+                    <View className="h-[300px] w-[720px] overflow-hidden bg-white">
+                      {hasVideoError || !classificationResult?.guideVideoUrl ? (
+                        <View className="h-full items-center justify-center">
+                          <Text className="font-notoSansKRRegular text-[20px] leading-[28px] text-body">
+                            {hasVideoError
+                              ? '동영상을 불러오지 못했어요.'
+                              : '안내 동영상이 없어요.'}
+                          </Text>
+                        </View>
+                      ) : (
+                        <Video
+                          key={`${classificationResult.guideVideoUrl}-${guideVideoPlaybackKey}`}
+                          controls={false}
+                          onEnd={handleVideoEnd}
+                          onError={handleVideoError}
+                          paused={false}
+                          resizeMode={ResizeMode.CONTAIN}
+                          source={{
+                            uri: classificationResult.guideVideoUrl,
+                          }}
+                          style={{ height: '100%', width: '100%' }}
+                        />
+                      )}
+                    </View>
+                  )}
                   <Text className="mt-[40px] max-w-[800px] text-center font-notoSansKRRegular text-[30px] leading-[44px] text-black">
-                    {classificationResult?.message ?? '분리수거를 재시도해 주세요.'}
+                    {classificationResult?.message ??
+                      (isRecognitionFailure ? '인식에 실패했어요!' : '분리수거를 재시도해 주세요.')}
                   </Text>
                   <TouchableOpacity
                     className="mt-[32px] h-[60px] w-[288px] overflow-hidden rounded-[12px]"
