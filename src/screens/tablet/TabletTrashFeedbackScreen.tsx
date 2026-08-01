@@ -11,9 +11,9 @@ import CharacterIcon from '@/assets/icons/character.svg';
 import LoadingIcon from '@/assets/icons/loading.svg';
 import TrashIcon from '@/assets/icons/trash.svg';
 import WatchIcon from '@/assets/icons/watch.svg';
-import { GRADIENT_ACTIVE, TABLET_CLASSIFICATION_CLIENT_ID } from '@/constants';
+import { GRADIENT_ACTIVE } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
-import { getTabletClassification } from '@/services';
+import { createFeedbackDetection, getTabletClassification } from '@/services';
 import type { TabletClassificationData } from '@/types';
 
 const COUNTDOWN_START_SECONDS = 20;
@@ -143,9 +143,9 @@ const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => 
     let isCancelled = false;
     let pollTimerId: ReturnType<typeof setTimeout> | undefined;
 
-    const fetchClassificationResult = async (): Promise<void> => {
+    const fetchClassificationResult = async (clientId: string): Promise<void> => {
       try {
-        const response = await getTabletClassification(TABLET_CLASSIFICATION_CLIENT_ID);
+        const response = await getTabletClassification(clientId);
 
         if (isCancelled) {
           return;
@@ -162,7 +162,7 @@ const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => 
         }
 
         pollTimerId = setTimeout((): void => {
-          void fetchClassificationResult();
+          void fetchClassificationResult(clientId);
         }, CLASSIFICATION_POLL_INTERVAL_MS);
       } catch (error: unknown) {
         if (isCancelled) {
@@ -174,7 +174,26 @@ const TabletTrashFeedbackScreen = ({ navigation }: Props): React.JSX.Element => 
       }
     };
 
-    void fetchClassificationResult();
+    const startClassification = async (): Promise<void> => {
+      try {
+        const response = await createFeedbackDetection();
+
+        if (!response.success || !response.data.clientId) {
+          throw new Error(response.message);
+        }
+
+        await fetchClassificationResult(response.data.clientId);
+      } catch (error: unknown) {
+        if (isCancelled) {
+          return;
+        }
+
+        console.error('[TabletTrashFeedbackScreen] 감지 요청 실패', error);
+        setClassificationErrorMessage(CLASSIFICATION_ERROR_MESSAGE);
+      }
+    };
+
+    void startClassification();
 
     return (): void => {
       isCancelled = true;

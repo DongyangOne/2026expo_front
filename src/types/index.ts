@@ -40,6 +40,7 @@ export type {
   AdminFeedbackListData,
   Feedback,
   FeedbackDetailData,
+  FeedbackDetectionData,
   FeedbackListData,
   PageRequest,
 } from './feedback.types';
