@@ -51,3 +51,4 @@ export type {
   FeedbackListData,
   PageRequest,
 } from './feedback.types';
+export type { QuizSessionData, QuizSessionRequest } from './quiz.types';
