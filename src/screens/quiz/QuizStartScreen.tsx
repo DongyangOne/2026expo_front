@@ -12,9 +12,15 @@ interface QuizStartScreenProps {
   quizCount: number | null;
   onSelectCount: (count: number) => void;
   onSolveQuiz: () => void;
+  isLoading?: boolean;
 }
 
-const QuizStartScreen = ({ quizCount, onSelectCount, onSolveQuiz }: QuizStartScreenProps) => {
+const QuizStartScreen = ({
+  quizCount,
+  onSelectCount,
+  onSolveQuiz,
+  isLoading = false,
+}: QuizStartScreenProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleSelectCount = (count: number): void => {
@@ -75,11 +81,11 @@ const QuizStartScreen = ({ quizCount, onSelectCount, onSolveQuiz }: QuizStartScr
 
       <View className="mt-20 px-2">
         <GradientButton
-          label="퀴즈 풀기"
+          label={isLoading ? '불러오는 중...' : '퀴즈 풀기'}
           onPress={onSolveQuiz}
           height={50}
           borderRadius={28}
-          disabled={!quizCount}
+          disabled={!quizCount || isLoading}
         />
       </View>
     </View>
