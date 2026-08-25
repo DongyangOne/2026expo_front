@@ -50,7 +50,7 @@ const KakaoLoginScreen = ({ navigation, route }: Props) => {
   const restApiKey = Config.KAKAO_REST_API_KEY;
   const redirectUri = Config.KAKAO_REDIRECT_URI;
 
-  const authorizeUrl = `${KAKAO_AUTHORIZE_URL}?response_type=code&client_id=${restApiKey}&redirect_uri=${redirectUri}`;
+const authorizeUrl = `${KAKAO_AUTHORIZE_URL}?response_type=code&client_id=${encodeURIComponent(restApiKey ?? '')}&redirect_uri=${encodeURIComponent(redirectUri ?? '')}`;
 
   const handleKakaoCode = async (code: string): Promise<void> => {
     if (!redirectUri) {
@@ -127,27 +127,28 @@ const KakaoLoginScreen = ({ navigation, route }: Props) => {
       <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
         <TopBar title="카카오 로그인" onBack={() => navigation.goBack()} />
 
-        <WebView
-          source={{ uri: authorizeUrl, headers: { 'Accept-Language': 'ko-KR,ko;q=0.9' } }}
-          style={{ flex: 1 }}
-          onShouldStartLoadWithRequest={handleShouldStartLoad}
-          cacheEnabled={false}
-          startInLoadingState
-          renderLoading={() => (
-            <View className="absolute inset-0 items-center justify-center bg-background">
-              <ActivityIndicator color="#7866FF" size="large" />
-            </View>
-          )}
-        />
-
-        {isProcessing ? (
-          <View className="absolute inset-0 items-center justify-center bg-[rgba(255,255,255,0.6)]">
-            <ActivityIndicator color="#7866FF" size="large" />
-          </View>
-        ) : null}
+        {restApiKey && redirectUri ? (
+          <WebView
+            source={{ uri: authorizeUrl, headers: { 'Accept-Language': 'ko-KR,ko;q=0.9' } }}
+            style={{ flex: 1 }}
+            onShouldStartLoadWithRequest={handleShouldStartLoad}
+            cacheEnabled={false}
+            startInLoadingState
+            renderLoading={() => (
+              <View className="absolute inset-0 items-center justify-center bg-background">
+                <ActivityIndicator color="#7866FF" size="large" />
+              </View>
+            )}
+          />
+        ) : (
+          <View className="flex-1 items-center justify-center bg-background" />
+        )}
       </SafeAreaView>
 
-      <LoginToast message={toastMessage ?? ''} visible={!!toastMessage} />
+      <LoginToast
+        message={toastMessage ?? (!restApiKey || !redirectUri ? '카카오 로그인 설정이 누락되었습니다.' : '')}
+        visible={!!toastMessage || !restApiKey || !redirectUri}
+      />
     </View>
   );
 };
