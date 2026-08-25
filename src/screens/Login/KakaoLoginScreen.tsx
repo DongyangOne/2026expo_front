@@ -27,7 +27,17 @@ const extractQueryParam = (url: string, key: string): string | null => {
     return null;
   }
 
-  return new URLSearchParams(url.slice(queryStart + 1)).get(key);
+  const query = url.slice(queryStart + 1).split('#')[0];
+
+  for (const pair of query.split('&')) {
+    if (!pair) continue;
+    const [rawK, rawV = ''] = pair.split('=');
+    if (decodeURIComponent(rawK) === key) {
+      return decodeURIComponent(rawV.replace(/\+/g, ' '));
+    }
+  }
+
+  return null;
 };
 
 const KakaoLoginScreen = ({ navigation, route }: Props) => {
