@@ -433,9 +433,6 @@ const SignupScreen = ({ navigation, route }: Props) => {
         ...(isSocialSignup ? { providerId: socialInfo.socialProviderId } : { password }),
       };
 
-      // TODO: 디버깅용 임시 로그, 확인 후 제거
-      console.log('[SignupScreen] POST /api/v1/auth/signup 요청 body:', payload);
-
       await signup(payload);
 
       setToastMessage('가입완료. 다시 로그인 해주세요.');
