@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Alert } from 'react-native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
+import type { RootTabParamList } from '@/navigation/types';
 import QuizFinalResultScreen from '@/screens/quiz/QuizFinalResultScreen';
 import QuizQuestionScreen, { QUESTION_POOL, QuizQuestion } from '@/screens/quiz/QuizQuestionScreen';
 import QuizResultScreen from '@/screens/quiz/QuizResultScreen';
@@ -10,7 +12,9 @@ import { startQuizSession } from '@/services/quiz.service';
 const MOCK_LEVEL = 5;
 const MOCK_CURRENT_XP = 500;
 
-const QuizScreen = () => {
+type Props = BottomTabScreenProps<RootTabParamList, 'Quiz'>;
+
+const QuizScreen = ({ route }: Props) => {
   const [quizCount, setQuizCount] = useState<number | null>(null);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -21,13 +25,17 @@ const QuizScreen = () => {
   const [correctCount, setCorrectCount] = useState(0);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
+  const wrongQuizInfo = route.params?.wrongQuizInfo;
 
   const handleSolveQuiz = async (): Promise<void> => {
     if (!quizCount || isStarting) return;
 
     setIsStarting(true);
     try {
-      const { data } = await startQuizSession({ quantity: quizCount });
+      const { data } = await startQuizSession({
+        quantity: quizCount,
+        ...(wrongQuizInfo ? { wrongQuizInfo } : {}),
+      });
 
       const questions = QUESTION_POOL.slice(0, quizCount);
       if (questions.length > 0) {

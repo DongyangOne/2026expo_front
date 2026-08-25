@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { getMyDashboard } from '@/services';
@@ -21,15 +21,29 @@ export const useDashboard = (): UseDashboardResult => {
   const [data, setData] = useState<MyDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
+  const latestRequestIdRef = useRef(0);
 
   const fetchDashboard = useCallback(() => {
+    const requestId = latestRequestIdRef.current + 1;
+    latestRequestIdRef.current = requestId;
+
     setIsLoading(true);
     setIsError(false);
 
     getMyDashboard()
-      .then((response) => setData(response.data))
-      .catch(() => setIsError(true))
-      .finally(() => setIsLoading(false));
+      .then((response) => {
+        if (requestId !== latestRequestIdRef.current) return;
+        setData(response.data);
+        setIsError(false);
+      })
+      .catch(() => {
+        if (requestId !== latestRequestIdRef.current) return;
+        setIsError(true);
+      })
+      .finally(() => {
+        if (requestId !== latestRequestIdRef.current) return;
+        setIsLoading(false);
+      });
   }, []);
 
   useFocusEffect(fetchDashboard);
