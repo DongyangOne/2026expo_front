@@ -73,7 +73,7 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
   const isRecognitionFailure =
     classificationResult?.guidanceCode === 'LOW_CONFIDENCE' ||
     classificationResult?.status === 'NOT_DETECTED';
-  const WasteTypeIcon =
+  const WasteTypeIconComponent =
     WASTE_TYPE_ICONS[classificationResult?.wasteType?.toUpperCase() ?? ''] ?? TrashIcon;
 
   const handleNextPress = (): void => {
@@ -342,7 +342,7 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
                   <View
                     className="absolute inset-0 items-center justify-center"
                     pointerEvents="none">
-                    <WasteTypeIcon height={300} width={300} />
+                    <WasteTypeIconComponent height={300} width={300} />
                     <Text className="mt-[48px] font-notoSansKRRegular text-[44px] leading-[56px] text-black">
                       <Text className="text-trashAction">
                         {classificationResult?.wasteTypeLabel ?? '분류 결과'}
