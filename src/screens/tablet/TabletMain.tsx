@@ -150,7 +150,9 @@ const GradientGuideText = (): React.JSX.Element => {
 const TabletMain = ({ navigation }: Props): React.JSX.Element => {
   const qrTapState = useRef<QrTapState>({ firstTapAt: 0, count: 0 });
   const hasHandledQrLogin = useRef(false);
+  const logout = useAuthStore((state) => state.logout);
   const setAuth = useAuthStore((state) => state.setAuth);
+  const clearLoginResponse = useQrLoginStore((state) => state.clearLoginResponse);
   const setLoginResponse = useQrLoginStore((state) => state.setLoginResponse);
   const [qrToken, setQrToken] = useState<string | null>(null);
   const [isQrLoading, setIsQrLoading] = useState(true);
@@ -254,10 +256,13 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
           console.warn('[분류 흐름 5] 로딩 화면 이동', { clientId });
           navigation.replace('TabletTrashFeedback', { clientId });
         })
-        .catch((error: unknown): void => {
+        .catch(async (error: unknown): Promise<void> => {
           console.error('[분류 흐름 실패 - clientId 발급]', error);
-          hasHandledQrLogin.current = false;
+          setQrToken(null);
+          setHasStartedSseConnection(false);
           setQrErrorMessage(CLIENT_ID_ERROR_MESSAGE);
+          clearLoginResponse();
+          await logout();
         });
     });
 
@@ -276,7 +281,7 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
       qrLoginConnection.removeAllEventListeners();
       qrLoginConnection.close();
     };
-  }, [navigation, qrToken, setAuth, setLoginResponse]);
+  }, [clearLoginResponse, logout, navigation, qrToken, setAuth, setLoginResponse]);
 
   const handleQrPress = useCallback((): void => {
     const currentTime = Date.now();
