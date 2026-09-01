@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
-import Video, { ResizeMode } from 'react-native-video';
+import Video, { ResizeMode, VideoRef } from 'react-native-video';
 import { cssInterop } from 'nativewind';
 import BackArrow from '../assets/images/vector.svg';
 import SmallArrowR from '../assets/images/ChevronRight.svg';
@@ -31,10 +31,22 @@ const FeedbackDetailScreen = () => {
 
   const [feedback, setFeedback] = useState<FeedbackDetailData | null>(null);
   const [hasVideoError, setHasVideoError] = useState(false);
+  const [isVideoPaused, setIsVideoPaused] = useState(false);
+  const videoRef = useRef<VideoRef>(null);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('blur', () => {
+      videoRef.current?.seek(0);
+      setIsVideoPaused(true);
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   useEffect(() => {
     const fetchFeedbackDetail = async () => {
       setHasVideoError(false);
+      setIsVideoPaused(false);
       try {
         const response = await getFeedbackDetail(id);
         console.log('피드백 상세 응답:', JSON.stringify(response.data, null, 2));
@@ -107,7 +119,10 @@ const FeedbackDetailScreen = () => {
                     </View>
                   ) : (
                     <Video
+                      ref={videoRef}
                       controls
+                      muted
+                      paused={isVideoPaused}
                       onError={handleVideoError}
                       repeat
                       resizeMode={ResizeMode.COVER}
