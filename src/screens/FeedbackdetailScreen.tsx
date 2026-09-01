@@ -32,21 +32,32 @@ const FeedbackDetailScreen = () => {
   const [feedback, setFeedback] = useState<FeedbackDetailData | null>(null);
   const [hasVideoError, setHasVideoError] = useState(false);
   const [isVideoPaused, setIsVideoPaused] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const videoRef = useRef<VideoRef>(null);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('blur', () => {
-      videoRef.current?.seek(0);
+    const unsubscribeBlur = navigation.addListener('blur', () => {
+      if (isVideoLoaded) {
+        videoRef.current?.seek(0);
+      }
       setIsVideoPaused(true);
     });
 
-    return unsubscribe;
-  }, [navigation]);
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      setIsVideoPaused(false);
+    });
+
+    return () => {
+      unsubscribeBlur();
+      unsubscribeFocus();
+    };
+  }, [navigation, isVideoLoaded]);
 
   useEffect(() => {
     const fetchFeedbackDetail = async () => {
       setHasVideoError(false);
       setIsVideoPaused(false);
+      setIsVideoLoaded(false);
       try {
         const response = await getFeedbackDetail(id);
         console.log('피드백 상세 응답:', JSON.stringify(response.data, null, 2));
@@ -123,6 +134,7 @@ const FeedbackDetailScreen = () => {
                       controls
                       muted
                       paused={isVideoPaused}
+                      onLoad={() => setIsVideoLoaded(true)}
                       onError={handleVideoError}
                       repeat
                       resizeMode={ResizeMode.COVER}
