@@ -8,9 +8,15 @@ import type { QuizResultData } from '@/types';
 import congratsImage from '@/assets/images/congrats.png';
 import charEggImage from '@/assets/images/char-egg.png';
 
+import tailwindConfig from '../../../tailwind.config.js';
+
+const { colors } = tailwindConfig.theme!.extend! as {
+  colors: { primary: { start: string; end: string } };
+};
+
 const LEVEL_BAR_HEIGHT = 20;
-const LEVEL_GRADIENT_START = '#7B61FF';
-const LEVEL_GRADIENT_END = '#FF4FD8';
+const LEVEL_GRADIENT_START = colors.primary.start;
+const LEVEL_GRADIENT_END = colors.primary.end;
 
 interface QuizFinalResultScreenProps {
   result: QuizResultData;
@@ -18,7 +24,11 @@ interface QuizFinalResultScreenProps {
   onClose: () => void;
 }
 
-const QuizFinalResultScreen = ({ result, onRetry, onClose }: QuizFinalResultScreenProps) => {
+const QuizFinalResultScreen = ({
+  result,
+  onRetry,
+  onClose,
+}: QuizFinalResultScreenProps): React.JSX.Element => {
   const {
     correctCount,
     totalCount,
@@ -30,14 +40,6 @@ const QuizFinalResultScreen = ({ result, onRetry, onClose }: QuizFinalResultScre
     characterImageUrl,
   } = result;
   const progressRatio = Math.min(Math.max(expPercent, 0), 100) / 100;
-
-  // TODO: 프로그래스 바 수치 확인용 로그 - 확인 후 제거
-  console.log('quiz result exp:', {
-    expPercent,
-    currentExp: result.currentExp,
-    maxExp: result.maxExp,
-    remainingExp: result.remainingExp,
-  });
 
   return (
     <View className="flex-1 bg-background px-10 pt-[20px]">
