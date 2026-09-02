@@ -70,6 +70,7 @@ const QuizScreen = () => {
   const handleConfirmExit = (): void => {
     setIsExitConfirmOpen(false);
     setIsPlaying(false);
+    setIsSubmitting(false);
     sessionRunRef.current += 1;
   };
 
@@ -109,10 +110,13 @@ const QuizScreen = () => {
 
       setIsCorrect(data.isCorrect);
     } catch (err: unknown) {
+      // 세션이 종료/재시작된 뒤 도착한 실패 응답은 현재 화면과 무관하므로 알림하지 않는다.
+      if (sessionRunRef.current !== runToken) return;
       const message = err instanceof Error ? err.message : '잠시 후 다시 시도해주세요.';
       Alert.alert('정답을 제출할 수 없어요', message);
     } finally {
-      setIsSubmitting(false);
+      // 이전 세션의 응답이 현재 세션의 제출 상태를 건드리지 않도록 한다.
+      if (sessionRunRef.current === runToken) setIsSubmitting(false);
     }
   };
 
@@ -123,6 +127,7 @@ const QuizScreen = () => {
     if (apiFinished || currentIndex + 1 >= quizQuestions.length) {
       setIsPlaying(false);
       setIsFinished(true);
+      setIsSubmitting(false);
       sessionRunRef.current += 1;
       return;
     }
