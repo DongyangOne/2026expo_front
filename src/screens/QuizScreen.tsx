@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
 import QuizFinalResultScreen from '@/screens/quiz/QuizFinalResultScreen';
@@ -24,6 +24,8 @@ const QuizScreen = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // 세션 실행 토큰: 새 퀴즈 시작/종료 시 갱신해 이전 요청의 응답을 무효화한다.
+  const sessionRunRef = useRef(0);
 
   const handleSolveQuiz = async (): Promise<void> => {
     if (!quizCount || isStarting) return;
@@ -31,6 +33,8 @@ const QuizScreen = () => {
     setIsStarting(true);
     try {
       const { data } = await startQuizSession({ quantity: quizCount });
+
+      sessionRunRef.current += 1;
 
       const questions = QUESTION_POOL.slice(0, quizCount);
       if (questions.length > 0) {
@@ -66,12 +70,14 @@ const QuizScreen = () => {
   const handleConfirmExit = (): void => {
     setIsExitConfirmOpen(false);
     setIsPlaying(false);
+    sessionRunRef.current += 1;
   };
 
   const handleAnswer = async (selected: boolean): Promise<void> => {
     if (!sessionId || isSubmitting) return;
 
     const currentQuestion = quizQuestions[currentIndex];
+    const runToken = sessionRunRef.current;
 
     setIsSubmitting(true);
     try {
@@ -79,6 +85,9 @@ const QuizScreen = () => {
         currentQuizId: currentQuestion.id,
         answer: selected ? 'O' : 'X',
       });
+
+      // 응답이 도착하기 전에 세션이 종료/재시작되었으면 이전 요청의 결과는 버린다.
+      if (sessionRunRef.current !== runToken) return;
 
       if (data.isCorrect) setCorrectCount((prev) => prev + 1);
       setExplanation(data.explan);
@@ -114,6 +123,7 @@ const QuizScreen = () => {
     if (apiFinished || currentIndex + 1 >= quizQuestions.length) {
       setIsPlaying(false);
       setIsFinished(true);
+      sessionRunRef.current += 1;
       return;
     }
     setCurrentIndex((prev) => prev + 1);
@@ -159,7 +169,7 @@ const QuizScreen = () => {
         currentIndex={currentIndex}
         total={quizQuestions.length}
         isCorrect={isCorrect}
-        explanation={explanation || currentQuestion.explanation}
+        explanation={explanation}
         onNext={handleNext}
         onClose={handleCloseQuiz}
         isExitConfirmOpen={isExitConfirmOpen}
