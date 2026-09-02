@@ -1,4 +1,10 @@
-import type { ApiResponse, QuizSessionData, QuizSessionRequest } from '@/types';
+import type {
+  ApiResponse,
+  QuizAnswerData,
+  QuizAnswerRequest,
+  QuizSessionData,
+  QuizSessionRequest,
+} from '@/types';
 
 import apiInstance from './instance';
 
@@ -7,4 +13,15 @@ export const startQuizSession = (
 ): Promise<ApiResponse<QuizSessionData>> =>
   apiInstance
     .post<ApiResponse<QuizSessionData>>('/api/v1/quiz/sessions', payload)
+    .then((res) => res.data);
+
+export const submitQuizAnswer = (
+  sessionId: string,
+  payload: QuizAnswerRequest,
+): Promise<ApiResponse<QuizAnswerData>> =>
+  apiInstance
+    .post<ApiResponse<QuizAnswerData>>(
+      `/api/v1/quiz/sessions/${sessionId}/answers`,
+      payload,
+    )
     .then((res) => res.data);
