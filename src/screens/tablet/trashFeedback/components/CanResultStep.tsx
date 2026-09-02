@@ -8,21 +8,34 @@ import TrashIcon from '@/assets/icons/trash.svg';
 import PaperIcon from '@/assets/images/paper.svg';
 import PlasticBagIcon from '@/assets/images/plasticBag.svg';
 import PlasticBottleIcon from '@/assets/images/plasticBottle.svg';
+import type { WasteType } from '@/types';
 
 type WasteTypeIcon = React.FC<SvgProps>;
 
-const WASTE_TYPE_ICONS: Record<string, WasteTypeIcon> = {
+const WASTE_TYPE_ICONS: Record<WasteType, WasteTypeIcon | null> = {
   CAN: CanIcon,
   PAPER: PaperIcon,
-  PET: PlasticBottleIcon,
   PLASTIC: PlasticBottleIcon,
-  PLASTIC_BOTTLE: PlasticBottleIcon,
-  PLASTIC_BAG: PlasticBagIcon,
   VINYL: PlasticBagIcon,
+  GLASS: null,
+  BATTERY: null,
+  FLUORESCENT: null,
+  STYROFOAM: null,
+};
+
+const WASTE_TYPE_LABELS: Record<WasteType, string> = {
+  PLASTIC: '플라스틱',
+  CAN: '캔',
+  PAPER: '종이',
+  VINYL: '비닐',
+  GLASS: '유리병',
+  BATTERY: '건전지',
+  FLUORESCENT: '형광등',
+  STYROFOAM: '스티로폼',
 };
 
 interface CanResultStepProps {
-  wasteType?: string;
+  wasteType?: WasteType;
   wasteTypeLabel?: string;
   onNext: () => void;
 }
@@ -32,7 +45,9 @@ const CanResultStep = ({
   wasteTypeLabel,
   onNext,
 }: CanResultStepProps): React.JSX.Element => {
-  const WasteTypeIconComponent = WASTE_TYPE_ICONS[wasteType?.toUpperCase() ?? ''] ?? TrashIcon;
+  const WasteTypeIconComponent = wasteType ? WASTE_TYPE_ICONS[wasteType] : TrashIcon;
+  const displayWasteTypeLabel =
+    wasteTypeLabel ?? (wasteType ? WASTE_TYPE_LABELS[wasteType] : '분류 결과');
 
   return (
     <>
@@ -43,9 +58,16 @@ const CanResultStep = ({
         <Text className="font-notoSansKRRegular text-[16px] leading-[20px] text-body">다음</Text>
       </TouchableOpacity>
       <View className="absolute inset-0 items-center justify-center" pointerEvents="none">
-        <WasteTypeIconComponent height={300} width={300} />
+        {WasteTypeIconComponent ? <WasteTypeIconComponent height={300} width={300} /> : null}
+        {!WasteTypeIconComponent ? (
+          <View className="h-[300px] w-[300px] items-center justify-center rounded-full border-4 border-purple bg-purple/[0.08]">
+            <Text className="text-center font-notoSansKRBold text-[40px] leading-[52px] text-purple">
+              {displayWasteTypeLabel}
+            </Text>
+          </View>
+        ) : null}
         <Text className="mt-[48px] font-notoSansKRRegular text-[44px] leading-[56px] text-black">
-          <Text className="text-trashAction">{wasteTypeLabel ?? '분류 결과'}</Text>입니다
+          <Text className="text-trashAction">{displayWasteTypeLabel}</Text>입니다
         </Text>
       </View>
     </>

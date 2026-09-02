@@ -5,11 +5,21 @@ export type TabletClassificationStatus =
   | 'REJECTED'
   | 'WAITING';
 
+export type WasteType =
+  | 'PLASTIC'
+  | 'CAN'
+  | 'PAPER'
+  | 'VINYL'
+  | 'GLASS'
+  | 'BATTERY'
+  | 'FLUORESCENT'
+  | 'STYROFOAM';
+
 export interface TabletClassificationData {
   clientId: string;
   completed: boolean;
   status: TabletClassificationStatus;
-  wasteType?: string;
+  wasteType?: WasteType;
   wasteTypeLabel?: string;
   message: string | null;
   guidanceCode?: string | null;
