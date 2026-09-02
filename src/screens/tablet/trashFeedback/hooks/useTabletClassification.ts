@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { getTabletClassification, requestHardwareClassification } from '@/services';
+import { getTabletClassification } from '@/services';
 import type { TabletClassificationData } from '@/types';
 
 const CLASSIFICATION_POLL_INTERVAL_MS = 1000;
@@ -95,8 +95,7 @@ const useTabletClassification = ({
           throw new Error('clientId가 없습니다.');
         }
 
-        console.warn('[분류 흐름 6] 로딩 화면 진입, 하드웨어 요청 시작', { clientId });
-        await requestHardwareClassification(clientId);
+        console.warn('[분류 흐름 6] 로딩 화면 진입, 분류 결과 조회 시작', { clientId });
         await fetchClassificationResult(clientId);
       } catch (error: unknown) {
         if (isCancelled) {
