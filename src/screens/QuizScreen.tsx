@@ -46,9 +46,10 @@ const QuizScreen = () => {
       setApiFinished(false);
       setIsFinished(false);
       setIsPlaying(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // instance.ts 인터셉터가 message만 실어서 Error로 던지므로 code(QUIZ_NOT_FOUND 등)로는 분기 불가. message로 처리.
-      Alert.alert('퀴즈를 시작할 수 없어요', err?.message ?? '잠시 후 다시 시도해주세요.');
+      const message = err instanceof Error ? err.message : '잠시 후 다시 시도해주세요.';
+      Alert.alert('퀴즈를 시작할 수 없어요', message);
     } finally {
       setIsStarting(false);
     }
@@ -98,8 +99,9 @@ const QuizScreen = () => {
       }
 
       setIsCorrect(data.isCorrect);
-    } catch (err: any) {
-      Alert.alert('정답을 제출할 수 없어요', err?.message ?? '잠시 후 다시 시도해주세요.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '잠시 후 다시 시도해주세요.';
+      Alert.alert('정답을 제출할 수 없어요', message);
     } finally {
       setIsSubmitting(false);
     }
