@@ -2,6 +2,7 @@ import type {
   ApiResponse,
   QuizAnswerData,
   QuizAnswerRequest,
+  QuizResultData,
   QuizSessionData,
   QuizSessionRequest,
 } from '@/types';
@@ -24,4 +25,11 @@ export const submitQuizAnswer = (
       `/api/v1/quiz/sessions/${sessionId}/answers`,
       payload,
     )
+    .then((res) => res.data);
+
+export const finishQuizSession = (
+  sessionId: string,
+): Promise<ApiResponse<QuizResultData>> =>
+  apiInstance
+    .post<ApiResponse<QuizResultData>>(`/api/v1/quiz/sessions/${sessionId}/result`)
     .then((res) => res.data);

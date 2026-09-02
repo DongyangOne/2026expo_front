@@ -1,14 +1,12 @@
 import React, { useRef, useState } from 'react';
-import { Alert } from 'react-native';
+import { ActivityIndicator, Alert, View } from 'react-native';
 
 import QuizFinalResultScreen from '@/screens/quiz/QuizFinalResultScreen';
 import QuizQuestionScreen, { QUESTION_POOL, QuizQuestion } from '@/screens/quiz/QuizQuestionScreen';
 import QuizResultScreen from '@/screens/quiz/QuizResultScreen';
 import QuizStartScreen from '@/screens/quiz/QuizStartScreen';
-import { startQuizSession, submitQuizAnswer } from '@/services/quiz.service';
-
-const MOCK_LEVEL = 5;
-const MOCK_CURRENT_XP = 500;
+import { finishQuizSession, startQuizSession, submitQuizAnswer } from '@/services/quiz.service';
+import type { QuizResultData } from '@/types';
 
 const QuizScreen = () => {
   const [quizCount, setQuizCount] = useState<number | null>(null);
@@ -22,8 +20,10 @@ const QuizScreen = () => {
   const [apiFinished, setApiFinished] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [quizResult, setQuizResult] = useState<QuizResultData | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSettling, setIsSettling] = useState(false);
   // 세션 실행 토큰: 새 퀴즈 시작/종료 시 갱신해 이전 요청의 응답을 무효화한다.
   const sessionRunRef = useRef(0);
 
@@ -48,6 +48,9 @@ const QuizScreen = () => {
       setIsCorrect(null);
       setExplanation('');
       setApiFinished(false);
+      setQuizResult(null);
+      setIsSubmitting(false);
+      setIsSettling(false);
       setIsFinished(false);
       setIsPlaying(true);
     } catch (err: unknown) {
@@ -71,6 +74,7 @@ const QuizScreen = () => {
     setIsExitConfirmOpen(false);
     setIsPlaying(false);
     setIsSubmitting(false);
+    setIsSettling(false);
     sessionRunRef.current += 1;
   };
 
@@ -120,15 +124,34 @@ const QuizScreen = () => {
     }
   };
 
+  const settleQuiz = async (settleSessionId: string): Promise<void> => {
+    const runToken = sessionRunRef.current;
+    setIsSettling(true);
+    try {
+      const { data } = await finishQuizSession(settleSessionId);
+
+      if (sessionRunRef.current !== runToken) return;
+
+      setQuizResult(data);
+      setIsFinished(true);
+    } catch (err: unknown) {
+      if (sessionRunRef.current !== runToken) return;
+      const message = err instanceof Error ? err.message : '잠시 후 다시 시도해주세요.';
+      Alert.alert('결과를 정산하지 못했어요', message);
+    } finally {
+      if (sessionRunRef.current === runToken) setIsSettling(false);
+    }
+  };
+
   const handleNext = (): void => {
     setIsCorrect(null);
     setExplanation('');
 
     if (apiFinished || currentIndex + 1 >= quizQuestions.length) {
       setIsPlaying(false);
-      setIsFinished(true);
       setIsSubmitting(false);
       sessionRunRef.current += 1;
+      if (sessionId) void settleQuiz(sessionId);
       return;
     }
     setCurrentIndex((prev) => prev + 1);
@@ -136,15 +159,21 @@ const QuizScreen = () => {
 
   const handleCloseFinalResult = (): void => {
     setIsFinished(false);
+    setQuizResult(null);
   };
 
-  if (isFinished) {
+  if (isSettling) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator size="large" color="#7B61FF" />
+      </View>
+    );
+  }
+
+  if (isFinished && quizResult) {
     return (
       <QuizFinalResultScreen
-        correctCount={correctCount}
-        totalCount={quizQuestions.length}
-        level={MOCK_LEVEL}
-        currentXp={MOCK_CURRENT_XP}
+        result={quizResult}
         onRetry={handleSolveQuiz}
         onClose={handleCloseFinalResult}
       />
