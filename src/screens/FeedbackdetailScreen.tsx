@@ -9,10 +9,10 @@ import { cssInterop } from 'nativewind';
 import BackArrow from '../assets/images/vector.svg';
 import SmallArrowR from '../assets/images/ChevronRight.svg';
 import SmallArrowL from '../assets/images/ChevronLeft.svg';
-import tailwindConfig from '../../tailwind.config.js';
 
 import { getFeedbackDetail } from '@/services';
 import type { FeedbackDetailData } from '@/types';
+import { COLORS } from '@/constants/theme';
 
 cssInterop(LinearGradient, {
   className: 'style',
@@ -23,8 +23,6 @@ import type { RootStackParamList } from '@/navigation/types';
 type FeedbackDetailRouteProp = RouteProp<RootStackParamList, 'FeedbackDetail'>;
 
 const FeedbackDetailScreen = () => {
-  const { colors } = tailwindConfig.theme!.extend! as { colors: Record<string, string> };
-
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<FeedbackDetailRouteProp>();
   const { id } = route.params;
@@ -139,7 +137,7 @@ const FeedbackDetailScreen = () => {
               className="overflow-hidden rounded-full"
               onPress={handleGoSearch}>
               <LinearGradient
-                colors={[colors.pink, colors.purple]}
+                colors={[COLORS.pink, COLORS.purple]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 className="items-center py-4">

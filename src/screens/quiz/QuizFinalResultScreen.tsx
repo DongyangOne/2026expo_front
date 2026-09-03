@@ -7,16 +7,11 @@ import QuitIcon from '@/assets/icons/quit.svg';
 import type { QuizResultData } from '@/types';
 import congratsImage from '@/assets/images/congrats.png';
 import charEggImage from '@/assets/images/char-egg.png';
-
-import tailwindConfig from '../../../tailwind.config.js';
-
-const { colors } = tailwindConfig.theme!.extend! as {
-  colors: { primary: { start: string; end: string } };
-};
+import { COLORS } from '@/constants/theme';
 
 const LEVEL_BAR_HEIGHT = 20;
-const LEVEL_GRADIENT_START = colors.primary.start;
-const LEVEL_GRADIENT_END = colors.primary.end;
+const LEVEL_GRADIENT_START = COLORS.purple;
+const LEVEL_GRADIENT_END = COLORS.pink;
 
 interface QuizFinalResultScreenProps {
   result: QuizResultData;
