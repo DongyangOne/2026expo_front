@@ -30,7 +30,7 @@ interface FeedbackGroup {
 
 const buildMessage = (item: Feedback): string =>
   item.isSuccess
-    ? `${item.wasteType}을 올바르게 분리수거 하셨어요`
+    ? `${item.wasteType}을(를) 올바르게 분리수거 하셨어요`
     : `올바른 분리수거가 이루어지지 않았어요.\n(${item.feedbackText})`;
 
 const groupByDate = (items: Feedback[]): FeedbackGroup[] => {
@@ -112,7 +112,7 @@ const FeedbackScreen = () => {
   const feedbackGroups = groupByDate(feedbackList);
 
   return (
-    <SafeAreaView edges={['top']} className="flex-1 items-center bg-primary-backgorund px-6">
+    <SafeAreaView edges={['top']} className="flex-1 items-center bg-background px-6">
       <Text className="text-gray-800 pt-9 font-notoSansKRBold text-xl">피드백 목록</Text>
       <ScrollView
         className="w-full"
