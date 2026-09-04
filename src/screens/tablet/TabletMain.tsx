@@ -90,12 +90,7 @@ interface QrCodeProps {
   onRetry: () => void;
 }
 
-const QrCode = ({
-  qrToken,
-  isLoading,
-  errorMessage,
-  onRetry,
-}: QrCodeProps): React.JSX.Element => {
+const QrCode = ({ qrToken, isLoading, errorMessage, onRetry }: QrCodeProps): React.JSX.Element => {
   const qrLoginDeepLink = qrToken
     ? `${QR_LOGIN_DEEP_LINK_PREFIX}${encodeURIComponent(qrToken)}`
     : null;

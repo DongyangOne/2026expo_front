@@ -16,7 +16,7 @@ import { useAuthStore } from '@/store';
 
 import BackArrow from '../assets/images/vector.svg';
 
-import tailwindConfig from '../../tailwind.config.js';
+import { COLORS } from '@/constants/theme';
 
 const WITHDRAW_REASONS = [
   '기록을 삭제하고 싶어서',
@@ -101,10 +101,6 @@ const validatePasswordFormat = (password: string): { isValid: boolean; message: 
 };
 
 const DeleteAccountScreen = () => {
-  const { colors } = tailwindConfig.theme!.extend! as {
-    colors: { linear: { start: string; end: string } };
-  };
-
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const [selected, setSelected] = useState<(typeof WITHDRAW_REASONS)[number] | null>(null);
@@ -176,7 +172,7 @@ const DeleteAccountScreen = () => {
 
         navigation.navigate('DeleteComplete');
       }
-    } catch (err: any) {
+    } catch {
       // instance.ts 인터셉터에서 error.response.data.message만 실어서 Error로 던지고 있어서
       // code(INVALID_INPUT 등)로는 분기 불가. message로 처리.
       setSubmitError('비밀번호가 틀립니다.');
@@ -292,7 +288,7 @@ const DeleteAccountScreen = () => {
           <LinearGradient
             colors={
               isNextEnabled
-                ? [colors.linear.start, `${colors.linear.end}80`]
+                ? [COLORS.linear.start, `${COLORS.linear.end}80`]
                 : ['#D9D9D9', '#D9D9D9']
             }
             start={{ x: 0, y: 0 }}

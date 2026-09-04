@@ -30,7 +30,7 @@ const GradientBorderButton = ({
       onPress={onPress}
       disabled={disabled}
       activeOpacity={0.8}
-      onLayout={e => setWidth(e.nativeEvent.layout.width)}>
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
       {width > 0 && (
         <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
           <Defs>
