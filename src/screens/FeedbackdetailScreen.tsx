@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
-import Video, { ResizeMode } from 'react-native-video';
+import Video, { ResizeMode, VideoRef } from 'react-native-video';
 import { cssInterop } from 'nativewind';
-import BackArrow from '../assets/images/vector.svg';
-import SmallArrowR from '../assets/images/ChevronRight.svg';
-import SmallArrowL from '../assets/images/ChevronLeft.svg';
+import BackArrow from '@/assets/images/vector.svg';
 
 import { getFeedbackDetail } from '@/services';
 import type { FeedbackDetailData } from '@/types';
@@ -28,22 +26,49 @@ const FeedbackDetailScreen = () => {
   const { id } = route.params;
 
   const [feedback, setFeedback] = useState<FeedbackDetailData | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [hasVideoError, setHasVideoError] = useState(false);
+  const [isVideoPaused, setIsVideoPaused] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const videoRef = useRef<VideoRef>(null);
 
   useEffect(() => {
-    const fetchFeedbackDetail = async () => {
-      setHasVideoError(false);
-      try {
-        const response = await getFeedbackDetail(id);
-        console.log('피드백 상세 응답:', JSON.stringify(response.data, null, 2));
-        setFeedback(response.data);
-      } catch (error) {
-        console.error('피드백 상세 조회 실패:', error);
+    const unsubscribeBlur = navigation.addListener('blur', () => {
+      if (isVideoLoaded) {
+        videoRef.current?.seek(0);
       }
-    };
+      setIsVideoPaused(true);
+    });
 
-    fetchFeedbackDetail();
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      setIsVideoPaused(false);
+    });
+
+    return () => {
+      unsubscribeBlur();
+      unsubscribeFocus();
+    };
+  }, [navigation, isVideoLoaded]);
+
+  const fetchFeedbackDetail = useCallback(async () => {
+    setHasVideoError(false);
+    setIsVideoPaused(false);
+    setIsVideoLoaded(false);
+    setFetchError(null);
+    try {
+      const response = await getFeedbackDetail(id);
+      setFeedback(response.data);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '피드백을 불러오지 못했어요.';
+      setFetchError(message);
+    }
   }, [id]);
+
+  useEffect(() => {
+    void (async () => {
+      await fetchFeedbackDetail();
+    })();
+  }, [fetchFeedbackDetail]);
 
   const handleGoSearch = () => {
     navigation.navigate('MobileTabs', { screen: 'Search' });
@@ -55,7 +80,7 @@ const FeedbackDetailScreen = () => {
   };
 
   return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-primary-backgorund">
+    <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <ScrollView>
         <View className="flex-row items-center px-6 pt-9">
           <TouchableOpacity className="w-10 p-2 pl-6" onPress={() => navigation.goBack()}>
@@ -69,22 +94,31 @@ const FeedbackDetailScreen = () => {
 
         <View className="flex-1 px-6">
           <View className="mt-3 flex-row items-center justify-center gap-2 py-6">
-            <TouchableOpacity className="p-1">
-              <SmallArrowL />
-            </TouchableOpacity>
             <Text className="font-notoSansKRRegular text-base text-gray">
               {feedback ? `${feedback.date} - ${feedback.time}` : ''}
             </Text>
-            <TouchableOpacity className="p-1">
-              <SmallArrowR />
-            </TouchableOpacity>
           </View>
 
           <Text className="my-4 text-center font-notoSansKRRegular text-lg text-black">
             {feedback?.title}
           </Text>
 
-          {feedback?.isSuccess ? (
+          {fetchError ? (
+            <View className="mt-6 h-64 items-center justify-center gap-4">
+              <Text className="text-center font-notoSansKRRegular text-sm text-gray">
+                {fetchError}
+              </Text>
+              <TouchableOpacity
+                className="rounded-full border border-gray px-6 py-2"
+                onPress={fetchFeedbackDetail}>
+                <Text className="font-notoSansKRRegular text-sm text-black">다시 시도</Text>
+              </TouchableOpacity>
+            </View>
+          ) : !feedback ? (
+            <View className="mt-6 h-64 items-center justify-center">
+              <ActivityIndicator size="large" color={COLORS.purple} />
+            </View>
+          ) : feedback.isSuccess ? (
             <View className="mt-6 h-64 items-center justify-center rounded-xl bg-purple/[0.08] px-4">
               <Text className="text-center font-notoSansKRBold text-base text-black">
                 {feedback.wasteType}을(를) 올바르게 분리배출했습니다.
@@ -99,13 +133,16 @@ const FeedbackDetailScreen = () => {
                 <View className="mt-6 h-64 overflow-hidden rounded-xl bg-gray">
                   {hasVideoError ? (
                     <View className="h-full items-center justify-center">
-                      <Text className="text-gray-500 font-notoSansKRRegular text-base">
+                      <Text className="font-notoSansKRRegular text-base text-gray">
                         동영상을 불러오지 못했어요.
                       </Text>
                     </View>
                   ) : (
                     <Video
-                      controls
+                      ref={videoRef}
+                      muted
+                      paused={isVideoPaused}
+                      onLoad={() => setIsVideoLoaded(true)}
                       onError={handleVideoError}
                       repeat
                       resizeMode={ResizeMode.COVER}
@@ -121,9 +158,7 @@ const FeedbackDetailScreen = () => {
                   {feedback?.wasteType}을(를) 버릴 때에는
                 </Text>
                 {feedback?.content?.split('\n').map((line, index) => (
-                  <Text
-                    key={index}
-                    className="text-gray-700 mt-6 font-notoSansKRDemiLight text-base">
+                  <Text key={index} className="mt-6 font-notoSansKRDemiLight text-base text-body">
                     {line}
                   </Text>
                 ))}

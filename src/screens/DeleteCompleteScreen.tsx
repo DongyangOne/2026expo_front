@@ -11,7 +11,7 @@ cssInterop(LinearGradient, {
   className: 'style',
 });
 
-import CompleteImage from '../assets/images/leave.svg';
+import CompleteImage from '@/assets/images/leave.svg';
 
 import { COLORS } from '@/constants/theme';
 

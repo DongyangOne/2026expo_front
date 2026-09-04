@@ -14,7 +14,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { withdrawUser } from '@/services/auth'; // 실제 경로에 맞게 수정
 import { useAuthStore } from '@/store';
 
-import BackArrow from '../assets/images/vector.svg';
+import BackArrow from '@/assets/images/vector.svg';
 
 import { COLORS } from '@/constants/theme';
 

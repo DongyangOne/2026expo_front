@@ -13,8 +13,8 @@ cssInterop(LinearGradient, {
   className: 'style',
 });
 
-import ProfileImage from '../assets/images/profile.svg';
-import BackArrow from '../assets/images/vector.svg';
+import ProfileImage from '@/assets/images/profile.svg';
+import BackArrow from '@/assets/images/vector.svg';
 
 const EditProfileScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
