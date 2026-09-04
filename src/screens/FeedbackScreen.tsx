@@ -113,7 +113,7 @@ const FeedbackScreen = () => {
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 items-center bg-background px-6">
-      <Text className="text-gray-800 pt-9 font-notoSansKRBold text-xl">피드백 목록</Text>
+      <Text className="pt-9 font-notoSansKRBold text-xl text-black">피드백 목록</Text>
       <ScrollView
         className="w-full"
         onScroll={handleLoadMore}

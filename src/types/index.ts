@@ -45,6 +45,7 @@ export type {
 export type {
   QuizAnswerData,
   QuizAnswerRequest,
+  QuizResultData,
   QuizSessionData,
   QuizSessionRequest,
 } from './quiz.types';

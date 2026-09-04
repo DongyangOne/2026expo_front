@@ -20,3 +20,25 @@ export interface QuizAnswerData {
   nextQuizId: number;
   nextQuestion: string;
 }
+
+export interface QuizResultData {
+  totalCount: number;
+  correctCount: number;
+  wrongCount: number;
+  correctRate: number;
+  earnedExp: number;
+  resultMessage: string;
+  beforeLevel: number;
+  beforeExp: number;
+  currentLevel: number;
+  currentExp: number;
+  levelUp: boolean;
+  maxExp: number;
+  expPercent: number;
+  remainingExp: number;
+  userCharacterId: number;
+  characterId: number;
+  characterName: string;
+  characterImageUrl: string;
+  evolutionStage: number;
+}

@@ -1,16 +1,16 @@
 import React, { useRef, useState } from 'react';
-import { Alert } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 
+import { GradientButton } from '@/components/ui';
 import QuizFinalResultScreen from '@/screens/quiz/QuizFinalResultScreen';
 import QuizQuestionScreen, { QUESTION_POOL, QuizQuestion } from '@/screens/quiz/QuizQuestionScreen';
 import QuizResultScreen from '@/screens/quiz/QuizResultScreen';
 import QuizStartScreen from '@/screens/quiz/QuizStartScreen';
-import { startQuizSession, submitQuizAnswer } from '@/services/quiz.service';
+import { finishQuizSession, startQuizSession, submitQuizAnswer } from '@/services/quiz.service';
+import type { QuizResultData } from '@/types';
+import { COLORS } from '@/constants/theme';
 
-const MOCK_LEVEL = 5;
-const MOCK_CURRENT_XP = 500;
-
-const QuizScreen = () => {
+const QuizScreen = (): React.JSX.Element => {
   const [quizCount, setQuizCount] = useState<number | null>(null);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -20,12 +20,16 @@ const QuizScreen = () => {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [explanation, setExplanation] = useState('');
   const [apiFinished, setApiFinished] = useState(false);
-  const [correctCount, setCorrectCount] = useState(0);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [quizResult, setQuizResult] = useState<QuizResultData | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSettling, setIsSettling] = useState(false);
+  const [isSettleFailed, setIsSettleFailed] = useState(false);
   // 세션 실행 토큰: 새 퀴즈 시작/종료 시 갱신해 이전 요청의 응답을 무효화한다.
   const sessionRunRef = useRef(0);
+  // "다음" 연타로 결과 정산 요청이 중복 전송되는 것을 막는 동기 락. state는 리렌더 전까지 갱신되지 않아 사용할 수 없다.
+  const isSettlingRef = useRef(false);
 
   const handleSolveQuiz = async (): Promise<void> => {
     if (!quizCount || isStarting) return;
@@ -44,10 +48,13 @@ const QuizScreen = () => {
       setSessionId(data.sessionId);
       setQuizQuestions(questions);
       setCurrentIndex(0);
-      setCorrectCount(0);
       setIsCorrect(null);
       setExplanation('');
       setApiFinished(false);
+      setQuizResult(null);
+      setIsSubmitting(false);
+      setIsSettling(false);
+      setIsSettleFailed(false);
       setIsFinished(false);
       setIsPlaying(true);
     } catch (err: unknown) {
@@ -71,6 +78,8 @@ const QuizScreen = () => {
     setIsExitConfirmOpen(false);
     setIsPlaying(false);
     setIsSubmitting(false);
+    setIsSettling(false);
+    setIsSettleFailed(false);
     sessionRunRef.current += 1;
   };
 
@@ -90,7 +99,6 @@ const QuizScreen = () => {
       // 응답이 도착하기 전에 세션이 종료/재시작되었으면 이전 요청의 결과는 버린다.
       if (sessionRunRef.current !== runToken) return;
 
-      if (data.isCorrect) setCorrectCount((prev) => prev + 1);
       setExplanation(data.explan);
       setApiFinished(data.finished);
 
@@ -120,15 +128,62 @@ const QuizScreen = () => {
     }
   };
 
+  const settleQuiz = async (settleSessionId: string): Promise<void> => {
+    const runToken = sessionRunRef.current;
+    setIsSettling(true);
+    try {
+      const { data } = await finishQuizSession(settleSessionId);
+
+      if (sessionRunRef.current !== runToken) return;
+
+      setQuizResult(data);
+      setIsFinished(true);
+    } catch {
+      // 응답을 기다리는 동안 세션이 초기화(나가기 등)됐다면 실패 화면을 띄우지 않는다.
+      if (sessionRunRef.current !== runToken) return;
+      setIsSettleFailed(true);
+    } finally {
+      isSettlingRef.current = false;
+      if (sessionRunRef.current === runToken) setIsSettling(false);
+    }
+  };
+
+  // 정산 실패 후 '다시 시도': 같은 세션으로 정산을 재요청한다. 문제 풀이 결과는 이미 서버에 제출되어
+  // 있으므로 세션/문항 상태를 되돌릴 필요 없이 정산만 다시 시도하면 된다.
+  const handleRetrySettle = (): void => {
+    if (!sessionId) return;
+    setIsSettleFailed(false);
+    void settleQuiz(sessionId);
+  };
+
+  // 정산 실패 후 '나가기': 결과를 포기하고 시작 화면으로 돌아간다.
+  const handleExitAfterSettleFail = (): void => {
+    setIsSettleFailed(false);
+    setIsPlaying(false);
+    setIsFinished(false);
+    setQuizResult(null);
+    setSessionId(null);
+    setQuizQuestions([]);
+    setCurrentIndex(0);
+    setIsCorrect(null);
+    setExplanation('');
+    setApiFinished(false);
+    sessionRunRef.current += 1;
+  };
+
   const handleNext = (): void => {
+    if (isSettlingRef.current) return;
+
     setIsCorrect(null);
     setExplanation('');
 
     if (apiFinished || currentIndex + 1 >= quizQuestions.length) {
+      if (!sessionId) return;
+      isSettlingRef.current = true;
       setIsPlaying(false);
-      setIsFinished(true);
       setIsSubmitting(false);
       sessionRunRef.current += 1;
+      void settleQuiz(sessionId);
       return;
     }
     setCurrentIndex((prev) => prev + 1);
@@ -136,15 +191,47 @@ const QuizScreen = () => {
 
   const handleCloseFinalResult = (): void => {
     setIsFinished(false);
+    setQuizResult(null);
   };
 
-  if (isFinished) {
+  if (isSettling) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator size="large" color={COLORS.purple} />
+      </View>
+    );
+  }
+
+  if (isSettleFailed) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background px-10">
+        <Text className="text-center font-notoSansKRBold text-lg text-black">
+          결과를 정산하지 못했어요
+        </Text>
+        <Text className="mt-3 text-center font-notoSansKRRegular text-sm text-gray">
+          네트워크 상태를 확인한 뒤 다시 시도해주세요.
+        </Text>
+        <View className="mt-8 w-full gap-3">
+          <GradientButton
+            label="다시 시도"
+            onPress={handleRetrySettle}
+            height={50}
+            borderRadius={28}
+          />
+          <Pressable
+            className="items-center justify-center rounded-full border border-gray py-3"
+            onPress={handleExitAfterSettleFail}>
+            <Text className="font-notoSansKRRegular text-sm text-black">나가기</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
+  if (isFinished && quizResult) {
     return (
       <QuizFinalResultScreen
-        correctCount={correctCount}
-        totalCount={quizQuestions.length}
-        level={MOCK_LEVEL}
-        currentXp={MOCK_CURRENT_XP}
+        result={quizResult}
         onRetry={handleSolveQuiz}
         onClose={handleCloseFinalResult}
       />

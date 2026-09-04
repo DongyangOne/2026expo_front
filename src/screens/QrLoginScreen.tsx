@@ -57,8 +57,7 @@ const QrLoginScreen = ({ navigation, route }: Props): React.JSX.Element => {
           return;
         }
 
-        const errorMessage =
-          error instanceof Error ? error.message : APPROVAL_ERROR_MESSAGE;
+        const errorMessage = error instanceof Error ? error.message : APPROVAL_ERROR_MESSAGE;
         setApprovalErrorMessage(errorMessage);
       }
     };
@@ -89,9 +88,7 @@ const QrLoginScreen = ({ navigation, route }: Props): React.JSX.Element => {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-background px-[32px]">
         <View className="w-full rounded-[20px] border border-border bg-white px-[24px] py-[32px]">
-          <Text className="text-center font-notoSansKRBold text-[24px] text-black">
-            승인 실패
-          </Text>
+          <Text className="text-center font-notoSansKRBold text-[24px] text-black">승인 실패</Text>
           <Text className="mt-[16px] text-center font-notoSansKRRegular text-[16px] leading-[24px] text-body">
             {approvalErrorMessage}
           </Text>
