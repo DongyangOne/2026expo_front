@@ -4,7 +4,9 @@ import { getTabletClassification } from '@/services';
 import type { TabletClassificationData } from '@/types';
 
 const CLASSIFICATION_POLL_INTERVAL_MS = 1000;
+const CLASSIFICATION_TIMEOUT_MS = 30000;
 const CLASSIFICATION_ERROR_MESSAGE = '분류 결과를 불러오지 못했어요.';
+const CLASSIFICATION_TIMEOUT_MESSAGE = '인식 시간이 초과됐어요. 다시 시도해 주세요.';
 
 interface UseTabletClassificationResult {
   classificationResult: TabletClassificationData | null;
@@ -46,13 +48,14 @@ const useTabletClassification = ({
     }
 
     let isCancelled = false;
+    let hasTimedOut = false;
     let pollTimerId: ReturnType<typeof setTimeout> | undefined;
 
     const fetchClassificationResult = async (classificationClientId: string): Promise<void> => {
       try {
         const response = await getTabletClassification(classificationClientId);
 
-        if (isCancelled) {
+        if (isCancelled || hasTimedOut) {
           return;
         }
 
@@ -66,6 +69,7 @@ const useTabletClassification = ({
             status: response.data.status,
             wasteType: response.data.wasteType,
           });
+          clearTimeout(timeoutTimerId);
           setClassificationResult(response.data);
           onCompleted(response.data);
           return;
@@ -80,10 +84,11 @@ const useTabletClassification = ({
           void fetchClassificationResult(classificationClientId);
         }, CLASSIFICATION_POLL_INTERVAL_MS);
       } catch (error: unknown) {
-        if (isCancelled) {
+        if (isCancelled || hasTimedOut) {
           return;
         }
 
+        clearTimeout(timeoutTimerId);
         console.error('[useTabletClassification] 분류 결과 조회 실패', error);
         setClassificationErrorMessage(CLASSIFICATION_ERROR_MESSAGE);
       }
@@ -107,6 +112,15 @@ const useTabletClassification = ({
       }
     };
 
+    const timeoutTimerId = setTimeout((): void => {
+      hasTimedOut = true;
+      if (pollTimerId) {
+        clearTimeout(pollTimerId);
+      }
+      console.error('[useTabletClassification] 분류 결과 조회 시간 초과');
+      setClassificationErrorMessage(CLASSIFICATION_TIMEOUT_MESSAGE);
+    }, CLASSIFICATION_TIMEOUT_MS);
+
     void startClassification();
 
     return (): void => {
@@ -115,6 +129,8 @@ const useTabletClassification = ({
       if (pollTimerId) {
         clearTimeout(pollTimerId);
       }
+
+      clearTimeout(timeoutTimerId);
     };
   }, [clientId, isActive, onCompleted, retryCount]);
 

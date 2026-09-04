@@ -9,6 +9,7 @@ import PaperIcon from '@/assets/images/paper.svg';
 import PlasticBagIcon from '@/assets/images/plasticBag.svg';
 import PlasticBottleIcon from '@/assets/images/plasticBottle.svg';
 import type { WasteType } from '@/types';
+import { getWasteTypeLabel } from '@/utils';
 
 type WasteTypeIcon = React.FC<SvgProps>;
 
@@ -23,17 +24,6 @@ const WASTE_TYPE_ICONS: Record<WasteType, WasteTypeIcon | null> = {
   STYROFOAM: null,
 };
 
-const WASTE_TYPE_LABELS: Record<WasteType, string> = {
-  PLASTIC: '플라스틱',
-  CAN: '캔',
-  PAPER: '종이',
-  VINYL: '비닐',
-  GLASS: '유리병',
-  BATTERY: '건전지',
-  FLUORESCENT: '형광등',
-  STYROFOAM: '스티로폼',
-};
-
 interface CanResultStepProps {
   wasteType?: WasteType;
   wasteTypeLabel?: string;
@@ -46,8 +36,7 @@ const CanResultStep = ({
   onNext,
 }: CanResultStepProps): React.JSX.Element => {
   const WasteTypeIconComponent = wasteType ? WASTE_TYPE_ICONS[wasteType] : TrashIcon;
-  const displayWasteTypeLabel =
-    wasteTypeLabel ?? (wasteType ? WASTE_TYPE_LABELS[wasteType] : '분류 결과');
+  const displayWasteTypeLabel = wasteTypeLabel ?? getWasteTypeLabel(wasteType, '분류 결과');
 
   return (
     <>

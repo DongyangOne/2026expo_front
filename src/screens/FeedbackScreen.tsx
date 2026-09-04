@@ -19,6 +19,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootTabParamList, RootStackParamList } from '@/navigation/types';
 import { getFeedbackList } from '@/services';
 import type { Feedback } from '@/types';
+import { getWasteTypeLabel } from '@/utils';
 
 const PAGE_SIZE = 15;
 const SCROLL_END_THRESHOLD = 40;
@@ -30,7 +31,7 @@ interface FeedbackGroup {
 
 const buildMessage = (item: Feedback): string =>
   item.isSuccess
-    ? `${item.wasteType}을(를) 올바르게 분리수거 하셨어요`
+    ? `${getWasteTypeLabel(item.wasteType)}을/를 올바르게 분리수거 하셨어요`
     : `올바른 분리수거가 이루어지지 않았어요.\n(${item.feedbackText})`;
 
 const groupByDate = (items: Feedback[]): FeedbackGroup[] => {

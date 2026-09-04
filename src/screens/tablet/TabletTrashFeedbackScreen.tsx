@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { Alert, View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -11,6 +11,8 @@ import type { TabletClassificationData } from '@/types';
 
 import {
   CanResultStep,
+  getGuidanceMessage,
+  issueClassificationClientId,
   LoadingStep,
   RetryGuideStep,
   SuccessStep,
@@ -19,6 +21,8 @@ import {
 } from './trashFeedback';
 
 const COUNTDOWN_START_SECONDS = 20;
+const ALLOWED_RESULT_DISPLAY_MS = 5000;
+const CLIENT_ID_ISSUE_ERROR_MESSAGE = '재시도를 준비하지 못했어요. 잠시 후 다시 시도해 주세요.';
 
 const FEEDBACK_CARD_SHADOW_STYLE: ViewStyle = {
   elevation: 4,
@@ -36,14 +40,15 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TabletTrashFeedback'>;
 type TrashFeedbackStep = 'waitingTrash' | 'loading' | 'canResult' | 'success' | 'retryGuide';
 
 const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Element => {
-  const clientId = route.params?.clientId;
+  const [clientId, setClientId] = useState<string | undefined>(route.params?.clientId);
   const [remainingSeconds, setRemainingSeconds] = useState<number>(COUNTDOWN_START_SECONDS);
-  const [currentStep, setCurrentStep] = useState<TrashFeedbackStep>('loading');
+  const [currentStep, setCurrentStep] = useState<TrashFeedbackStep>('waitingTrash');
+  const [isRestarting, setIsRestarting] = useState<boolean>(false);
 
   const handleClassificationCompleted = useCallback(
     (classificationResult: TabletClassificationData): void => {
       const shouldShowRetryGuide =
-        classificationResult.guidanceCode === 'LOW_CONFIDENCE' ||
+        getGuidanceMessage(classificationResult.guidanceCode) !== undefined ||
         classificationResult.status === 'NOT_DETECTED' ||
         classificationResult.status === 'REJECTED';
 
@@ -81,11 +86,43 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
     navigation.replace('TabletMain');
   }, [navigation]);
 
-  const handleRestartPress = useCallback((): void => {
-    setRemainingSeconds(COUNTDOWN_START_SECONDS);
-    resetClassification();
-    setCurrentStep('waitingTrash');
-  }, [resetClassification]);
+  const handleRestartPress = useCallback(async (): Promise<void> => {
+    setIsRestarting(true);
+    console.warn('[분류 흐름 재시도 1] clientId 재발급 요청 시작', {
+      previousClientId: clientId,
+    });
+
+    try {
+      const issuedClientId = await issueClassificationClientId();
+      console.warn('[분류 흐름 재시도 2] clientId 재발급 성공', {
+        previousClientId: clientId,
+        issuedClientId,
+      });
+      setClientId(issuedClientId);
+      setRemainingSeconds(COUNTDOWN_START_SECONDS);
+      resetClassification();
+      setCurrentStep('waitingTrash');
+    } catch (error: unknown) {
+      console.error('[TabletTrashFeedbackScreen] clientId 재발급 실패', error);
+      Alert.alert('재시도 준비 실패', CLIENT_ID_ISSUE_ERROR_MESSAGE);
+    } finally {
+      setIsRestarting(false);
+    }
+  }, [clientId, resetClassification]);
+
+  useEffect((): (() => void) | undefined => {
+    if (currentStep !== 'canResult' || classificationResult?.status !== 'ALLOWED') {
+      return undefined;
+    }
+
+    const timerId = setTimeout((): void => {
+      setCurrentStep('success');
+    }, ALLOWED_RESULT_DISPLAY_MS);
+
+    return (): void => {
+      clearTimeout(timerId);
+    };
+  }, [classificationResult?.status, currentStep]);
 
   useEffect((): (() => void) | undefined => {
     if (currentStep !== 'waitingTrash') {
@@ -158,6 +195,7 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
               {currentStep === 'retryGuide' ? (
                 <RetryGuideStep
                   classificationResult={classificationResult}
+                  isRestarting={isRestarting}
                   onRestart={handleRestartPress}
                 />
               ) : null}

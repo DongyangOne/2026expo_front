@@ -8,23 +8,26 @@ import XIcon from '@/assets/icons/x.svg';
 import { GRADIENT_ACTIVE } from '@/constants';
 import type { TabletClassificationData } from '@/types';
 
+import { getGuidanceMessage } from '../guidance';
+
 const GUIDE_VIDEO_MAX_PLAY_COUNT = 3;
 
 interface RetryGuideStepProps {
   classificationResult: TabletClassificationData | null;
+  isRestarting: boolean;
   onRestart: () => void;
 }
 
 const RetryGuideStep = ({
   classificationResult,
+  isRestarting,
   onRestart,
 }: RetryGuideStepProps): React.JSX.Element => {
   const [hasVideoError, setHasVideoError] = useState<boolean>(false);
   const [guideVideoPlaybackKey, setGuideVideoPlaybackKey] = useState<number>(0);
 
-  const isRecognitionFailure =
-    classificationResult?.guidanceCode === 'LOW_CONFIDENCE' ||
-    classificationResult?.status === 'NOT_DETECTED';
+  const isRecognitionFailure = classificationResult?.status === 'NOT_DETECTED';
+  const guidanceMessage = getGuidanceMessage(classificationResult?.guidanceCode);
 
   const handleVideoError = useCallback((): void => {
     setHasVideoError(true);
@@ -65,12 +68,14 @@ const RetryGuideStep = ({
         </View>
       )}
       <Text className="mt-[40px] max-w-[800px] text-center font-notoSansKRRegular text-[30px] leading-[44px] text-black">
-        {classificationResult?.message ??
+        {guidanceMessage ??
+          classificationResult?.message ??
           (isRecognitionFailure ? '인식에 실패했어요!' : '분리수거를 재시도해 주세요.')}
       </Text>
       <TouchableOpacity
         className="mt-[32px] h-[60px] w-[288px] overflow-hidden rounded-[12px]"
-        activeOpacity={0.85}
+        activeOpacity={isRestarting ? 1 : 0.85}
+        disabled={isRestarting}
         onPress={onRestart}>
         <View className="absolute inset-0">
           <Svg height="100%" width="100%">
@@ -95,7 +100,9 @@ const RetryGuideStep = ({
           </Svg>
         </View>
         <View className="h-full items-center justify-center">
-          <Text className="font-notoSansKRBold text-[15px] leading-[20px] text-white">재시도</Text>
+          <Text className="font-notoSansKRBold text-[15px] leading-[20px] text-white">
+            {isRestarting ? '준비 중...' : '재시도'}
+          </Text>
         </View>
       </TouchableOpacity>
     </View>

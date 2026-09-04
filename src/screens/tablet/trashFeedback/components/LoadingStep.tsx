@@ -52,7 +52,7 @@ const LoadingStep = ({ errorMessage, onRetry }: LoadingStepProps): React.JSX.Ele
           className="mt-[32px] rounded-[12px] bg-purple px-[40px] py-[16px]"
           activeOpacity={0.85}
           onPress={onRetry}>
-          <Text className="font-notoSansKRBold text-[15px] text-white">다시 조회</Text>
+          <Text className="font-notoSansKRBold text-[15px] text-white">다시 시도</Text>
         </TouchableOpacity>
       ) : null}
     </View>

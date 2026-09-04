@@ -301,21 +301,11 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     }
   }, [navigation]);
 
-  const handleTemporaryFeedbackPress = useCallback((): void => {
-    navigation.navigate('TabletTrashFeedback');
-  }, [navigation]);
-
   return (
     <View className="flex-1 overflow-hidden bg-background">
       <TabletBackgroundCircles />
       <SafeAreaView className="flex-1 items-center" edges={['top', 'bottom']}>
         <View className="w-full flex-1 items-center">
-          <Pressable
-            className="absolute top-[24px] z-10 h-[38px] min-w-[150px] items-center justify-center rounded-[10px] bg-purple px-[16px]"
-            onPress={handleTemporaryFeedbackPress}>
-            <Text className="font-notoSansKRBold text-[13px] text-white">임시 피드백 이동</Text>
-          </Pressable>
-
           <View className="w-full flex-1 flex-row items-center pt-[62px]">
             <View className="w-1/2 items-center justify-center">
               <Pressable
