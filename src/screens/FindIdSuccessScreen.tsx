@@ -32,7 +32,11 @@ const FindIdSuccessScreen = ({ navigation }: FindIdSuccessScreenProps) => {
 
       <View className="flex-1 items-center justify-center">
         <View className="h-64 w-full">
-          <Image source={CheckImage} resizeMode="contain" style={{ width: '100%', height: '100%' }} />
+          <Image
+            source={CheckImage}
+            resizeMode="contain"
+            style={{ width: '100%', height: '100%' }}
+          />
         </View>
 
         <Text className="mt-8 font-notoSansKRBold text-lg text-black">
