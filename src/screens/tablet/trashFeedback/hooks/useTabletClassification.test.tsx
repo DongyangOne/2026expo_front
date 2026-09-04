@@ -1,8 +1,6 @@
 /// <reference types="jest" />
 
-import React from 'react';
-
-import { act, create } from 'react-test-renderer';
+import { act, renderHook } from '@testing-library/react-native';
 
 import { getTabletClassification } from '@/services';
 import type { ApiResponse, TabletClassificationData } from '@/types';
@@ -45,16 +43,6 @@ const WAITING_RESPONSE: ApiResponse<TabletClassificationData> = {
 };
 const handleCompleted = jest.fn();
 
-const TestComponent = (): React.JSX.Element => {
-  const { classificationErrorMessage } = useTabletClassification({
-    clientId: 'test-client',
-    isActive: true,
-    onCompleted: handleCompleted,
-  });
-
-  return React.createElement('Text', null, classificationErrorMessage);
-};
-
 describe('useTabletClassification', (): void => {
   beforeEach((): void => {
     jest.spyOn(console, 'error').mockImplementation((): void => undefined);
@@ -69,22 +57,20 @@ describe('useTabletClassification', (): void => {
   });
 
   it('30초 동안 분류가 완료되지 않으면 안내 문구를 표시한다', async (): Promise<void> => {
-    let testRenderer: ReturnType<typeof create> | undefined;
-
-    await act(async (): Promise<void> => {
-      testRenderer = create(React.createElement(TestComponent));
-    });
+    const { result } = await renderHook(() =>
+      useTabletClassification({
+        clientId: 'test-client',
+        isActive: true,
+        onCompleted: handleCompleted,
+      }),
+    );
 
     await act(async (): Promise<void> => {
       jest.advanceTimersByTime(30000);
     });
 
-    expect(testRenderer?.toJSON()).toMatchObject({
-      children: ['인식 시간이 초과됐어요. 다시 시도해 주세요.'],
-    });
-
-    act((): void => {
-      testRenderer?.unmount();
-    });
+    expect(result.current.classificationErrorMessage).toBe(
+      '인식 시간이 초과됐어요. 다시 시도해 주세요.',
+    );
   });
 });
