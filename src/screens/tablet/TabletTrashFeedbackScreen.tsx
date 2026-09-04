@@ -49,6 +49,7 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
     (classificationResult: TabletClassificationData): void => {
       const shouldShowRetryGuide =
         getGuidanceMessage(classificationResult.guidanceCode) !== undefined ||
+        classificationResult.status === 'LOW_CONFIDENCE' ||
         classificationResult.status === 'NOT_DETECTED' ||
         classificationResult.status === 'REJECTED';
 

@@ -11,7 +11,7 @@ import BackArrow from '@/assets/images/vector.svg';
 import { getFeedbackDetail } from '@/services';
 import type { FeedbackDetailData } from '@/types';
 import { COLORS } from '@/constants/theme';
-import { getWasteTypeLabel } from '@/utils';
+import { getObjectParticle, getWasteTypeLabel } from '@/utils';
 
 cssInterop(LinearGradient, {
   className: 'style',
@@ -80,6 +80,9 @@ const FeedbackDetailScreen = () => {
     setHasVideoError(true);
   };
 
+  const wasteTypeLabel = getWasteTypeLabel(feedback?.wasteType);
+  const objectParticle = getObjectParticle(wasteTypeLabel);
+
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <ScrollView>
@@ -122,7 +125,7 @@ const FeedbackDetailScreen = () => {
           ) : feedback.isSuccess ? (
             <View className="mt-6 h-64 items-center justify-center rounded-xl bg-purple/[0.08] px-4">
               <Text className="text-center font-notoSansKRBold text-base text-black">
-                {getWasteTypeLabel(feedback.wasteType)}을/를 올바르게 분리배출했습니다.
+                {`${wasteTypeLabel}${objectParticle} 올바르게 분리배출했습니다.`}
                 {'\n\n'}
                 오늘도 지구를 위한{'\n'}
                 좋은 행동을 했어요!
@@ -156,7 +159,7 @@ const FeedbackDetailScreen = () => {
 
               <View className="mt-6 rounded-xl bg-purple/[0.08] px-4 py-8">
                 <Text className="font-notoSansKRBold text-base text-black">
-                  {getWasteTypeLabel(feedback.wasteType)}을/를 버릴 때에는
+                  {`${wasteTypeLabel}${objectParticle} 버릴 때에는`}
                 </Text>
                 {feedback?.content?.split('\n').map((line, index) => (
                   <Text key={index} className="mt-6 font-notoSansKRDemiLight text-base text-body">

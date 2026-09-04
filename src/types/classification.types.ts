@@ -1,6 +1,7 @@
 export type TabletClassificationStatus =
   | 'ALLOWED'
   | 'GENERAL_WASTE'
+  | 'LOW_CONFIDENCE'
   | 'NOT_DETECTED'
   | 'REJECTED'
   | 'WAITING';
