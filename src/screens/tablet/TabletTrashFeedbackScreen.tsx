@@ -13,6 +13,7 @@ import {
   CanResultStep,
   getGuidanceMessage,
   issueClassificationClientId,
+  GeneralWasteStep,
   LoadingStep,
   RetryGuideStep,
   SuccessStep,
@@ -37,7 +38,13 @@ const FEEDBACK_CARD_SHADOW_STYLE: ViewStyle = {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TabletTrashFeedback'>;
 
-type TrashFeedbackStep = 'waitingTrash' | 'loading' | 'canResult' | 'success' | 'retryGuide';
+type TrashFeedbackStep =
+  | 'waitingTrash'
+  | 'loading'
+  | 'canResult'
+  | 'success'
+  | 'generalWaste'
+  | 'retryGuide';
 
 const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Element => {
   const [clientId, setClientId] = useState<string | undefined>(route.params?.clientId);
@@ -47,6 +54,11 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
 
   const handleClassificationCompleted = useCallback(
     (classificationResult: TabletClassificationData): void => {
+      if (classificationResult.status === 'GENERAL_WASTE') {
+        setCurrentStep('generalWaste');
+        return;
+      }
+
       const shouldShowRetryGuide =
         getGuidanceMessage(classificationResult.guidanceCode) !== undefined ||
         classificationResult.status === 'LOW_CONFIDENCE' ||
@@ -192,6 +204,9 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
               ) : null}
               {currentStep === 'success' ? (
                 <SuccessStep classificationResult={classificationResult} onHome={handleHomePress} />
+              ) : null}
+              {currentStep === 'generalWaste' ? (
+                <GeneralWasteStep onHome={handleHomePress} />
               ) : null}
               {currentStep === 'retryGuide' ? (
                 <RetryGuideStep
