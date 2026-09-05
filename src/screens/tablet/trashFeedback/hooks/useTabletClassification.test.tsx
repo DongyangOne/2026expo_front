@@ -41,6 +41,15 @@ const WAITING_RESPONSE: ApiResponse<TabletClassificationData> = {
     remainingExp: null,
   },
 };
+const COMPLETED_RESPONSE: ApiResponse<TabletClassificationData> = {
+  ...WAITING_RESPONSE,
+  data: {
+    ...WAITING_RESPONSE.data,
+    completed: true,
+    status: 'ALLOWED',
+    wasteType: 'CAN',
+  },
+};
 const handleCompleted = jest.fn();
 
 describe('useTabletClassification', (): void => {
@@ -48,6 +57,8 @@ describe('useTabletClassification', (): void => {
     jest.spyOn(console, 'error').mockImplementation((): void => undefined);
     jest.spyOn(console, 'warn').mockImplementation((): void => undefined);
     jest.useFakeTimers();
+    handleCompleted.mockClear();
+    jest.mocked(getTabletClassification).mockReset();
     jest.mocked(getTabletClassification).mockResolvedValue(WAITING_RESPONSE);
   });
 
@@ -72,5 +83,57 @@ describe('useTabletClassification', (): void => {
     expect(result.current.classificationErrorMessage).toBe(
       '인식 시간이 초과됐어요. 다시 시도해 주세요.',
     );
+  });
+
+  it('일시적인 조회 실패는 폴링을 중단하지 않는다', async (): Promise<void> => {
+    jest
+      .mocked(getTabletClassification)
+      .mockRejectedValueOnce(new Error('network error'))
+      .mockRejectedValueOnce(new Error('network error'))
+      .mockResolvedValue(COMPLETED_RESPONSE);
+
+    const { result } = await renderHook(() =>
+      useTabletClassification({
+        clientId: 'test-client',
+        isActive: true,
+        onCompleted: handleCompleted,
+      }),
+    );
+
+    await act(async (): Promise<void> => {
+      jest.advanceTimersByTime(1000);
+    });
+    expect(result.current.classificationErrorMessage).toBeNull();
+
+    await act(async (): Promise<void> => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(handleCompleted).toHaveBeenCalledWith(COMPLETED_RESPONSE.data);
+    expect(result.current.classificationErrorMessage).toBeNull();
+  });
+
+  it('연속 3회 조회에 실패하면 안내 문구를 표시한다', async (): Promise<void> => {
+    jest.mocked(getTabletClassification).mockRejectedValue(new Error('network error'));
+
+    const { result } = await renderHook(() =>
+      useTabletClassification({
+        clientId: 'test-client',
+        isActive: true,
+        onCompleted: handleCompleted,
+      }),
+    );
+
+    await act(async (): Promise<void> => {
+      jest.advanceTimersByTime(1000);
+    });
+    expect(result.current.classificationErrorMessage).toBeNull();
+
+    await act(async (): Promise<void> => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(getTabletClassification).toHaveBeenCalledTimes(3);
+    expect(result.current.classificationErrorMessage).toBe('분류 결과를 불러오지 못했어요.');
   });
 });
