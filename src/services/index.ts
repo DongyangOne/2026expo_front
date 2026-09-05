@@ -1,5 +1,11 @@
 export { default as apiInstance } from './instance';
-export { login, logout, reissueToken } from './auth';
+export {
+  checkFindIdVerificationCode,
+  login,
+  logout,
+  reissueToken,
+  sendFindIdVerificationCode,
+} from './auth';
 export { checkAdminIdExists, loginAdmin, reissueAdminToken, signupAdmin } from './auth.service';
 export { clearAdminSession } from './authStorage.service';
 export { getTabletClassification } from './classification.service';
