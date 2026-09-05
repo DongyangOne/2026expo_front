@@ -99,11 +99,20 @@ const HomeScreen = ({ navigation }: Props) => {
             분리수거 로그
           </Text>
 
-          <View className="gap-[13px]">
-            {recyclingLogEntries.map((entry) => (
-              <RecyclingLogItem entry={entry} key={entry.id} onPress={handlePressLog} />
-            ))}
-          </View>
+          {recyclingLogEntries.length === 0 ? (
+            <View className="items-center rounded-[10px] border border-dashed border-border bg-white px-[20px] py-[30px]">
+              <Text className="font-notoSansKRBold text-base text-black">아직 기록이 없어요</Text>
+              <Text className="mt-[8px] text-center font-notoSansKRRegular text-sm text-body">
+                카메라로 첫 분리수거를 기록해보세요
+              </Text>
+            </View>
+          ) : (
+            <View className="gap-[13px]">
+              {recyclingLogEntries.map((entry) => (
+                <RecyclingLogItem entry={entry} key={entry.id} onPress={handlePressLog} />
+              ))}
+            </View>
+          )}
         </ScrollView>
       </SafeAreaView>
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, View } from 'react-native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 import type { RootTabParamList } from '@/navigation/types';
@@ -7,10 +7,8 @@ import QuizFinalResultScreen from '@/screens/quiz/QuizFinalResultScreen';
 import QuizQuestionScreen, { QUESTION_POOL, QuizQuestion } from '@/screens/quiz/QuizQuestionScreen';
 import QuizResultScreen from '@/screens/quiz/QuizResultScreen';
 import QuizStartScreen from '@/screens/quiz/QuizStartScreen';
-import { startQuizSession } from '@/services/quiz.service';
-
-const MOCK_LEVEL = 5;
-const MOCK_CURRENT_XP = 500;
+import { finishQuizSession, startQuizSession, submitQuizAnswer } from '@/services/quiz.service';
+import type { QuizResultData } from '@/types';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'Quiz'>;
 
@@ -22,9 +20,13 @@ const QuizScreen = ({ route }: Props) => {
   const [isFinished, setIsFinished] = useState(false);
   const [isExitConfirmOpen, setIsExitConfirmOpen] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [correctCount, setCorrectCount] = useState(0);
+  const [explanation, setExplanation] = useState('');
+  const [apiFinished, setApiFinished] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [quizResult, setQuizResult] = useState<QuizResultData | null>(null);
   const [isStarting, setIsStarting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSettling, setIsSettling] = useState(false);
   const wrongQuizInfo = route.params?.wrongQuizInfo;
 
   const handleSolveQuiz = async (): Promise<void> => {
@@ -45,13 +47,18 @@ const QuizScreen = ({ route }: Props) => {
       setSessionId(data.sessionId);
       setQuizQuestions(questions);
       setCurrentIndex(0);
-      setCorrectCount(0);
       setIsCorrect(null);
+      setExplanation('');
+      setApiFinished(false);
+      setQuizResult(null);
       setIsFinished(false);
       setIsPlaying(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // instance.ts 인터셉터가 message만 실어서 Error로 던지므로 code(QUIZ_NOT_FOUND 등)로는 분기 불가. message로 처리.
-      Alert.alert('퀴즈를 시작할 수 없어요', err?.message ?? '잠시 후 다시 시도해주세요.');
+      Alert.alert(
+        '퀴즈를 시작할 수 없어요',
+        err instanceof Error ? err.message : '잠시 후 다시 시도해주세요.',
+      );
     } finally {
       setIsStarting(false);
     }
@@ -70,18 +77,65 @@ const QuizScreen = ({ route }: Props) => {
     setIsPlaying(false);
   };
 
-  const handleAnswer = (selected: boolean): void => {
+  const handleAnswer = async (selected: boolean): Promise<void> => {
+    if (!sessionId || isSubmitting) return;
+
     const currentQuestion = quizQuestions[currentIndex];
-    const correct = selected === currentQuestion.answer;
-    if (correct) setCorrectCount((prev) => prev + 1);
-    setIsCorrect(correct);
+    setIsSubmitting(true);
+
+    try {
+      const { data } = await submitQuizAnswer(sessionId, {
+        currentQuizId: currentQuestion.id,
+        answer: selected ? 'O' : 'X',
+      });
+
+      setExplanation(data.explan);
+      setApiFinished(data.finished);
+
+      if (!data.finished) {
+        const nextIndex = currentIndex + 1;
+        setQuizQuestions((previous) => {
+          if (nextIndex >= previous.length) return previous;
+          const nextQuestions = [...previous];
+          nextQuestions[nextIndex] = {
+            ...nextQuestions[nextIndex],
+            id: data.nextQuizId,
+            question: data.nextQuestion,
+          };
+          return nextQuestions;
+        });
+      }
+
+      setIsCorrect(data.isCorrect);
+    } catch (error: unknown) {
+      Alert.alert(
+        '정답을 제출할 수 없어요',
+        error instanceof Error ? error.message : '잠시 후 다시 시도해주세요.',
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleNext = (): void => {
     setIsCorrect(null);
-    if (currentIndex + 1 >= quizQuestions.length) {
-      setIsPlaying(false);
-      setIsFinished(true);
+    setExplanation('');
+    if (apiFinished || currentIndex + 1 >= quizQuestions.length) {
+      if (!sessionId || isSettling) return;
+      setIsSettling(true);
+      void finishQuizSession(sessionId)
+        .then(({ data }) => {
+          setQuizResult(data);
+          setIsPlaying(false);
+          setIsFinished(true);
+        })
+        .catch((error: unknown) => {
+          Alert.alert(
+            '퀴즈 결과를 불러올 수 없어요',
+            error instanceof Error ? error.message : '잠시 후 다시 시도해주세요.',
+          );
+        })
+        .finally(() => setIsSettling(false));
       return;
     }
     setCurrentIndex((prev) => prev + 1);
@@ -89,15 +143,17 @@ const QuizScreen = ({ route }: Props) => {
 
   const handleCloseFinalResult = (): void => {
     setIsFinished(false);
+    setQuizResult(null);
   };
 
-  if (isFinished) {
+  if (isSettling) {
+    return <View className="flex-1 items-center justify-center bg-background" />;
+  }
+
+  if (isFinished && quizResult) {
     return (
       <QuizFinalResultScreen
-        correctCount={correctCount}
-        totalCount={quizQuestions.length}
-        level={MOCK_LEVEL}
-        currentXp={MOCK_CURRENT_XP}
+        result={quizResult}
         onRetry={handleSolveQuiz}
         onClose={handleCloseFinalResult}
       />
@@ -127,7 +183,7 @@ const QuizScreen = ({ route }: Props) => {
         currentIndex={currentIndex}
         total={quizQuestions.length}
         isCorrect={isCorrect}
-        explanation={currentQuestion.explanation}
+        explanation={explanation || currentQuestion.explanation}
         onNext={handleNext}
         onClose={handleCloseQuiz}
         isExitConfirmOpen={isExitConfirmOpen}
