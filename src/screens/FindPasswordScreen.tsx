@@ -5,6 +5,12 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { GradientButton, TopBar } from '@/components/ui';
 import type { RootStackParamList } from '@/navigation/types';
 import { checkFindPasswordVerificationCode, sendFindPasswordVerificationCode } from '@/services';
+import {
+  getRemainingSeconds,
+  getServerMessage,
+  isNetworkError,
+  NETWORK_ERROR_MESSAGE,
+} from '@/utils';
 
 type FindPasswordScreenProps = NativeStackScreenProps<RootStackParamList, 'FindPassword'>;
 
@@ -14,8 +20,12 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TOAST_DURATION = 2000;
 const EMAIL_SEND_ERROR_MESSAGE = '인증번호 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.';
 const VERIFY_CODE_ERROR_MESSAGE = '인증번호 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
-const AUTH_CODE_MISMATCH_MESSAGE = '인증 코드가 일치하지 않습니다.';
-const AUTH_CODE_EXPIRED_MESSAGE = '인증 코드가 만료되었습니다.';
+
+// 응답 인터셉터가 에러 본문의 code를 버리고 message만 남기기 때문에
+// 화면에서는 문구의 핵심 키워드로 판별한다.
+// (code를 그대로 전달하도록 인터셉터를 고치면 이 우회는 제거할 수 있다.)
+const AUTH_CODE_EXPIRED_KEYWORD = '만료';
+const AUTH_CODE_MISMATCH_KEYWORD = '일치';
 
 const InlineError = ({ message }: { message: string }) => (
   <View className="ml-6 mt-2">
@@ -23,7 +33,10 @@ const InlineError = ({ message }: { message: string }) => (
   </View>
 );
 
-const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
+const FindPasswordScreen = ({ navigation, route }: FindPasswordScreenProps) => {
+  // 토큰 만료 등으로 재설정 화면에서 되돌아온 경우 그 사유를 안내한다.
+  const returnMessage = route.params?.message ?? null;
+
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [userId, setUserId] = useState('');
@@ -31,8 +44,7 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
   const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [codeError, setCodeError] = useState<string | null>(null);
-  const [idError, setIdError] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(returnMessage);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -82,7 +94,6 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
     if (isSendingEmail) return;
 
     setEmailError(null);
-    setIdError(null);
     setCodeError(null);
     setVerificationCode('');
     setIsCodeSent(true);
@@ -94,17 +105,17 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
         email,
         loginId: userId.trim(),
       });
-      const remaining = Math.max(
-        0,
-        Math.round((new Date(response.data.expiredAt).getTime() - Date.now()) / 1000),
-      );
-
-      startTimer(remaining || TIMER_SECONDS);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : EMAIL_SEND_ERROR_MESSAGE;
+      startTimer(getRemainingSeconds(response.data.expiredAt, TIMER_SECONDS));
+    } catch (error: unknown) {
       setIsCodeSent(false);
       if (timerRef.current) clearInterval(timerRef.current);
-      showToast(message || EMAIL_SEND_ERROR_MESSAGE);
+
+      if (isNetworkError(error)) {
+        showToast(NETWORK_ERROR_MESSAGE);
+        return;
+      }
+
+      showToast(getServerMessage(error) ?? EMAIL_SEND_ERROR_MESSAGE);
     } finally {
       setIsSendingEmail(false);
     }
@@ -120,7 +131,7 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
       return;
     }
     if (isCodeSent && timeLeft === 0) {
-      showToast('시간초과, 다시 입력해 주세요');
+      showToast('시간초과, 인증번호를 다시 받아 주세요');
       return;
     }
     if (!verificationCode.trim()) {
@@ -139,19 +150,23 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
       });
 
       setCodeError(null);
-      setIdError(null);
       navigation.replace('FindPasswordSuccess', {
         passwordResetToken: response.data.passwordResetToken,
       });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : null;
+    } catch (error: unknown) {
+      if (isNetworkError(error)) {
+        showToast(NETWORK_ERROR_MESSAGE);
+        return;
+      }
 
-      if (message === AUTH_CODE_MISMATCH_MESSAGE) {
+      const message = getServerMessage(error);
+
+      if (message?.includes(AUTH_CODE_EXPIRED_KEYWORD)) {
+        setTimeLeft(0);
         setCodeError(message);
         return;
       }
-      if (message === AUTH_CODE_EXPIRED_MESSAGE) {
-        setTimeLeft(0);
+      if (message?.includes(AUTH_CODE_MISMATCH_KEYWORD)) {
         setCodeError(message);
         return;
       }
@@ -169,7 +184,16 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!returnMessage) return;
+
+    const timer = setTimeout(() => setToastMessage(null), TOAST_DURATION);
+
+    return () => clearTimeout(timer);
+  }, [returnMessage]);
+
   const timerColorClass = 'text-red';
+  const isCodeExpired = isCodeSent && timeLeft === 0;
 
   return (
     <KeyboardAvoidingView
@@ -191,19 +215,18 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
           </Text>
           <View className="h-14 flex-row items-center overflow-hidden rounded-xl border border-border bg-white pl-3">
             <TextInput
-              className="h-14 flex-1 py-0 font-notoSansKRRegular text-sm text-black"
+              className={`h-14 flex-1 py-0 font-notoSansKRRegular text-sm text-black ${
+                isCodeSent ? 'opacity-50' : ''
+              }`}
               placeholder="아이디를 입력해 주세요."
               placeholderTextColor={PLACEHOLDER_COLOR}
               value={userId}
-              onChangeText={(text) => {
-                setUserId(text);
-                setIdError(null);
-              }}
+              onChangeText={setUserId}
+              editable={!isCodeSent}
               autoCapitalize="none"
               textAlignVertical="center"
             />
           </View>
-          {idError && <InlineError message={idError} />}
         </View>
 
         {/* 이메일 */}
@@ -213,7 +236,9 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
           </Text>
           <View className="h-14 flex-row items-center overflow-hidden rounded-xl border border-border bg-white pl-3">
             <TextInput
-              className="h-14 flex-1 py-0 font-notoSansKRRegular text-sm text-black"
+              className={`h-14 flex-1 py-0 font-notoSansKRRegular text-sm text-black ${
+                isCodeSent ? 'opacity-50' : ''
+              }`}
               placeholder="이메일을 입력해주세요."
               placeholderTextColor={PLACEHOLDER_COLOR}
               value={email}
@@ -221,13 +246,14 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
                 setEmail(text);
                 setEmailError(null);
               }}
+              editable={!isCodeSent}
               keyboardType="email-address"
               autoCapitalize="none"
               textAlignVertical="center"
             />
-            {!isCodeSent && (
+            {(!isCodeSent || isCodeExpired) && (
               <GradientButton
-                label={isSendingEmail ? '발송 중...' : '이메일 인증'}
+                label={isSendingEmail ? '발송 중...' : isCodeExpired ? '재전송' : '이메일 인증'}
                 onPress={handleEmailVerify}
                 disabled={isSendingEmail}
                 borderRadius={10}
