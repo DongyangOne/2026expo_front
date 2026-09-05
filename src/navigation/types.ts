@@ -28,8 +28,8 @@ export type RootStackParamList = {
   TabletSignup: undefined;
   TabletReport: undefined;
   FindPassword: undefined;
-  FindPasswordSuccess: undefined;
-  ResetPassword: undefined;
+  FindPasswordSuccess: { passwordResetToken: string };
+  ResetPassword: { passwordResetToken: string };
   ResetPasswordSuccess: undefined;
   FindId: undefined;
   FindIdSuccess: undefined;

@@ -169,9 +169,7 @@ const LoginScreen = ({ navigation, route }: Props) => {
             </Pressable>
             <Pressable
               className="h-[53px] flex-1 items-center justify-center rounded-[6px] bg-[rgba(229,231,235,0.5)]"
-              onPress={() => {
-                // TODO: 비밀번호 재설정 화면 구현 후 연결
-              }}>
+              onPress={() => navigation.navigate('FindPassword')}>
               <Text className="font-notoSansKRDemiLight text-xs text-black">비밀번호 찾기</Text>
             </Pressable>
           </View>

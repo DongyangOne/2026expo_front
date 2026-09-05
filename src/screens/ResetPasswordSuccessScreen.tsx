@@ -15,7 +15,7 @@ type ResetPasswordSuccessScreenProps = NativeStackScreenProps<
 const ResetPasswordSuccessScreen = ({ navigation }: ResetPasswordSuccessScreenProps) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.replace('MobileTabs');
+      navigation.replace('Login');
     }, AUTO_ADVANCE_DELAY);
 
     return () => clearTimeout(timer);

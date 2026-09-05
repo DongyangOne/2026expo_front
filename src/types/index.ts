@@ -29,6 +29,11 @@ export type {
   AdminReissueData,
   AdminReissueRequest,
   AdminSignupRequest,
+  FindPasswordCheckRequest,
+  FindPasswordCheckResponse,
+  FindPasswordResetRequest,
+  FindPasswordSendRequest,
+  FindPasswordSendResponse,
 } from './auth.types';
 export type {
   EmailCheckRequest,

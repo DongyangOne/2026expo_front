@@ -1,5 +1,10 @@
 import type {
   ApiResponse,
+  FindPasswordCheckRequest,
+  FindPasswordCheckResponse,
+  FindPasswordResetRequest,
+  FindPasswordSendRequest,
+  FindPasswordSendResponse,
   LoginRequest,
   LoginResponse,
   ReissueTokenResponse,
@@ -23,6 +28,30 @@ export const logout = (): Promise<ApiResponse<{ message: string }>> => {
 export const reissueToken = (refreshToken: string): Promise<ApiResponse<ReissueTokenResponse>> =>
   apiInstance
     .post<ApiResponse<ReissueTokenResponse>>('/api/v1/auth/token', { refreshToken })
+    .then((res) => res.data);
+
+// 비밀번호 찾기 - 인증번호 발송
+export const sendFindPasswordVerificationCode = (
+  payload: FindPasswordSendRequest,
+): Promise<ApiResponse<FindPasswordSendResponse>> =>
+  apiInstance
+    .post<ApiResponse<FindPasswordSendResponse>>('/api/v1/auth/find-password/send', payload)
+    .then((res) => res.data);
+
+// 비밀번호 찾기 - 인증번호 검증 및 임시 권한 토큰 발급
+export const checkFindPasswordVerificationCode = (
+  payload: FindPasswordCheckRequest,
+): Promise<ApiResponse<FindPasswordCheckResponse>> =>
+  apiInstance
+    .post<ApiResponse<FindPasswordCheckResponse>>('/api/v1/auth/find-password/check', payload)
+    .then((res) => res.data);
+
+// 비밀번호 찾기 - 비밀번호 변경
+export const resetFindPassword = (
+  payload: FindPasswordResetRequest,
+): Promise<ApiResponse<string>> =>
+  apiInstance
+    .post<ApiResponse<string>>('/api/v1/auth/find-password/reset', payload)
     .then((res) => res.data);
 
 // 회원탈퇴

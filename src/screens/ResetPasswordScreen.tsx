@@ -14,6 +14,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { GradientButton, TopBar } from '@/components/ui';
 import CheckedIcon from '@/components/ui/icons/checked.svg';
 import type { RootStackParamList } from '@/navigation/types';
+import { resetFindPassword } from '@/services';
 
 type ResetPasswordScreenProps = NativeStackScreenProps<RootStackParamList, 'ResetPassword'>;
 
@@ -25,6 +26,8 @@ const STRENGTH_GRADIENT_START = '#7B61FF';
 const STRENGTH_GRADIENT_END = '#FF4FD8';
 const MIN_VALID_STRENGTH_FILLED = 3; // 보통(3칸) 이상부터 재설정 가능
 const TOAST_DURATION = 2000;
+const RESET_ERROR_MESSAGE = '비밀번호 변경에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+const INVALID_TOKEN_MESSAGE = '유효하지 않은 토큰입니다.';
 
 const STRENGTH_LEVELS = [
   { label: '매우 약함', textClass: 'text-[#FF3B30]', barColor: '#FF3B30', filled: 1 },
@@ -77,10 +80,13 @@ const ChecklistItem = ({ label, satisfied }: { label: string; satisfied: boolean
   </View>
 );
 
-const ResetPasswordScreen = ({ navigation }: ResetPasswordScreenProps) => {
+const ResetPasswordScreen = ({ navigation, route }: ResetPasswordScreenProps) => {
+  const { passwordResetToken } = route.params;
+
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [strengthBarWidth, setStrengthBarWidth] = useState(0);
 
@@ -111,7 +117,7 @@ const ResetPasswordScreen = ({ navigation }: ResetPasswordScreenProps) => {
     setPasswordConfirm(value.replace(/\s/g, '').slice(0, 16));
   };
 
-  const handleSubmit = (): void => {
+  const handleSubmit = async (): Promise<void> => {
     if (!password.trim()) {
       showToast('새 비밀번호를 입력해 주세요.');
       return;
@@ -124,8 +130,26 @@ const ResetPasswordScreen = ({ navigation }: ResetPasswordScreenProps) => {
       showToast('비밀번호가 다릅니다.');
       return;
     }
+    if (isSubmitting) return;
 
-    navigation.replace('ResetPasswordSuccess');
+    setIsSubmitting(true);
+
+    try {
+      await resetFindPassword({ passwordResetToken, newPassword: password });
+      navigation.replace('ResetPasswordSuccess');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : null;
+
+      if (message === INVALID_TOKEN_MESSAGE) {
+        showToast(message);
+        navigation.replace('FindPassword');
+        return;
+      }
+
+      showToast(message ?? RESET_ERROR_MESSAGE);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   useEffect(() => {
@@ -238,8 +262,9 @@ const ResetPasswordScreen = ({ navigation }: ResetPasswordScreenProps) => {
         {/* 하단 버튼 */}
         <View className="flex-1 justify-end px-8 pb-32 pt-10">
           <GradientButton
-            label="다음"
+            label={isSubmitting ? '변경 중...' : '다음'}
             onPress={handleSubmit}
+            disabled={isSubmitting}
             height={54}
             borderRadius={27}
             fontSize={16}

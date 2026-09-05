@@ -74,3 +74,29 @@ export interface AdminReissueData {
   accessToken: string;
   refreshToken: string;
 }
+
+export interface FindPasswordSendRequest {
+  email: string;
+  loginId: string;
+}
+
+export interface FindPasswordSendResponse {
+  email: string;
+  expiredAt: string;
+}
+
+export interface FindPasswordCheckRequest {
+  email: string;
+  authCode: string;
+  loginId: string;
+}
+
+export interface FindPasswordCheckResponse {
+  id: number;
+  passwordResetToken: string;
+}
+
+export interface FindPasswordResetRequest {
+  passwordResetToken: string;
+  newPassword: string;
+}
