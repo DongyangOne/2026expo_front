@@ -5,6 +5,10 @@ import type {
   FindPasswordResetRequest,
   FindPasswordSendRequest,
   FindPasswordSendResponse,
+  FindIdCheckRequest,
+  FindIdCheckResponse,
+  FindIdSendRequest,
+  FindIdSendResponse,
   LoginRequest,
   LoginResponse,
   ReissueTokenResponse,
@@ -52,6 +56,22 @@ export const resetFindPassword = (
 ): Promise<ApiResponse<string>> =>
   apiInstance
     .post<ApiResponse<string>>('/api/v1/auth/find-password/reset', payload)
+    .then((res) => res.data);
+
+// 아이디 찾기 - 인증번호 발송
+export const sendFindIdVerificationCode = (
+  payload: FindIdSendRequest,
+): Promise<ApiResponse<FindIdSendResponse>> =>
+  apiInstance
+    .post<ApiResponse<FindIdSendResponse>>('/api/v1/auth/find-id/send', payload)
+    .then((res) => res.data);
+
+// 아이디 찾기 - 인증번호 검증 및 ID 반환
+export const checkFindIdVerificationCode = (
+  payload: FindIdCheckRequest,
+): Promise<ApiResponse<FindIdCheckResponse>> =>
+  apiInstance
+    .post<ApiResponse<FindIdCheckResponse>>('/api/v1/auth/find-id/check', payload)
     .then((res) => res.data);
 
 // 회원탈퇴

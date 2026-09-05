@@ -34,6 +34,10 @@ export type {
   FindPasswordResetRequest,
   FindPasswordSendRequest,
   FindPasswordSendResponse,
+  FindIdCheckRequest,
+  FindIdCheckResponse,
+  FindIdSendRequest,
+  FindIdSendResponse,
 } from './auth.types';
 export type {
   EmailCheckRequest,

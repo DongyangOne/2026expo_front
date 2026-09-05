@@ -85,6 +85,15 @@ export interface FindPasswordSendResponse {
   expiredAt: string;
 }
 
+export interface FindIdSendRequest {
+  email: string;
+}
+
+export interface FindIdSendResponse {
+  email: string;
+  expiredAt: string;
+}
+
 export interface FindPasswordCheckRequest {
   email: string;
   authCode: string;
@@ -99,4 +108,14 @@ export interface FindPasswordCheckResponse {
 export interface FindPasswordResetRequest {
   passwordResetToken: string;
   newPassword: string;
+}
+
+export interface FindIdCheckRequest {
+  email: string;
+  authCode: string;
+}
+
+export interface FindIdCheckResponse {
+  id: number;
+  loginId: string;
 }

@@ -1,10 +1,12 @@
 export { default as apiInstance } from './instance';
 export {
+  checkFindIdVerificationCode,
   checkFindPasswordVerificationCode,
   login,
   logout,
   reissueToken,
   resetFindPassword,
+  sendFindIdVerificationCode,
   sendFindPasswordVerificationCode,
 } from './auth';
 export { checkAdminIdExists, loginAdmin, reissueAdminToken, signupAdmin } from './auth.service';
