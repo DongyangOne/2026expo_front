@@ -10,7 +10,7 @@ import { TabletBackgroundCircles } from '@/components/layout';
 import LogoIcon from '@/assets/icons/Logo.svg';
 import { FONTS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
-import { connectQrLogin, issueQrToken } from '@/services';
+import { connectQrLogin, createFeedbackDetection, issueQrToken } from '@/services';
 import { useAuthStore, useQrLoginStore } from '@/store';
 import type { QrLoginSseResponse } from '@/types';
 
@@ -27,6 +27,7 @@ const LOGIN_TAP_WINDOW_MS = 5000;
 const LOGIN_TAP_COUNT = 5;
 const QR_TOKEN_ERROR_MESSAGE = 'QR 코드를 불러오지 못했습니다.';
 const QR_NETWORK_ERROR_MESSAGE = '네트워크 연결을 확인한 후 다시 시도해주세요.';
+const CLIENT_ID_ERROR_MESSAGE = '분류 요청을 준비하지 못했습니다.';
 const QR_LOGIN_DEEP_LINK_PREFIX = 'expo2026://qr-login?qrToken=';
 
 const isRecord = (candidate: unknown): candidate is Record<string, unknown> =>
@@ -149,7 +150,9 @@ const GradientGuideText = (): React.JSX.Element => {
 const TabletMain = ({ navigation }: Props): React.JSX.Element => {
   const qrTapState = useRef<QrTapState>({ firstTapAt: 0, count: 0 });
   const hasHandledQrLogin = useRef(false);
+  const logout = useAuthStore((state) => state.logout);
   const setAuth = useAuthStore((state) => state.setAuth);
+  const clearLoginResponse = useQrLoginStore((state) => state.clearLoginResponse);
   const setLoginResponse = useQrLoginStore((state) => state.setLoginResponse);
   const [qrToken, setQrToken] = useState<string | null>(null);
   const [isQrLoading, setIsQrLoading] = useState(true);
@@ -169,7 +172,6 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
         throw new Error(qrTokenResponse.message || QR_TOKEN_ERROR_MESSAGE);
       }
 
-      console.warn('[TabletMain] 발급된 QR 토큰', qrTokenResponse.data.qrToken);
       setQrToken(qrTokenResponse.data.qrToken);
     } catch (error: unknown) {
       console.error('[TabletMain] QR 토큰 발급 실패', error);
@@ -207,7 +209,7 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     }
 
     hasHandledQrLogin.current = false;
-    console.warn('[TabletMain] SSE 연결에 사용하는 QR 토큰', qrToken);
+    console.warn('[TabletMain] QR 로그인 SSE 연결 시작');
     const qrLoginConnection = connectQrLogin(qrToken);
     const qrDisplayTimer = setTimeout((): void => {
       setHasStartedSseConnection(true);
@@ -223,7 +225,7 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     });
 
     qrLoginConnection.addEventListener('LOGIN_SUCCESS', (event): void => {
-      console.warn('[TabletMain] QR 로그인 승인 응답 수신', event.data);
+      console.warn('[분류 흐름 1] QR 로그인 성공 이벤트 수신');
 
       if (hasHandledQrLogin.current) {
         return;
@@ -239,7 +241,28 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
       hasHandledQrLogin.current = true;
       setLoginResponse(loginResponse);
       setAuth({ ...loginResponse.data, rememberMe: 'N' });
-      navigation.replace('TabletTrashFeedback');
+      console.warn('[분류 흐름 2] QR 로그인 정보 저장 완료');
+      console.warn('[분류 흐름 3] Base API clientId 발급 요청 시작');
+
+      void createFeedbackDetection()
+        .then((response): void => {
+          if (!response.success || !response.data.clientId) {
+            throw new Error(response.message);
+          }
+
+          const { clientId } = response.data;
+          console.warn('[분류 흐름 4] Base API clientId 발급 성공', { clientId });
+          console.warn('[분류 흐름 5] 로딩 화면 이동', { clientId });
+          navigation.replace('TabletTrashFeedback', { clientId });
+        })
+        .catch(async (error: unknown): Promise<void> => {
+          console.error('[분류 흐름 실패 - clientId 발급]', error);
+          setQrToken(null);
+          setHasStartedSseConnection(false);
+          setQrErrorMessage(CLIENT_ID_ERROR_MESSAGE);
+          clearLoginResponse();
+          await logout();
+        });
     });
 
     qrLoginConnection.addEventListener('close', (): void => {
@@ -257,7 +280,7 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
       qrLoginConnection.removeAllEventListeners();
       qrLoginConnection.close();
     };
-  }, [navigation, qrToken, setAuth, setLoginResponse]);
+  }, [clearLoginResponse, logout, navigation, qrToken, setAuth, setLoginResponse]);
 
   const handleQrPress = useCallback((): void => {
     const currentTime = Date.now();
@@ -277,21 +300,11 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     }
   }, [navigation]);
 
-  const handleTemporaryFeedbackPress = useCallback((): void => {
-    navigation.navigate('TabletTrashFeedback');
-  }, [navigation]);
-
   return (
     <View className="flex-1 overflow-hidden bg-background">
       <TabletBackgroundCircles />
       <SafeAreaView className="flex-1 items-center" edges={['top', 'bottom']}>
         <View className="w-full flex-1 items-center">
-          <Pressable
-            className="absolute top-[24px] z-10 h-[38px] min-w-[150px] items-center justify-center rounded-[10px] bg-purple px-[16px]"
-            onPress={handleTemporaryFeedbackPress}>
-            <Text className="font-notoSansKRBold text-[13px] text-white">임시 피드백 이동</Text>
-          </Pressable>
-
           <View className="w-full flex-1 flex-row items-center pt-[62px]">
             <View className="w-1/2 items-center justify-center">
               <Pressable

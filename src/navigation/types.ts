@@ -34,7 +34,7 @@ export type RootStackParamList = {
   FindId: undefined;
   FindIdSuccess: undefined;
   FindIdResult: { userId: string };
-  TabletTrashFeedback: undefined;
+  TabletTrashFeedback: { clientId?: string } | undefined;
   EditProfile: undefined;
 
   UserAuth: undefined;
