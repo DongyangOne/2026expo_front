@@ -11,6 +11,10 @@ export type { QrLoginData, QrLoginSseResponse, QrTokenData } from './qr.types';
 export type {
   LoginRequest,
   AuthUser,
+  GoogleLoginRequest,
+  GoogleLoginResponse,
+  GoogleSignupRequiredResponse,
+  GoogleLoginSuccessResponse,
   LoginResponse,
   ReissueTokenRequest,
   ReissueTokenResponse,

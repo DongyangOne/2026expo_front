@@ -18,19 +18,19 @@ const SocialLoginRow = ({ onPressSocial }: SocialLoginRowProps) => {
         className="size-[50px] overflow-hidden rounded-full"
         hitSlop={8}
         onPress={() => onPressSocial('google')}>
-        <SocialGoogle height="100%" width="100%" />
+        <SocialGoogle height="100%" pointerEvents="none" width="100%" />
       </Pressable>
       <Pressable
         className="size-[50px] overflow-hidden rounded-full"
         hitSlop={8}
         onPress={() => onPressSocial('naver')}>
-        <SocialNaver height="100%" width="100%" />
+        <SocialNaver height="100%" pointerEvents="none" width="100%" />
       </Pressable>
       <Pressable
         className="size-[50px] overflow-hidden rounded-full"
         hitSlop={8}
         onPress={() => onPressSocial('kakao')}>
-        <SocialKakao height="100%" width="100%" />
+        <SocialKakao height="100%" pointerEvents="none" width="100%" />
       </Pressable>
     </View>
   );

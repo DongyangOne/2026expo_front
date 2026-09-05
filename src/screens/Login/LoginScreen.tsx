@@ -109,8 +109,17 @@ const LoginScreen = ({ navigation, route }: Props) => {
     }
   };
 
-  const handleSocialPress = (_provider: 'google' | 'naver' | 'kakao') => {
-    // TODO: 소셜 로그인 화면/SDK 연동
+  const handleSocialPress = (provider: 'google' | 'naver' | 'kakao') => {
+    console.log('[LoginScreen] social login pressed:', provider);
+
+    if (provider === 'google') {
+      navigation.navigate('GoogleLogin', {
+        qrToken: route.params?.qrToken,
+        rememberMe: autoLogin ? 'Y' : 'N',
+      });
+      return;
+    }
+
   };
 
   return (

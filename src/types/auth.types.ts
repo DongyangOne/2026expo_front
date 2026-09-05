@@ -18,6 +18,29 @@ export interface LoginResponse extends AuthUser {
   refreshToken: string;
 }
 
+export interface GoogleLoginRequest {
+  code: string;
+  redirectUri: string;
+  rememberMe: 'Y' | 'N';
+}
+
+export interface GoogleSignupRequiredResponse {
+  needsSignup: 'Y';
+  socialProviderId: string;
+  socialType: 'GOOGLE';
+  email: string;
+  username: string;
+}
+
+export interface GoogleLoginSuccessResponse extends LoginResponse {
+  needsSignup: 'N';
+  socialProviderId: string;
+  socialType: 'GOOGLE';
+}
+
+export type GoogleLoginResponse = GoogleSignupRequiredResponse | GoogleLoginSuccessResponse;
+
+
 export interface ReissueTokenRequest {
   refreshToken: string;
 }

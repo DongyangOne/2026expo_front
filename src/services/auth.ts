@@ -1,5 +1,7 @@
 import type {
   ApiResponse,
+  GoogleLoginRequest,
+  GoogleLoginResponse,
   LoginRequest,
   LoginResponse,
   ReissueTokenResponse,
@@ -13,6 +15,14 @@ export const login = (payload: LoginRequest): Promise<ApiResponse<LoginResponse>
   apiInstance
     .post<ApiResponse<LoginResponse>>('/api/v1/auth/login', payload)
     .then((res) => res.data);
+
+export const googleLogin = (
+  payload: GoogleLoginRequest,
+): Promise<ApiResponse<GoogleLoginResponse>> =>
+  apiInstance
+    .post<ApiResponse<GoogleLoginResponse>>('/api/v1/auth/google', payload)
+    .then((res) => res.data);
+
 
 export const logout = (): Promise<ApiResponse<{ message: string }>> => {
   return apiInstance
