@@ -15,7 +15,8 @@ type ResetPasswordSuccessScreenProps = NativeStackScreenProps<
 const ResetPasswordSuccessScreen = ({ navigation }: ResetPasswordSuccessScreenProps) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.replace('Login');
+      // replace로는 진입 시점의 Login이 스택에 남아 뒤로가기로 되돌아가므로 초기화한다.
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
     }, AUTO_ADVANCE_DELAY);
 
     return () => clearTimeout(timer);

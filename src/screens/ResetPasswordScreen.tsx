@@ -15,6 +15,7 @@ import { GradientButton, TopBar } from '@/components/ui';
 import CheckedIcon from '@/components/ui/icons/checked.svg';
 import type { RootStackParamList } from '@/navigation/types';
 import { resetFindPassword } from '@/services';
+import { getServerMessage, isNetworkError, NETWORK_ERROR_MESSAGE } from '@/utils';
 
 type ResetPasswordScreenProps = NativeStackScreenProps<RootStackParamList, 'ResetPassword'>;
 
@@ -24,10 +25,13 @@ const STRENGTH_BAR_HEIGHT = 4;
 const STRENGTH_BAR_GAP = 4;
 const STRENGTH_GRADIENT_START = '#7B61FF';
 const STRENGTH_GRADIENT_END = '#FF4FD8';
-const MIN_VALID_STRENGTH_FILLED = 3; // 보통(3칸) 이상부터 재설정 가능
 const TOAST_DURATION = 2000;
 const RESET_ERROR_MESSAGE = '비밀번호 변경에 실패했습니다. 잠시 후 다시 시도해 주세요.';
-const INVALID_TOKEN_MESSAGE = '유효하지 않은 토큰입니다.';
+
+// 응답 인터셉터가 에러 본문의 code를 버리고 message만 남기기 때문에
+// 화면에서는 문구의 핵심 키워드로 판별한다.
+// (code를 그대로 전달하도록 인터셉터를 고치면 이 우회는 제거할 수 있다.)
+const INVALID_TOKEN_KEYWORD = '토큰';
 
 const STRENGTH_LEVELS = [
   { label: '매우 약함', textClass: 'text-[#FF3B30]', barColor: '#FF3B30', filled: 1 },
@@ -54,7 +58,7 @@ const getTypeCount = (value: string): number => {
   return [hasLower, hasUpper, hasDigit, hasSpecial].filter(Boolean).length;
 };
 
-// 매우 약함: 4자 이상 또는 단일 문자 종류 / 약함: 5자 이상 + 1종류 조합 / 보통: 6자 이상 + 2종류 조합 / 강함: 8자 이상 + 3종류 조합
+// 강함: 8자 이상 + 3종류 조합 / 보통: 6자 이상 + 2종류 조합 / 약함: 5자 이상 + 1종류 조합 / 그 외 매우 약함
 const getStrengthLevel = (length: number, typeCount: number) => {
   if (length >= 8 && typeCount >= 3) return STRENGTH_LEVELS[3];
   if (length >= 6 && typeCount >= 2) return STRENGTH_LEVELS[2];
@@ -97,8 +101,7 @@ const ResetPasswordScreen = ({ navigation, route }: ResetPasswordScreenProps) =>
   const comboOk = hasLetter && hasDigit && hasSpecial;
   const typeCount = useMemo(() => getTypeCount(password), [password]);
   const strengthLevel = getStrengthLevel(password.length, typeCount);
-  const isStrengthEnough = strengthLevel.filled >= MIN_VALID_STRENGTH_FILLED;
-  const isPasswordValid = lengthOk && comboOk && isStrengthEnough;
+  const isPasswordValid = lengthOk && comboOk;
 
   const passwordConfirmError =
     passwordConfirm && password !== passwordConfirm ? '비밀번호가 다릅니다.' : '';
@@ -137,12 +140,18 @@ const ResetPasswordScreen = ({ navigation, route }: ResetPasswordScreenProps) =>
     try {
       await resetFindPassword({ passwordResetToken, newPassword: password });
       navigation.replace('ResetPasswordSuccess');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : null;
+    } catch (error: unknown) {
+      if (isNetworkError(error)) {
+        showToast(NETWORK_ERROR_MESSAGE);
+        return;
+      }
 
-      if (message === INVALID_TOKEN_MESSAGE) {
-        showToast(message);
-        navigation.replace('FindPassword');
+      const message = getServerMessage(error);
+
+      // 이 화면에서 토스트를 띄우면 곧바로 언마운트되어 보이지 않으므로
+      // 사유를 파라미터로 넘겨 되돌아간 화면에서 안내한다.
+      if (message?.includes(INVALID_TOKEN_KEYWORD)) {
+        navigation.replace('FindPassword', { message });
         return;
       }
 
