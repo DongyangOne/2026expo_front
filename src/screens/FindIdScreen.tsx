@@ -175,7 +175,9 @@ const FindIdScreen = ({ navigation }: FindIdScreenProps) => {
             </Text>
             <View className="h-14 flex-row items-center overflow-hidden rounded-xl border border-border bg-white pl-4">
               <TextInput
-                className={`h-14 flex-1 py-0 font-notoSansKRRegular text-sm text-black ${isCodeSent ? 'opacity-50' : ''}`}
+                className={`h-14 flex-1 py-0 font-notoSansKRRegular text-sm text-black ${
+                  isCodeSent ? 'opacity-50' : ''
+                }`}
                 placeholder="이메일을 입력해주세요."
                 placeholderTextColor={PLACEHOLDER_COLOR}
                 value={email}
