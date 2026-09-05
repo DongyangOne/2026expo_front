@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Config from 'react-native-config';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,7 +7,6 @@ import WebView from 'react-native-webview';
 import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
 
 import { TopBar } from '@/components/ui';
-import { STORAGE_KEYS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
 import { kakaoLogin } from '@/services';
 import { useAuthStore } from '@/store';
@@ -19,6 +17,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'KakaoLogin'>;
 
 const KAKAO_AUTHORIZE_URL = 'https://kauth.kakao.com/oauth/authorize';
 const KAKAO_LOGIN_ERROR_MESSAGE = '카카오 로그인에 실패했습니다.';
+const KAKAO_LOGIN_CANCELLED_MESSAGE = '카카오 로그인 요청을 취소했어요.';
+const TOAST_DURATION_MS = 2500;
 
 const extractQueryParam = (url: string, key: string): string | null => {
   const queryStart = url.indexOf('?');
@@ -41,16 +41,37 @@ const extractQueryParam = (url: string, key: string): string | null => {
 };
 
 const KakaoLoginScreen = ({ navigation, route }: Props) => {
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const persistAuth = useAuthStore((state) => state.persistAuth);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [hasHandledRedirect, setHasHandledRedirect] = useState(false);
+  const hasHandledRedirectRef = useRef(false);
+  const [csrfState] = useState(
+    () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`,
+  );
 
   const restApiKey = Config.KAKAO_REST_API_KEY;
   const redirectUri = Config.KAKAO_REDIRECT_URI;
 
-const authorizeUrl = `${KAKAO_AUTHORIZE_URL}?response_type=code&client_id=${encodeURIComponent(restApiKey ?? '')}&redirect_uri=${encodeURIComponent(redirectUri ?? '')}`;
+  const authorizeUrl = `${KAKAO_AUTHORIZE_URL}?response_type=code&client_id=${encodeURIComponent(
+    restApiKey ?? '',
+  )}&redirect_uri=${encodeURIComponent(redirectUri ?? '')}&state=${encodeURIComponent(csrfState)}`;
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return;
+    }
+
+    const timer = setTimeout(() => setToastMessage(null), TOAST_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
+  const resetLogin = (message: string): void => {
+    setToastMessage(message);
+    hasHandledRedirectRef.current = false;
+    setHasHandledRedirect(false);
+  };
 
   const handleKakaoCode = async (code: string): Promise<void> => {
     if (!redirectUri) {
@@ -73,17 +94,7 @@ const authorizeUrl = `${KAKAO_AUTHORIZE_URL}?response_type=code&client_id=${enco
         return;
       }
 
-      setAuth(data);
-
-      if (rememberMe === 'Y') {
-        const { authUser } = useAuthStore.getState();
-
-        await AsyncStorage.multiSet([
-          [STORAGE_KEYS.ACCESS_TOKEN, data.accessToken],
-          [STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken],
-          [STORAGE_KEYS.AUTH_USER, JSON.stringify(authUser)],
-        ]);
-      }
+      await persistAuth(data, rememberMe);
 
       const qrToken = route.params?.qrToken;
 
@@ -94,29 +105,43 @@ const authorizeUrl = `${KAKAO_AUTHORIZE_URL}?response_type=code&client_id=${enco
 
       navigation.replace('MobileTabs');
     } catch (error) {
-      setToastMessage(error instanceof Error ? error.message : KAKAO_LOGIN_ERROR_MESSAGE);
+      resetLogin(error instanceof Error ? error.message : KAKAO_LOGIN_ERROR_MESSAGE);
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleShouldStartLoad = (request: ShouldStartLoadRequest): boolean => {
-    if (!redirectUri || !request.url.startsWith(redirectUri)) {
+    if (!redirectUri || !(request.url === redirectUri || request.url.startsWith(`${redirectUri}?`))) {
       return true;
     }
 
-    if (hasHandledRedirect) {
+    if (hasHandledRedirectRef.current || hasHandledRedirect) {
       return false;
     }
 
+    hasHandledRedirectRef.current = true;
     setHasHandledRedirect(true);
+
+    const oauthError = extractQueryParam(request.url, 'error');
+    const responseState = extractQueryParam(request.url, 'state');
+
+    if (oauthError === 'access_denied') {
+      resetLogin(KAKAO_LOGIN_CANCELLED_MESSAGE);
+      return false;
+    }
+
+    if (oauthError || responseState !== csrfState) {
+      resetLogin(KAKAO_LOGIN_ERROR_MESSAGE);
+      return false;
+    }
 
     const code = extractQueryParam(request.url, 'code');
 
     if (code) {
       void handleKakaoCode(code);
     } else {
-      setToastMessage(KAKAO_LOGIN_ERROR_MESSAGE);
+      resetLogin(KAKAO_LOGIN_ERROR_MESSAGE);
     }
 
     return false;
@@ -143,6 +168,12 @@ const authorizeUrl = `${KAKAO_AUTHORIZE_URL}?response_type=code&client_id=${enco
         ) : (
           <View className="flex-1 items-center justify-center bg-background" />
         )}
+
+        {isProcessing ? (
+          <View className="absolute inset-0 items-center justify-center bg-[rgba(255,255,255,0.6)]">
+            <ActivityIndicator color="#7866FF" size="large" />
+          </View>
+        ) : null}
       </SafeAreaView>
 
       <LoginToast

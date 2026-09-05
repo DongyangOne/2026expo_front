@@ -1,12 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import CheckedIcon from '@/components/ui/icons/checked.svg';
-import { STORAGE_KEYS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
 import { login } from '@/services';
 import { useAuthStore } from '@/store';
@@ -24,7 +22,7 @@ const ID_PATTERN = /^[a-z0-9]{4,12}$/;
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{8,16}$/;
 
 const LoginScreen = ({ navigation, route }: Props) => {
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const persistAuth = useAuthStore((state) => state.persistAuth);
 
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
@@ -82,17 +80,7 @@ const LoginScreen = ({ navigation, route }: Props) => {
         rememberMe: autoLogin ? 'Y' : 'N',
       });
 
-      setAuth(data);
-
-      if (autoLogin) {
-        const { authUser } = useAuthStore.getState();
-
-        await AsyncStorage.multiSet([
-          [STORAGE_KEYS.ACCESS_TOKEN, data.accessToken],
-          [STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken],
-          [STORAGE_KEYS.AUTH_USER, JSON.stringify(authUser)],
-        ]);
-      }
+      await persistAuth(data, autoLogin ? 'Y' : 'N');
 
       const qrToken = route.params?.qrToken;
 
