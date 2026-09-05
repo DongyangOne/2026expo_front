@@ -172,7 +172,6 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
         throw new Error(qrTokenResponse.message || QR_TOKEN_ERROR_MESSAGE);
       }
 
-      console.warn('[TabletMain] 발급된 QR 토큰', qrTokenResponse.data.qrToken);
       setQrToken(qrTokenResponse.data.qrToken);
     } catch (error: unknown) {
       console.error('[TabletMain] QR 토큰 발급 실패', error);
@@ -210,7 +209,7 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     }
 
     hasHandledQrLogin.current = false;
-    console.warn('[TabletMain] SSE 연결에 사용하는 QR 토큰', qrToken);
+    console.warn('[TabletMain] QR 로그인 SSE 연결 시작');
     const qrLoginConnection = connectQrLogin(qrToken);
     const qrDisplayTimer = setTimeout((): void => {
       setHasStartedSseConnection(true);
