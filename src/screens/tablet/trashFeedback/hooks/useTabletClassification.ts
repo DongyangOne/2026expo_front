@@ -12,7 +12,6 @@ interface UseTabletClassificationResult {
   classificationResult: TabletClassificationData | null;
   classificationErrorMessage: string | null;
   resetClassification: () => void;
-  retryClassification: () => void;
 }
 
 interface UseTabletClassificationParams {
@@ -30,16 +29,10 @@ const useTabletClassification = ({
     null,
   );
   const [classificationErrorMessage, setClassificationErrorMessage] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState<number>(0);
 
   const resetClassification = useCallback((): void => {
     setClassificationResult(null);
     setClassificationErrorMessage(null);
-  }, []);
-
-  const retryClassification = useCallback((): void => {
-    setClassificationErrorMessage(null);
-    setRetryCount((currentRetryCount) => currentRetryCount + 1);
   }, []);
 
   useEffect((): (() => void) | undefined => {
@@ -132,13 +125,12 @@ const useTabletClassification = ({
 
       clearTimeout(timeoutTimerId);
     };
-  }, [clientId, isActive, onCompleted, retryCount]);
+  }, [clientId, isActive, onCompleted]);
 
   return {
     classificationResult,
     classificationErrorMessage,
     resetClassification,
-    retryClassification,
   };
 };
 

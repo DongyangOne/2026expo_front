@@ -5,10 +5,17 @@ import LoadingIcon from '@/assets/icons/loading.svg';
 
 interface LoadingStepProps {
   errorMessage: string | null;
+  isRetrying: boolean;
   onRetry: () => void;
+  onHome: () => void;
 }
 
-const LoadingStep = ({ errorMessage, onRetry }: LoadingStepProps): React.JSX.Element => {
+const LoadingStep = ({
+  errorMessage,
+  isRetrying,
+  onRetry,
+  onHome,
+}: LoadingStepProps): React.JSX.Element => {
   const [loadingRotation] = useState<Animated.Value>(() => new Animated.Value(0));
 
   const loadingSpin = loadingRotation.interpolate({
@@ -48,12 +55,25 @@ const LoadingStep = ({ errorMessage, onRetry }: LoadingStepProps): React.JSX.Ele
         )}
       </Text>
       {errorMessage ? (
-        <TouchableOpacity
-          className="mt-[32px] rounded-[12px] bg-purple px-[40px] py-[16px]"
-          activeOpacity={0.85}
-          onPress={onRetry}>
-          <Text className="font-notoSansKRBold text-[15px] text-white">다시 시도</Text>
-        </TouchableOpacity>
+        <View className="mt-[32px] flex-row items-center">
+          <TouchableOpacity
+            className="h-[60px] w-[220px] items-center justify-center rounded-[12px] bg-purple"
+            activeOpacity={isRetrying ? 1 : 0.85}
+            disabled={isRetrying}
+            onPress={onRetry}>
+            <Text className="font-notoSansKRBold text-[15px] leading-[20px] text-white">
+              {isRetrying ? '준비 중...' : '다시 시도'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="ml-[16px] h-[60px] w-[220px] items-center justify-center rounded-[12px] border border-border bg-white"
+            activeOpacity={0.85}
+            onPress={onHome}>
+            <Text className="font-notoSansKRBold text-[15px] leading-[20px] text-body">
+              홈으로 이동
+            </Text>
+          </TouchableOpacity>
+        </View>
       ) : null}
     </View>
   );

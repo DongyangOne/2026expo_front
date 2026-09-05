@@ -70,16 +70,12 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
     [],
   );
 
-  const {
-    classificationResult,
-    classificationErrorMessage,
-    resetClassification,
-    retryClassification,
-  } = useTabletClassification({
-    clientId,
-    isActive: currentStep === 'loading',
-    onCompleted: handleClassificationCompleted,
-  });
+  const { classificationResult, classificationErrorMessage, resetClassification } =
+    useTabletClassification({
+      clientId,
+      isActive: currentStep === 'loading',
+      onCompleted: handleClassificationCompleted,
+    });
 
   const handleNextPress = useCallback((): void => {
     if (currentStep === 'waitingTrash') {
@@ -192,7 +188,9 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
               {currentStep === 'loading' ? (
                 <LoadingStep
                   errorMessage={classificationErrorMessage}
-                  onRetry={retryClassification}
+                  isRetrying={isRestarting}
+                  onHome={handleHomePress}
+                  onRetry={handleRestartPress}
                 />
               ) : null}
               {currentStep === 'canResult' ? (
