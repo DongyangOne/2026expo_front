@@ -7,6 +7,11 @@ export type {
   UpdateProfileData,
 } from './user.types';
 export type { ApiResponse } from './api.types';
+export type {
+  TabletClassificationData,
+  TabletClassificationStatus,
+  WasteType,
+} from './classification.types';
 export type { QrLoginData, QrLoginSseResponse, QrTokenData } from './qr.types';
 export type {
   LoginRequest,
@@ -28,6 +33,10 @@ export type {
   AdminReissueData,
   AdminReissueRequest,
   AdminSignupRequest,
+  FindIdCheckRequest,
+  FindIdCheckResponse,
+  FindIdSendRequest,
+  FindIdSendResponse,
 } from './auth.types';
 export type {
   EmailCheckRequest,
@@ -43,7 +52,15 @@ export type {
   AdminFeedbackListData,
   Feedback,
   FeedbackDetailData,
+  FeedbackDetectionData,
   FeedbackListData,
   PageRequest,
 } from './feedback.types';
-export type { QuizSessionData, QuizSessionRequest } from './quiz.types';
+
+export type {
+  QuizAnswerData,
+  QuizAnswerRequest,
+  QuizResultData,
+  QuizSessionData,
+  QuizSessionRequest,
+} from './quiz.types';
