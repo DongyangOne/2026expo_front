@@ -6,6 +6,8 @@ import type {
   FindIdSendResponse,
   GoogleLoginRequest,
   GoogleLoginResponse,
+  KakaoLoginRequest,
+  KakaoLoginResponse,
   LoginRequest,
   LoginResponse,
   NaverLoginRequest,
@@ -27,6 +29,11 @@ export const googleLogin = (
 ): Promise<ApiResponse<GoogleLoginResponse>> =>
   apiInstance
     .post<ApiResponse<GoogleLoginResponse>>('/api/v1/auth/google', payload)
+    .then((res) => res.data);
+
+export const kakaoLogin = (payload: KakaoLoginRequest): Promise<ApiResponse<KakaoLoginResponse>> =>
+  apiInstance
+    .post<ApiResponse<KakaoLoginResponse>>('/api/v1/auth/kakao', payload)
     .then((res) => res.data);
 
 export const naverLogin = (payload: NaverLoginRequest): Promise<ApiResponse<NaverLoginResponse>> =>
