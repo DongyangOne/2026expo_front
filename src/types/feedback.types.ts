@@ -49,3 +49,7 @@ export interface FeedbackDetailData {
   videoUrl: string;
   content: string;
 }
+
+export interface FeedbackDetectionData {
+  clientId: string;
+}

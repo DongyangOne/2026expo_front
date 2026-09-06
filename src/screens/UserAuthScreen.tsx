@@ -13,7 +13,7 @@ import type { RootStackParamList } from '@/navigation/types';
 cssInterop(LinearGradient, {
   className: 'style',
 });
-import BackArrow from '../assets/images/vector.svg';
+import BackArrow from '@/assets/images/vector.svg';
 
 const AUTH_CODE_DURATION = 300; // 5분 (초 단위)
 

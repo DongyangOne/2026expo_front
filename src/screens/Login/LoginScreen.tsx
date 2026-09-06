@@ -26,7 +26,7 @@ const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{8
 const LoginScreen = ({ navigation, route }: Props) => {
   const setAuth = useAuthStore((state) => state.setAuth);
 
-  const [id, setId] = useState('');
+  const [id, setId] = useState(route.params?.loginId ?? '');
   const [password, setPassword] = useState('');
   const [autoLogin, setAutoLogin] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -170,9 +170,7 @@ const LoginScreen = ({ navigation, route }: Props) => {
           <View className="mt-[29px] flex-row gap-[14px]">
             <Pressable
               className="h-[53px] flex-1 items-center justify-center rounded-[6px] bg-[rgba(229,231,235,0.5)]"
-              onPress={() => {
-                // TODO: 아이디 찾기 화면 구현 후 연결
-              }}>
+              onPress={() => navigation.navigate('FindId')}>
               <Text className="font-notoSansKRDemiLight text-xs text-black">아이디 찾기</Text>
             </Pressable>
             <Pressable

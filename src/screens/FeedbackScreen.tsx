@@ -19,6 +19,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootTabParamList, RootStackParamList } from '@/navigation/types';
 import { getFeedbackList } from '@/services';
 import type { Feedback } from '@/types';
+import { getObjectParticle, getWasteTypeLabel } from '@/utils';
 
 const PAGE_SIZE = 15;
 const SCROLL_END_THRESHOLD = 40;
@@ -28,10 +29,15 @@ interface FeedbackGroup {
   items: Feedback[];
 }
 
-const buildMessage = (item: Feedback): string =>
-  item.isSuccess
-    ? `${item.wasteType}을 올바르게 분리수거 하셨어요`
-    : `올바른 분리수거가 이루어지지 않았어요.\n(${item.feedbackText})`;
+const buildMessage = (item: Feedback): string => {
+  if (!item.isSuccess) {
+    return `올바른 분리수거가 이루어지지 않았어요.\n(${item.feedbackText})`;
+  }
+
+  const wasteTypeLabel = getWasteTypeLabel(item.wasteType);
+
+  return `${wasteTypeLabel}${getObjectParticle(wasteTypeLabel)} 올바르게 분리수거 하셨어요`;
+};
 
 const groupByDate = (items: Feedback[]): FeedbackGroup[] => {
   const groups: FeedbackGroup[] = [];
@@ -112,8 +118,8 @@ const FeedbackScreen = () => {
   const feedbackGroups = groupByDate(feedbackList);
 
   return (
-    <SafeAreaView edges={['top']} className="flex-1 items-center bg-primary-backgorund px-6">
-      <Text className="text-gray-800 pt-9 font-notoSansKRBold text-xl">피드백 목록</Text>
+    <SafeAreaView edges={['top']} className="flex-1 items-center bg-background px-6">
+      <Text className="pt-9 font-notoSansKRBold text-xl text-black">피드백 목록</Text>
       <ScrollView
         className="w-full"
         onScroll={handleLoadMore}

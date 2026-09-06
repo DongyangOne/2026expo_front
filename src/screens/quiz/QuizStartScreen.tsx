@@ -73,10 +73,7 @@ const QuizStartScreen = ({
       </View>
 
       {isDropdownOpen && (
-        <Pressable
-          className="absolute inset-0 z-10"
-          onPress={() => setIsDropdownOpen(false)}
-        />
+        <Pressable className="absolute inset-0 z-10" onPress={() => setIsDropdownOpen(false)} />
       )}
 
       <View className="mt-20 px-2">

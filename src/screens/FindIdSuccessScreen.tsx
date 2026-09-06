@@ -6,18 +6,19 @@ import type { RootStackParamList } from '@/navigation/types';
 import CheckImage from '@/assets/images/check_image.png';
 
 const AUTO_ADVANCE_DELAY = 1000;
-const FOUND_USER_ID = 'asdf1234'; // TODO: 임시 아이디, 실제 인증 API 연동 시 제거
 
 type FindIdSuccessScreenProps = NativeStackScreenProps<RootStackParamList, 'FindIdSuccess'>;
 
-const FindIdSuccessScreen = ({ navigation }: FindIdSuccessScreenProps) => {
+const FindIdSuccessScreen = ({ navigation, route }: FindIdSuccessScreenProps) => {
+  const { userId } = route.params;
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.replace('FindIdResult', { userId: FOUND_USER_ID });
+      navigation.replace('FindIdResult', { userId });
     }, AUTO_ADVANCE_DELAY);
 
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [navigation, userId]);
 
   return (
     <View className="flex-1 overflow-hidden bg-background">
@@ -32,7 +33,11 @@ const FindIdSuccessScreen = ({ navigation }: FindIdSuccessScreenProps) => {
 
       <View className="flex-1 items-center justify-center">
         <View className="h-64 w-full">
-          <Image source={CheckImage} resizeMode="contain" style={{ width: '100%', height: '100%' }} />
+          <Image
+            source={CheckImage}
+            resizeMode="contain"
+            style={{ width: '100%', height: '100%' }}
+          />
         </View>
 
         <Text className="mt-8 font-notoSansKRBold text-lg text-black">
