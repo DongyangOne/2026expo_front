@@ -32,6 +32,7 @@ interface AuthState {
   // 액션
   setUser: (user: User) => void;
   setAuth: (res: LoginResponse) => void;
+  persistAuth: (res: LoginResponse, rememberMe: 'Y' | 'N') => Promise<void>;
   setTokens: (tokens: AuthTokens) => void;
   restoreSession: () => Promise<boolean>;
   logout: () => Promise<void>;
@@ -68,6 +69,20 @@ export const useAuthStore = create<AuthState>()(
         state.refreshToken = res.refreshToken;
         state.rememberMe = res.rememberMe;
       }),
+
+    persistAuth: async (res, rememberMe) => {
+      useAuthStore.getState().setAuth({ ...res, rememberMe });
+
+      if (rememberMe === 'Y') {
+        const { authUser } = useAuthStore.getState();
+
+        await AsyncStorage.multiSet([
+          [STORAGE_KEYS.ACCESS_TOKEN, res.accessToken],
+          [STORAGE_KEYS.REFRESH_TOKEN, res.refreshToken],
+          [STORAGE_KEYS.AUTH_USER, JSON.stringify(authUser)],
+        ]);
+      }
+    },
 
     setTokens: (tokens) =>
       set((state) => {

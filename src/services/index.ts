@@ -1,6 +1,7 @@
 export { default as apiInstance } from './instance';
 export {
   checkFindIdVerificationCode,
+  kakaoLogin,
   login,
   logout,
   naverLogin,

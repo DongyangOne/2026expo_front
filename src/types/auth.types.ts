@@ -18,10 +18,20 @@ export interface LoginResponse extends AuthUser {
   refreshToken: string;
 }
 
-export interface NaverLoginRequest {
+export interface KakaoLoginRequest {
   code: string;
   redirectUri: string;
   rememberMe: 'Y' | 'N';
+}
+
+export type NaverLoginRequest = KakaoLoginRequest;
+
+export interface KakaoSignupRequiredResponse {
+  needsSignup: 'Y';
+  socialProviderId: string;
+  socialType: 'KAKAO';
+  email: string;
+  username: string;
 }
 
 export interface NaverSignupRequiredResponse {
@@ -32,6 +42,12 @@ export interface NaverSignupRequiredResponse {
   email: string;
   username: string;
 }
+
+export interface KakaoLoginSuccessResponse extends LoginResponse {
+  needsSignup: 'N';
+}
+
+export type KakaoLoginResponse = KakaoSignupRequiredResponse | KakaoLoginSuccessResponse;
 
 export interface NaverLoginSuccessResponse extends LoginResponse {
   needsSignup: 'N';

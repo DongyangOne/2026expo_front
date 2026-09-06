@@ -432,9 +432,7 @@ const SignupScreen = ({ navigation, route }: Props) => {
         agreeTerms: agreed ? ('Y' as const) : ('N' as const),
         social: socialInfo?.socialType ?? ('LOCAL' as const),
         ...(isSocialSignup ? { providerId: socialInfo.socialProviderId } : { password }),
-      };
-
-      await signup(payload);
+      });
 
       setToastMessage('가입완료. 다시 로그인 해주세요.');
       setTimeout(() => {

@@ -15,6 +15,7 @@ export type RootTabParamList = {
 export type RootStackParamList = {
   Splash: undefined;
   Login: { qrToken?: string; loginId?: string } | undefined;
+  KakaoLogin: { qrToken?: string; rememberMe?: 'Y' | 'N' } | undefined;
   NaverLogin: { qrToken?: string; rememberMe?: 'Y' | 'N' } | undefined;
   Tabs: NavigatorScreenParams<RootTabParamList>;
   FeedbackDetail: { id: number };
