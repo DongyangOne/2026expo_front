@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Config from 'react-native-config';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,8 +22,12 @@ type Props = NativeStackScreenProps<RootStackParamList, 'GoogleLogin'>;
 
 const GOOGLE_AUTHORIZE_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_LOGIN_ERROR_MESSAGE = '구글 로그인에 실패했습니다.';
-const GOOGLE_LOGIN_CANCELLED_MESSAGE = '구글 로그인 요청을 취소했어요.';
+const GOOGLE_LOGIN_CONFIG_ERROR_MESSAGE = '구글 로그인 설정이 누락되었습니다.';
+const WEBVIEW_LOAD_ERROR_MESSAGE = '구글 로그인 페이지를 불러오지 못했어요.';
 const TOAST_DURATION_MS = 2500;
+
+/** 인가 요청 중(authorizing) → 받은 인가 코드를 서버와 교환 중(exchanging). 두 단계를 하나의 boolean으로 섞지 않는다. */
+type LoginPhase = 'authorizing' | 'exchanging';
 
 const extractQueryParam = (url: string, key: string): string | null => {
   const queryStart = url.indexOf('?');
@@ -42,14 +46,23 @@ const generateState = (): string =>
 const GoogleLoginScreen = ({ navigation, route }: Props) => {
   const persistAuth = useAuthStore((state) => state.persistAuth);
 
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [phase, setPhase] = useState<LoginPhase>('authorizing');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [hasHandledRedirect, setHasHandledRedirect] = useState(false);
-  const [csrfState] = useState(generateState);
-  const hasHandledRedirectRef = useRef(false);
+  const [loadErrorMessage, setLoadErrorMessage] = useState<string | null>(null);
+  const [authorizeAttempt, setAuthorizeAttempt] = useState(0);
+  const [csrfState, setCsrfState] = useState(generateState);
+  /** 이미 처리한 리다이렉트 URL. 같은 리다이렉트가 세 콜백으로 중복 통지되는 것을 막는다. */
+  const handledRedirectUrlRef = useRef<string | null>(null);
 
   const clientId = Config.GOOGLE_CLIENT_ID;
   const redirectUri = Config.GOOGLE_REDIRECT_URI;
+  const isConfigured = !!clientId && !!redirectUri;
+
+  const authorizeUrl = `${GOOGLE_AUTHORIZE_URL}?response_type=code&client_id=${encodeURIComponent(
+    clientId ?? '',
+  )}&redirect_uri=${encodeURIComponent(redirectUri ?? '')}&scope=${encodeURIComponent(
+    'openid email profile',
+  )}&state=${encodeURIComponent(csrfState)}&prompt=select_account`;
 
   useEffect(() => {
     if (!toastMessage) {
@@ -60,18 +73,39 @@ const GoogleLoginScreen = ({ navigation, route }: Props) => {
     return () => clearTimeout(timer);
   }, [toastMessage]);
 
-  const authorizeUrl = `${GOOGLE_AUTHORIZE_URL}?response_type=code&client_id=${encodeURIComponent(
-    clientId ?? '',
-  )}&redirect_uri=${encodeURIComponent(redirectUri ?? '')}&scope=${encodeURIComponent(
-    'openid email profile',
-  )}&state=${encodeURIComponent(csrfState)}&prompt=select_account`;
+  // 설정이 비어 있으면 빈 화면에 머무르게 두지 않고, 안내한 뒤 되돌아간다.
+  const configErrorMessage = isConfigured ? null : GOOGLE_LOGIN_CONFIG_ERROR_MESSAGE;
+
+  useEffect(() => {
+    if (isConfigured) {
+      return;
+    }
+
+    const timer = setTimeout(() => navigation.goBack(), TOAST_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [isConfigured, navigation]);
+
+  /** 리다이렉트 URI 자체이거나 그 뒤에 쿼리가 붙은 주소만 콜백으로 인정한다. */
+  const isRedirectUrl = (url: string): boolean =>
+    !!redirectUri && (url === redirectUri || url.startsWith(`${redirectUri}?`));
+
+  /** 실패한 시도를 버리고 인가 요청부터 다시 시작한다. state도 새로 발급해 이전 시도의 응답을 받지 않는다. */
+  const restartAuthorization = (message?: string): void => {
+    if (message) {
+      setToastMessage(message);
+    }
+
+    handledRedirectUrlRef.current = null;
+    setLoadErrorMessage(null);
+    setCsrfState(generateState());
+    setAuthorizeAttempt((prev) => prev + 1);
+    setPhase('authorizing');
+  };
 
   const handleGoogleCode = async (code: string): Promise<void> => {
     if (!redirectUri) {
       return;
     }
-
-    setIsProcessing(true);
 
     try {
       const rememberMe = route.params?.rememberMe ?? 'N';
@@ -91,66 +125,58 @@ const GoogleLoginScreen = ({ navigation, route }: Props) => {
 
       const qrToken = route.params?.qrToken;
 
+      // 로그인에 성공한 뒤에는 뒤로가기로 로그인 화면에 돌아갈 수 없어야 하므로 스택을 비운다.
       if (qrToken) {
-        navigation.replace('QrLogin', { qrToken });
+        navigation.reset({ index: 0, routes: [{ name: 'QrLogin', params: { qrToken } }] });
         return;
       }
 
-      navigation.replace('MobileTabs');
+      navigation.reset({ index: 0, routes: [{ name: 'MobileTabs' }] });
     } catch (error) {
-      setToastMessage(error instanceof Error ? error.message : GOOGLE_LOGIN_ERROR_MESSAGE);
-      hasHandledRedirectRef.current = false;
-      setHasHandledRedirect(false);
-    } finally {
-      setIsProcessing(false);
+      restartAuthorization(error instanceof Error ? error.message : GOOGLE_LOGIN_ERROR_MESSAGE);
     }
   };
 
-  const handleRedirectUrl = (url: string): boolean => {
-    if (hasHandledRedirectRef.current) {
-      return true;
+  const handleRedirectUrl = (url: string): void => {
+    if (handledRedirectUrlRef.current === url) {
+      return;
     }
 
-    const responseState = extractQueryParam(url, 'state');
-    const oauthError = extractQueryParam(url, 'error');
-    const oauthErrorDescription = extractQueryParam(url, 'error_description');
+    handledRedirectUrlRef.current = url;
 
-    hasHandledRedirectRef.current = true;
-    setHasHandledRedirect(true);
+    const oauthError = extractQueryParam(url, 'error');
+
+    // 사용자가 직접 취소한 경우엔 인가 화면을 다시 띄우지 않고 로그인 화면으로 돌려보낸다.
+    if (oauthError === 'access_denied') {
+      navigation.goBack();
+      return;
+    }
 
     if (oauthError) {
-      setToastMessage(
-        oauthError === 'access_denied'
-          ? GOOGLE_LOGIN_CANCELLED_MESSAGE
-          : oauthErrorDescription ?? GOOGLE_LOGIN_ERROR_MESSAGE,
+      restartAuthorization(
+        extractQueryParam(url, 'error_description') ?? GOOGLE_LOGIN_ERROR_MESSAGE,
       );
-      hasHandledRedirectRef.current = false;
-      setHasHandledRedirect(false);
-      return true;
+      return;
     }
 
-    if (responseState !== csrfState) {
-      setToastMessage(GOOGLE_LOGIN_ERROR_MESSAGE);
-      hasHandledRedirectRef.current = false;
-      setHasHandledRedirect(false);
-      return true;
+    if (extractQueryParam(url, 'state') !== csrfState) {
+      restartAuthorization(GOOGLE_LOGIN_ERROR_MESSAGE);
+      return;
     }
 
     const code = extractQueryParam(url, 'code');
 
-    if (code) {
-      void handleGoogleCode(code);
-    } else {
-      setToastMessage(GOOGLE_LOGIN_ERROR_MESSAGE);
-      hasHandledRedirectRef.current = false;
-      setHasHandledRedirect(false);
+    if (!code) {
+      restartAuthorization(GOOGLE_LOGIN_ERROR_MESSAGE);
+      return;
     }
 
-    return true;
+    setPhase('exchanging');
+    void handleGoogleCode(code);
   };
 
   const handleShouldStartLoad = (request: ShouldStartLoadRequest): boolean => {
-    if (!redirectUri || !request.url.startsWith(redirectUri)) {
+    if (!isRedirectUrl(request.url)) {
       return true;
     }
 
@@ -158,8 +184,9 @@ const GoogleLoginScreen = ({ navigation, route }: Props) => {
     return false;
   };
 
+  // Android에서는 서버 리다이렉트가 onShouldStartLoadWithRequest를 거치지 않는 경우가 있어 두 콜백으로 보완한다.
   const handleLoadStart = (event: WebViewNavigationEvent): void => {
-    if (!redirectUri || !event.nativeEvent.url.startsWith(redirectUri)) {
+    if (!isRedirectUrl(event.nativeEvent.url)) {
       return;
     }
 
@@ -167,31 +194,60 @@ const GoogleLoginScreen = ({ navigation, route }: Props) => {
   };
 
   const handleNavigationStateChange = (navigationState: WebViewNavigation): void => {
-    if (!redirectUri || !navigationState.url.startsWith(redirectUri)) {
+    if (!isRedirectUrl(navigationState.url)) {
       return;
     }
 
     handleRedirectUrl(navigationState.url);
   };
 
+  /**
+   * 리다이렉트 URI는 가로채기만 하고 실제로 로드하지 않으므로 그 주소의 로드 실패는 정상 흐름이다.
+   * 그 외의 실패는 삼키지 않고 사용자에게 알린다.
+   */
   const handleWebViewError = (event: WebViewErrorEvent): void => {
-    const errorUrl = event.nativeEvent.url;
+    const { url, description } = event.nativeEvent;
 
-    if (
-      hasHandledRedirectRef.current ||
-      (redirectUri && errorUrl && errorUrl.startsWith(redirectUri))
-    ) {
+    if (isRedirectUrl(url) || handledRedirectUrlRef.current !== null) {
       event.preventDefault();
+      return;
     }
+
+    setLoadErrorMessage(description || WEBVIEW_LOAD_ERROR_MESSAGE);
   };
+
+  const renderWebViewLoading = () => (
+    <View className="absolute inset-0 items-center justify-center bg-background">
+      <ActivityIndicator color="#7866FF" size="large" />
+    </View>
+  );
+
+  const renderWebViewError = () => (
+    <View className="absolute inset-0 items-center justify-center bg-background px-[24px]">
+      <Text className="text-center font-notoSansKRRegular text-sm text-body">
+        {loadErrorMessage ?? WEBVIEW_LOAD_ERROR_MESSAGE}
+      </Text>
+      <Pressable
+        accessibilityLabel="구글 로그인 다시 시도"
+        accessibilityRole="button"
+        className="mt-[20px] h-[48px] items-center justify-center rounded-[10px] bg-purple px-[24px]"
+        onPress={() => restartAuthorization()}>
+        <Text className="font-notoSansKRBold text-[15px] text-white">다시 시도</Text>
+      </Pressable>
+    </View>
+  );
 
   return (
     <View className="flex-1 bg-background">
       <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
-        <TopBar title="구글 로그인" onBack={() => navigation.goBack()} />
+        <TopBar
+          title="구글 로그인"
+          onBack={phase === 'exchanging' ? undefined : () => navigation.goBack()}
+        />
 
-        {clientId && redirectUri && !hasHandledRedirect ? (
+        {isConfigured && phase === 'authorizing' ? (
           <WebView
+            key={authorizeAttempt}
             source={{ uri: authorizeUrl, headers: { 'Accept-Language': 'ko-KR,ko;q=0.9' } }}
             style={{ flex: 1 }}
             onError={handleWebViewError}
@@ -201,22 +257,14 @@ const GoogleLoginScreen = ({ navigation, route }: Props) => {
             cacheEnabled={false}
             incognito
             startInLoadingState
-            renderLoading={() => (
-              <View className="absolute inset-0 items-center justify-center bg-background">
-                <ActivityIndicator color="#7866FF" size="large" />
-              </View>
-            )}
-            renderError={() => (
-              <View className="absolute inset-0 items-center justify-center bg-background">
-                <ActivityIndicator color="#7866FF" size="large" />
-              </View>
-            )}
+            renderLoading={renderWebViewLoading}
+            renderError={renderWebViewError}
           />
         ) : (
           <View className="flex-1 items-center justify-center bg-background" />
         )}
 
-        {isProcessing ? (
+        {phase === 'exchanging' ? (
           <View className="absolute inset-0 items-center justify-center bg-[rgba(255,255,255,0.6)]">
             <ActivityIndicator color="#7866FF" size="large" />
           </View>
@@ -224,10 +272,8 @@ const GoogleLoginScreen = ({ navigation, route }: Props) => {
       </SafeAreaView>
 
       <LoginToast
-        message={
-          toastMessage ?? (!clientId || !redirectUri ? '구글 로그인 설정이 누락되었습니다.' : '')
-        }
-        visible={!!toastMessage || !clientId || !redirectUri}
+        message={toastMessage ?? configErrorMessage ?? ''}
+        visible={!!toastMessage || !!configErrorMessage}
       />
     </View>
   );
