@@ -24,6 +24,9 @@ const REISSUE_URL = '/api/v1/auth/token';
 const ADMIN_LOGIN_URL = '/api/v1/admin/login';
 const ADMIN_REISSUE_URL = '/api/v1/admin/reissue';
 const QR_TOKEN_ENDPOINT = '/api/v1/auth/qr/token';
+// 로그인 없이 진행하는 흐름. 401은 "인증코드/토큰이 유효하지 않다"는 뜻이므로
+// 재발급·강제 로그아웃 대상에서 제외하고 화면이 직접 처리하게 둔다.
+const PUBLIC_AUTH_URL_PREFIXES = ['/api/v1/auth/find-password', '/api/v1/auth/find-id'];
 
 /**
  * 로그인 계열 요청의 401은 액세스 토큰 만료가 아니라 로그인 실패(예: 탈퇴한 회원)이므로
@@ -34,6 +37,9 @@ const isLoginEndpoint = (url?: string): boolean =>
 
 const isAdminUrl = (url?: string): boolean =>
   !!url && (url.startsWith(ADMIN_URL_PREFIX) || url === ADMIN_FEEDBACK_LIST_URL);
+
+const isPublicAuthUrl = (url?: string): boolean =>
+  !!url && PUBLIC_AUTH_URL_PREFIXES.some((prefix) => url.startsWith(prefix));
 
 const instance = axios.create({
   baseURL: Config.API_BASE_URL,
@@ -147,8 +153,9 @@ instance.interceptors.response.use(
     const isLoginRequest = isLoginEndpoint(config?.url);
     const isLogoutRequest = config?.url === LOGOUT_URL;
     const isReissueRequest = config?.url === REISSUE_URL;
+    const isPublicAuthRequest = isPublicAuthUrl(config?.url);
 
-    if (status === 401 && !isLoginRequest && !isLogoutRequest) {
+    if (status === 401 && !isLoginRequest && !isLogoutRequest && !isPublicAuthRequest) {
       const canReissue = !isReissueRequest && config !== undefined && !config._retry;
 
       if (canReissue) {

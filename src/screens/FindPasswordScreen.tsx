@@ -4,15 +4,28 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { GradientButton, TopBar } from '@/components/ui';
 import type { RootStackParamList } from '@/navigation/types';
+import { checkFindPasswordVerificationCode, sendFindPasswordVerificationCode } from '@/services';
+import {
+  getRemainingSeconds,
+  getServerMessage,
+  isNetworkError,
+  NETWORK_ERROR_MESSAGE,
+} from '@/utils';
 
 type FindPasswordScreenProps = NativeStackScreenProps<RootStackParamList, 'FindPassword'>;
 
 const TIMER_SECONDS = 5 * 60;
 const PLACEHOLDER_COLOR = '#9CA3AF';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const CORRECT_CODE = '123456'; // TODO: 임시 코드, 실제 인증 API 연동 시 제거
-const REGISTERED_ID = 'asdf1234'; // TODO: 임시 아이디, 실제 인증 API 연동 시 제거
 const TOAST_DURATION = 2000;
+const EMAIL_SEND_ERROR_MESSAGE = '인증번호 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+const VERIFY_CODE_ERROR_MESSAGE = '인증번호 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+
+// 응답 인터셉터가 에러 본문의 code를 버리고 message만 남기기 때문에
+// 화면에서는 문구의 핵심 키워드로 판별한다.
+// (code를 그대로 전달하도록 인터셉터를 고치면 이 우회는 제거할 수 있다.)
+const AUTH_CODE_EXPIRED_KEYWORD = '만료';
+const AUTH_CODE_MISMATCH_KEYWORD = '일치';
 
 const InlineError = ({ message }: { message: string }) => (
   <View className="ml-6 mt-2">
@@ -20,7 +33,10 @@ const InlineError = ({ message }: { message: string }) => (
   </View>
 );
 
-const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
+const FindPasswordScreen = ({ navigation, route }: FindPasswordScreenProps) => {
+  // 토큰 만료 등으로 재설정 화면에서 되돌아온 경우 그 사유를 안내한다.
+  const returnMessage = route.params?.message ?? null;
+
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [userId, setUserId] = useState('');
@@ -28,8 +44,9 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
   const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [codeError, setCodeError] = useState<string | null>(null);
-  const [idError, setIdError] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(returnMessage);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -47,9 +64,9 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
     return `${m}:${s}`;
   };
 
-  const startTimer = (): void => {
+  const startTimer = (seconds: number = TIMER_SECONDS): void => {
     if (timerRef.current) clearInterval(timerRef.current);
-    setTimeLeft(TIMER_SECONDS);
+    setTimeLeft(seconds);
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -61,7 +78,11 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
     }, 1000);
   };
 
-  const handleEmailVerify = (): void => {
+  const handleEmailVerify = async (): Promise<void> => {
+    if (!userId.trim()) {
+      showToast('아이디를 입력해 주세요');
+      return;
+    }
     if (!email.trim()) {
       showToast('이메일을 입력해 주세요');
       return;
@@ -70,41 +91,90 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
       setEmailError('이메일 형식이 잘못되었습니다.');
       return;
     }
+    if (isSendingEmail) return;
+
     setEmailError(null);
     setCodeError(null);
     setVerificationCode('');
     setIsCodeSent(true);
     startTimer();
+    setIsSendingEmail(true);
+
+    try {
+      const response = await sendFindPasswordVerificationCode({
+        email,
+        loginId: userId.trim(),
+      });
+      startTimer(getRemainingSeconds(response.data.expiredAt, TIMER_SECONDS));
+    } catch (error: unknown) {
+      setIsCodeSent(false);
+      if (timerRef.current) clearInterval(timerRef.current);
+
+      if (isNetworkError(error)) {
+        showToast(NETWORK_ERROR_MESSAGE);
+        return;
+      }
+
+      showToast(getServerMessage(error) ?? EMAIL_SEND_ERROR_MESSAGE);
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
-  const handleVerify = (): void => {
+  const handleVerify = async (): Promise<void> => {
+    if (!userId.trim()) {
+      showToast('아이디를 입력해 주세요');
+      return;
+    }
     if (!email.trim()) {
       showToast('이메일을 입력해 주세요');
       return;
     }
     if (isCodeSent && timeLeft === 0) {
-      showToast('시간초과, 다시 입력해 주세요');
+      showToast('시간초과, 인증번호를 다시 받아 주세요');
       return;
     }
     if (!verificationCode.trim()) {
       showToast('인증번호를 입력해 주세요');
       return;
     }
-    if (verificationCode.trim() !== CORRECT_CODE) {
-      setCodeError('인증 번호가 잘못되었습니다.');
-      return;
+    if (isVerifying) return;
+
+    setIsVerifying(true);
+
+    try {
+      const response = await checkFindPasswordVerificationCode({
+        email,
+        authCode: verificationCode.trim(),
+        loginId: userId.trim(),
+      });
+
+      setCodeError(null);
+      navigation.replace('FindPasswordSuccess', {
+        passwordResetToken: response.data.passwordResetToken,
+      });
+    } catch (error: unknown) {
+      if (isNetworkError(error)) {
+        showToast(NETWORK_ERROR_MESSAGE);
+        return;
+      }
+
+      const message = getServerMessage(error);
+
+      if (message?.includes(AUTH_CODE_EXPIRED_KEYWORD)) {
+        setTimeLeft(0);
+        setCodeError(message);
+        return;
+      }
+      if (message?.includes(AUTH_CODE_MISMATCH_KEYWORD)) {
+        setCodeError(message);
+        return;
+      }
+
+      showToast(message ?? VERIFY_CODE_ERROR_MESSAGE);
+    } finally {
+      setIsVerifying(false);
     }
-    if (!userId.trim()) {
-      showToast('아이디를 입력해 주세요');
-      return;
-    }
-    if (userId.trim() !== REGISTERED_ID) {
-      setIdError('아이디가 일치하지 않습니다.');
-      return;
-    }
-    setCodeError(null);
-    setIdError(null);
-    navigation.replace('FindPasswordSuccess');
   };
 
   useEffect(() => {
@@ -114,7 +184,16 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!returnMessage) return;
+
+    const timer = setTimeout(() => setToastMessage(null), TOAST_DURATION);
+
+    return () => clearTimeout(timer);
+  }, [returnMessage]);
+
   const timerColorClass = 'text-red';
+  const isCodeExpired = isCodeSent && timeLeft === 0;
 
   return (
     <KeyboardAvoidingView
@@ -129,6 +208,27 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
           {'가입 시 등록한 정보로\n비밀번호를 찾을 수 있습니다.'}
         </Text>
 
+        {/* 아이디 */}
+        <View className="mb-4">
+          <Text className="mb-2 font-notoSansKRRegular text-sm text-black">
+            아이디 <Text className="text-pink">*</Text>
+          </Text>
+          <View className="h-14 flex-row items-center overflow-hidden rounded-xl border border-border bg-white pl-3">
+            <TextInput
+              className={`h-14 flex-1 py-0 font-notoSansKRRegular text-sm text-black ${
+                isCodeSent ? 'opacity-50' : ''
+              }`}
+              placeholder="아이디를 입력해 주세요."
+              placeholderTextColor={PLACEHOLDER_COLOR}
+              value={userId}
+              onChangeText={setUserId}
+              editable={!isCodeSent}
+              autoCapitalize="none"
+              textAlignVertical="center"
+            />
+          </View>
+        </View>
+
         {/* 이메일 */}
         <View className="mb-4">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-black">
@@ -136,7 +236,9 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
           </Text>
           <View className="h-14 flex-row items-center overflow-hidden rounded-xl border border-border bg-white pl-3">
             <TextInput
-              className="h-14 flex-1 py-0 font-notoSansKRRegular text-sm text-black"
+              className={`h-14 flex-1 py-0 font-notoSansKRRegular text-sm text-black ${
+                isCodeSent ? 'opacity-50' : ''
+              }`}
               placeholder="이메일을 입력해주세요."
               placeholderTextColor={PLACEHOLDER_COLOR}
               value={email}
@@ -144,14 +246,16 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
                 setEmail(text);
                 setEmailError(null);
               }}
+              editable={!isCodeSent}
               keyboardType="email-address"
               autoCapitalize="none"
               textAlignVertical="center"
             />
-            {!isCodeSent && (
+            {(!isCodeSent || isCodeExpired) && (
               <GradientButton
-                label="이메일 인증"
+                label={isSendingEmail ? '발송 중...' : isCodeExpired ? '재전송' : '이메일 인증'}
                 onPress={handleEmailVerify}
+                disabled={isSendingEmail}
                 borderRadius={10}
                 fontSize={14}
                 fontWeight="regular"
@@ -189,33 +293,12 @@ const FindPasswordScreen = ({ navigation }: FindPasswordScreenProps) => {
           </View>
         )}
 
-        {/* 아이디 */}
-        <View className="mb-4">
-          <Text className="mb-2 font-notoSansKRRegular text-sm text-black">
-            아이디 <Text className="text-pink">*</Text>
-          </Text>
-          <View className="h-14 flex-row items-center overflow-hidden rounded-xl border border-border bg-white pl-3">
-            <TextInput
-              className="h-14 flex-1 py-0 font-notoSansKRRegular text-sm text-black"
-              placeholder="아이디를 입력해 주세요."
-              placeholderTextColor={PLACEHOLDER_COLOR}
-              value={userId}
-              onChangeText={(text) => {
-                setUserId(text);
-                setIdError(null);
-              }}
-              autoCapitalize="none"
-              textAlignVertical="center"
-            />
-          </View>
-          {idError && <InlineError message={idError} />}
-        </View>
-
         {/* 하단 버튼 */}
         <View className="flex-1 justify-end px-8 pb-32">
           <GradientButton
-            label="본인인증 하기"
+            label={isVerifying ? '확인 중...' : '본인인증 하기'}
             onPress={handleVerify}
+            disabled={isVerifying}
             height={54}
             borderRadius={27}
             fontSize={16}

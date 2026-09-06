@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import axios from 'axios';
 
 import { GradientButton, TopBar } from '@/components/ui';
 import type { RootStackParamList } from '@/navigation/types';
 import { checkFindIdVerificationCode, sendFindIdVerificationCode } from '@/services';
+import {
+  getRemainingSeconds,
+  getServerMessage,
+  isNetworkError,
+  NETWORK_ERROR_MESSAGE,
+} from '@/utils';
 
 type FindIdScreenProps = NativeStackScreenProps<RootStackParamList, 'FindId'>;
 
@@ -15,27 +20,12 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TOAST_DURATION = 2000;
 const EMAIL_SEND_ERROR_MESSAGE = '인증번호 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.';
 const VERIFY_CODE_ERROR_MESSAGE = '인증번호 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
-const NETWORK_ERROR_MESSAGE = '네트워크 연결을 확인한 후 다시 시도해 주세요.';
 
 // 응답 인터셉터가 에러 본문의 code를 버리고 message만 남기기 때문에
 // 화면에서는 문구의 핵심 키워드로 판별한다.
 // (code를 그대로 전달하도록 인터셉터를 고치면 이 우회는 제거할 수 있다.)
 const AUTH_CODE_EXPIRED_KEYWORD = '만료';
 const AUTH_CODE_MISMATCH_KEYWORD = '일치';
-
-// 응답을 받지 못한 경우(연결 끊김·타임아웃)에는 인터셉터가 AxiosError를
-// 그대로 넘기므로, 'Network Error' 같은 내부 문구가 노출되지 않도록 걸러낸다.
-const isNetworkError = (error: unknown): boolean => axios.isAxiosError(error) && !error.response;
-
-const getServerMessage = (error: unknown): string | null => {
-  if (isNetworkError(error) || !(error instanceof Error)) {
-    return null;
-  }
-
-  const message = error.message.trim();
-
-  return message.length > 0 ? message : null;
-};
 
 const InlineError = ({ message }: { message: string }) => (
   <View className="ml-4 mt-2">
@@ -104,12 +94,8 @@ const FindIdScreen = ({ navigation }: FindIdScreenProps) => {
 
     try {
       const response = await sendFindIdVerificationCode({ email });
-      const remaining = Math.max(
-        0,
-        Math.round((new Date(response.data.expiredAt).getTime() - Date.now()) / 1000),
-      );
 
-      startTimer(remaining || TIMER_SECONDS);
+      startTimer(getRemainingSeconds(response.data.expiredAt, TIMER_SECONDS));
     } catch (error: unknown) {
       setIsCodeSent(false);
       if (timerRef.current) clearInterval(timerRef.current);

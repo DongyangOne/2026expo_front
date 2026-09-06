@@ -35,10 +35,6 @@ export interface NaverLoginRequest {
   redirectUri: string;
   rememberMe: 'Y' | 'N';
 }
-  code: string;
-  redirectUri: string;
-  rememberMe: 'Y' | 'N';
-}
 
 export interface GoogleSignupRequiredResponse {
   needsSignup: 'Y';
@@ -47,8 +43,6 @@ export interface GoogleSignupRequiredResponse {
   email: string;
   username: string;
 }
-
-export type NaverLoginRequest = KakaoLoginRequest;
 
 export interface KakaoSignupRequiredResponse {
   needsSignup: 'Y';
@@ -63,9 +57,6 @@ export interface NaverSignupRequiredResponse {
   needsSignup: 'Y';
   socialProviderId: string;
   socialType: 'NAVER';
-  email: string;
-  username: string;
-}
   email: string;
   username: string;
 }
@@ -149,6 +140,16 @@ export interface AdminReissueData {
   refreshToken: string;
 }
 
+export interface FindPasswordSendRequest {
+  email: string;
+  loginId: string;
+}
+
+export interface FindPasswordSendResponse {
+  email: string;
+  expiredAt: string;
+}
+
 export interface FindIdSendRequest {
   email: string;
 }
@@ -156,6 +157,22 @@ export interface FindIdSendRequest {
 export interface FindIdSendResponse {
   email: string;
   expiredAt: string;
+}
+
+export interface FindPasswordCheckRequest {
+  email: string;
+  authCode: string;
+  loginId: string;
+}
+
+export interface FindPasswordCheckResponse {
+  id: number;
+  passwordResetToken: string;
+}
+
+export interface FindPasswordResetRequest {
+  passwordResetToken: string;
+  newPassword: string;
 }
 
 export interface FindIdCheckRequest {
