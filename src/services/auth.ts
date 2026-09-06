@@ -1,5 +1,9 @@
 import type {
   ApiResponse,
+  FindIdCheckRequest,
+  FindIdCheckResponse,
+  FindIdSendRequest,
+  FindIdSendResponse,
   KakaoLoginRequest,
   KakaoLoginResponse,
   LoginRequest,
@@ -32,6 +36,22 @@ export const logout = (): Promise<ApiResponse<{ message: string }>> => {
 export const reissueToken = (refreshToken: string): Promise<ApiResponse<ReissueTokenResponse>> =>
   apiInstance
     .post<ApiResponse<ReissueTokenResponse>>('/api/v1/auth/token', { refreshToken })
+    .then((res) => res.data);
+
+// 아이디 찾기 - 인증번호 발송
+export const sendFindIdVerificationCode = (
+  payload: FindIdSendRequest,
+): Promise<ApiResponse<FindIdSendResponse>> =>
+  apiInstance
+    .post<ApiResponse<FindIdSendResponse>>('/api/v1/auth/find-id/send', payload)
+    .then((res) => res.data);
+
+// 아이디 찾기 - 인증번호 검증 및 ID 반환
+export const checkFindIdVerificationCode = (
+  payload: FindIdCheckRequest,
+): Promise<ApiResponse<FindIdCheckResponse>> =>
+  apiInstance
+    .post<ApiResponse<FindIdCheckResponse>>('/api/v1/auth/find-id/check', payload)
     .then((res) => res.data);
 
 // 회원탈퇴

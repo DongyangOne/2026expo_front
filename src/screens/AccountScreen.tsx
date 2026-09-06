@@ -9,8 +9,8 @@ import type { RootStackParamList } from '@/navigation/types';
 import { useEffect, useState } from 'react';
 import { getProfile } from '@/services';
 
-import ProfileImage from '../assets/images/profile.svg';
-import Arrow from '../assets/images/arrow.svg';
+import ProfileImage from '@/assets/images/profile.svg';
+import Arrow from '@/assets/images/arrow.svg';
 
 interface Profile {
   userId: number;

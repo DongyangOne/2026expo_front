@@ -14,7 +14,7 @@ export type RootTabParamList = {
 
 export type RootStackParamList = {
   Splash: undefined;
-  Login: { qrToken?: string } | undefined;
+  Login: { qrToken?: string; loginId?: string } | undefined;
   KakaoLogin: { qrToken?: string; rememberMe?: 'Y' | 'N' } | undefined;
   Tabs: NavigatorScreenParams<RootTabParamList>;
   FeedbackDetail: { id: number };
@@ -40,9 +40,9 @@ export type RootStackParamList = {
   ResetPassword: undefined;
   ResetPasswordSuccess: undefined;
   FindId: undefined;
-  FindIdSuccess: undefined;
+  FindIdSuccess: { userId: string };
   FindIdResult: { userId: string };
-  TabletTrashFeedback: undefined;
+  TabletTrashFeedback: { clientId?: string } | undefined;
   EditProfile: undefined;
 
   UserAuth: undefined;
