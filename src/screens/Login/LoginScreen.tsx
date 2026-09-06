@@ -110,8 +110,6 @@ const LoginScreen = ({ navigation, route }: Props) => {
   };
 
   const handleSocialPress = (provider: 'google' | 'naver' | 'kakao') => {
-    console.log('[LoginScreen] social login pressed:', provider);
-
     if (provider === 'google') {
       navigation.navigate('GoogleLogin', {
         qrToken: route.params?.qrToken,
