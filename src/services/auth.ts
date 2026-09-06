@@ -20,9 +20,7 @@ export const login = (payload: LoginRequest): Promise<ApiResponse<LoginResponse>
     .post<ApiResponse<LoginResponse>>('/api/v1/auth/login', payload)
     .then((res) => res.data);
 
-export const naverLogin = (
-  payload: NaverLoginRequest,
-): Promise<ApiResponse<NaverLoginResponse>> =>
+export const naverLogin = (payload: NaverLoginRequest): Promise<ApiResponse<NaverLoginResponse>> =>
   apiInstance
     .post<ApiResponse<NaverLoginResponse>>('/api/v1/auth/naver', payload)
     .then((res) => res.data);
