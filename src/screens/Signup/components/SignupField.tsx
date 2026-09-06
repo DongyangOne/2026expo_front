@@ -13,6 +13,7 @@ interface SignupFieldProps {
   helperText?: string;
   helperVariant?: 'error' | 'success';
   blinkToken?: number;
+  editable?: boolean;
   keyboardType?: TextInputProps['keyboardType'];
   editable?: boolean;
   onChangeText: (value: string) => void;
@@ -27,6 +28,7 @@ const SignupField = ({
   helperText,
   helperVariant = 'error',
   blinkToken,
+  editable = true,
   keyboardType,
   editable = true,
   onChangeText,

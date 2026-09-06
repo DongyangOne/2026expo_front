@@ -8,6 +8,8 @@ import type {
   GoogleLoginResponse,
   LoginRequest,
   LoginResponse,
+  NaverLoginRequest,
+  NaverLoginResponse,
   ReissueTokenResponse,
   WithdrawalRequest,
   WithdrawalResponse,
@@ -25,6 +27,12 @@ export const googleLogin = (
 ): Promise<ApiResponse<GoogleLoginResponse>> =>
   apiInstance
     .post<ApiResponse<GoogleLoginResponse>>('/api/v1/auth/google', payload)
+    .then((res) => res.data);
+
+export const naverLogin = (payload: NaverLoginRequest): Promise<ApiResponse<NaverLoginResponse>> =>
+  apiInstance
+    .post<ApiResponse<NaverLoginResponse>>('/api/v1/auth/naver', payload)
+    .then((res) => res.data);
     .then((res) => res.data);
 
 export const logout = (): Promise<ApiResponse<{ message: string }>> => {

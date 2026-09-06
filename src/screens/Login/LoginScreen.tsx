@@ -119,6 +119,20 @@ const LoginScreen = ({ navigation, route }: Props) => {
       });
       return;
     }
+
+    if (provider === 'naver') {
+      navigation.navigate('NaverLogin', {
+        qrToken: route.params?.qrToken,
+        rememberMe: autoLogin ? 'Y' : 'N',
+      });
+      return;
+    }
+        qrToken: route.params?.qrToken,
+        rememberMe: autoLogin ? 'Y' : 'N',
+      });
+      return;
+    }
+    // TODO: 구글/카카오 소셜 로그인 화면/SDK 연동
   };
 
   return (
