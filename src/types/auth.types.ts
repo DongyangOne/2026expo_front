@@ -35,10 +35,6 @@ export interface NaverLoginRequest {
   redirectUri: string;
   rememberMe: 'Y' | 'N';
 }
-  code: string;
-  redirectUri: string;
-  rememberMe: 'Y' | 'N';
-}
 
 export interface GoogleSignupRequiredResponse {
   needsSignup: 'Y';
@@ -47,8 +43,6 @@ export interface GoogleSignupRequiredResponse {
   email: string;
   username: string;
 }
-
-export type NaverLoginRequest = KakaoLoginRequest;
 
 export interface KakaoSignupRequiredResponse {
   needsSignup: 'Y';
@@ -63,9 +57,6 @@ export interface NaverSignupRequiredResponse {
   needsSignup: 'Y';
   socialProviderId: string;
   socialType: 'NAVER';
-  email: string;
-  username: string;
-}
   email: string;
   username: string;
 }

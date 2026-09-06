@@ -45,7 +45,6 @@ export const naverLogin = (payload: NaverLoginRequest): Promise<ApiResponse<Nave
   apiInstance
     .post<ApiResponse<NaverLoginResponse>>('/api/v1/auth/naver', payload)
     .then((res) => res.data);
-    .then((res) => res.data);
 
 export const logout = (): Promise<ApiResponse<{ message: string }>> => {
   return apiInstance
