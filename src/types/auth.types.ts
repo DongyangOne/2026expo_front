@@ -18,10 +18,34 @@ export interface LoginResponse extends AuthUser {
   refreshToken: string;
 }
 
+export interface GoogleLoginRequest {
+  code: string;
+  redirectUri: string;
+  rememberMe: 'Y' | 'N';
+}
+
 export interface KakaoLoginRequest {
   code: string;
   redirectUri: string;
   rememberMe: 'Y' | 'N';
+}
+
+export interface NaverLoginRequest {
+  code: string;
+  redirectUri: string;
+  rememberMe: 'Y' | 'N';
+}
+  code: string;
+  redirectUri: string;
+  rememberMe: 'Y' | 'N';
+}
+
+export interface GoogleSignupRequiredResponse {
+  needsSignup: 'Y';
+  socialProviderId: string;
+  socialType: 'GOOGLE';
+  email: string;
+  username: string;
 }
 
 export type NaverLoginRequest = KakaoLoginRequest;
@@ -42,6 +66,17 @@ export interface NaverSignupRequiredResponse {
   email: string;
   username: string;
 }
+  email: string;
+  username: string;
+}
+
+export interface GoogleLoginSuccessResponse extends LoginResponse {
+  needsSignup: 'N';
+  socialProviderId: string;
+  socialType: 'GOOGLE';
+}
+
+export type GoogleLoginResponse = GoogleSignupRequiredResponse | GoogleLoginSuccessResponse;
 
 export interface KakaoLoginSuccessResponse extends LoginResponse {
   needsSignup: 'N';

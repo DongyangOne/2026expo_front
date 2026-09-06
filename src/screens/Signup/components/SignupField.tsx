@@ -15,6 +15,7 @@ interface SignupFieldProps {
   blinkToken?: number;
   editable?: boolean;
   keyboardType?: TextInputProps['keyboardType'];
+  editable?: boolean;
   onChangeText: (value: string) => void;
 }
 
@@ -29,6 +30,7 @@ const SignupField = ({
   blinkToken,
   editable = true,
   keyboardType,
+  editable = true,
   onChangeText,
 }: SignupFieldProps) => {
   const flashOn = useBlink(blinkToken);

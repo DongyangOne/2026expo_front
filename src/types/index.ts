@@ -24,6 +24,10 @@ export type {
 export type {
   LoginRequest,
   AuthUser,
+  GoogleLoginRequest,
+  GoogleLoginResponse,
+  GoogleSignupRequiredResponse,
+  GoogleLoginSuccessResponse,
   LoginResponse,
   KakaoLoginRequest,
   KakaoLoginResponse,

@@ -429,10 +429,20 @@ const SignupScreen = ({ navigation, route }: Props) => {
         loginId: id,
         email,
         team: organization,
-        agreeTerms: agreed ? ('Y' as const) : ('N' as const),
-        social: socialInfo?.socialType ?? ('LOCAL' as const),
+        username: name,
+        loginId: id,
+        email,
+        team: organization,
+        agreeTerms: agreed ? 'Y' : 'N',
+        social: socialInfo?.socialType ?? 'LOCAL',
         ...(isSocialSignup ? { providerId: socialInfo.socialProviderId } : { password }),
-      });
+      };
+
+      const signupResponse = await signup(payload);
+
+      if (!signupResponse.success) {
+        throw new Error(signupResponse.message || SIGNUP_ERROR_MESSAGE);
+      }
 
       setToastMessage('가입완료. 다시 로그인 해주세요.');
       setTimeout(() => {
@@ -457,7 +467,11 @@ const SignupScreen = ({ navigation, route }: Props) => {
         setEmailStatus('duplicate');
       }
 
-      setToastMessage(axiosError.response?.data.message ?? SIGNUP_ERROR_MESSAGE);
+      setToastMessage(
+        error instanceof Error
+          ? error.message
+          : axiosError.response?.data.message ?? SIGNUP_ERROR_MESSAGE,
+      );
     } finally {
       setIsSubmitting(false);
     }

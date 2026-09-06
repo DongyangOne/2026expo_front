@@ -4,6 +4,8 @@ import type {
   FindIdCheckResponse,
   FindIdSendRequest,
   FindIdSendResponse,
+  GoogleLoginRequest,
+  GoogleLoginResponse,
   KakaoLoginRequest,
   KakaoLoginResponse,
   LoginRequest,
@@ -22,6 +24,13 @@ export const login = (payload: LoginRequest): Promise<ApiResponse<LoginResponse>
     .post<ApiResponse<LoginResponse>>('/api/v1/auth/login', payload)
     .then((res) => res.data);
 
+export const googleLogin = (
+  payload: GoogleLoginRequest,
+): Promise<ApiResponse<GoogleLoginResponse>> =>
+  apiInstance
+    .post<ApiResponse<GoogleLoginResponse>>('/api/v1/auth/google', payload)
+    .then((res) => res.data);
+
 export const kakaoLogin = (payload: KakaoLoginRequest): Promise<ApiResponse<KakaoLoginResponse>> =>
   apiInstance
     .post<ApiResponse<KakaoLoginResponse>>('/api/v1/auth/kakao', payload)
@@ -30,6 +39,7 @@ export const kakaoLogin = (payload: KakaoLoginRequest): Promise<ApiResponse<Kaka
 export const naverLogin = (payload: NaverLoginRequest): Promise<ApiResponse<NaverLoginResponse>> =>
   apiInstance
     .post<ApiResponse<NaverLoginResponse>>('/api/v1/auth/naver', payload)
+    .then((res) => res.data);
     .then((res) => res.data);
 
 export const logout = (): Promise<ApiResponse<{ message: string }>> => {

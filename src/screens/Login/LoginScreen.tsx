@@ -98,6 +98,14 @@ const LoginScreen = ({ navigation, route }: Props) => {
   };
 
   const handleSocialPress = (provider: 'google' | 'naver' | 'kakao') => {
+    if (provider === 'google') {
+      navigation.navigate('GoogleLogin', {
+        qrToken: route.params?.qrToken,
+        rememberMe: autoLogin ? 'Y' : 'N',
+      });
+      return;
+    }
+
     if (provider === 'kakao' || provider === 'naver') {
       navigation.navigate(provider === 'kakao' ? 'KakaoLogin' : 'NaverLogin', {
         qrToken: route.params?.qrToken,
