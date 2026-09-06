@@ -10,7 +10,7 @@ export interface QuizSessionData {
 
 export interface QuizAnswerRequest {
   currentQuizId: number;
-  answer: string;
+  answer: 'O' | 'X';
 }
 
 export interface QuizAnswerData {

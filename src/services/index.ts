@@ -2,13 +2,17 @@ export { default as apiInstance } from './instance';
 export {
   checkFindIdVerificationCode,
   checkFindPasswordVerificationCode,
+  googleLogin,
+  kakaoLogin,
   login,
   logout,
+  naverLogin,
   reissueToken,
   resetFindPassword,
   sendFindIdVerificationCode,
   sendFindPasswordVerificationCode,
 } from './auth';
+export { getMyDashboard } from './dashboard';
 export { checkAdminIdExists, loginAdmin, reissueAdminToken, signupAdmin } from './auth.service';
 export { clearAdminSession } from './authStorage.service';
 export { getTabletClassification } from './classification.service';

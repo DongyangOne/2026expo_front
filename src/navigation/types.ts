@@ -15,10 +15,20 @@ export type RootTabParamList = {
 export type RootStackParamList = {
   Splash: undefined;
   Login: { qrToken?: string; loginId?: string } | undefined;
+  GoogleLogin: { qrToken?: string; rememberMe?: 'Y' | 'N' } | undefined;
+  KakaoLogin: { qrToken?: string; rememberMe?: 'Y' | 'N' } | undefined;
+  NaverLogin: { qrToken?: string; rememberMe?: 'Y' | 'N' } | undefined;
   Tabs: NavigatorScreenParams<RootTabParamList>;
   FeedbackDetail: { id: number };
   MobileTabs: NavigatorScreenParams<RootTabParamList> | undefined;
-  Signup: undefined;
+  Signup:
+    | {
+        socialType: 'KAKAO' | 'NAVER' | 'GOOGLE';
+        socialProviderId: string;
+        prefillEmail: string;
+        prefillUsername: string;
+      }
+    | undefined;
   SignupComplete: undefined;
   Terms: { onAgree: () => void } | undefined;
   DeleteAccount: undefined;

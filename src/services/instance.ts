@@ -18,6 +18,7 @@ interface RetryableRequestConfig extends InternalAxiosRequestConfig {
 const ADMIN_URL_PREFIX = '/api/v1/admin';
 const ADMIN_FEEDBACK_LIST_URL = '/api/v1/feedback-detail';
 const LOGIN_URL = '/api/v1/auth/login';
+const SOCIAL_LOGIN_URLS = ['/api/v1/auth/kakao', '/api/v1/auth/naver', '/api/v1/auth/google'];
 const LOGOUT_URL = '/api/v1/auth/logout';
 const REISSUE_URL = '/api/v1/auth/token';
 const ADMIN_LOGIN_URL = '/api/v1/admin/login';
@@ -26,6 +27,13 @@ const QR_TOKEN_ENDPOINT = '/api/v1/auth/qr/token';
 // 로그인 없이 진행하는 흐름. 401은 "인증코드/토큰이 유효하지 않다"는 뜻이므로
 // 재발급·강제 로그아웃 대상에서 제외하고 화면이 직접 처리하게 둔다.
 const PUBLIC_AUTH_URL_PREFIXES = ['/api/v1/auth/find-password', '/api/v1/auth/find-id'];
+
+/**
+ * 로그인 계열 요청의 401은 액세스 토큰 만료가 아니라 로그인 실패(예: 탈퇴한 회원)이므로
+ * 토큰 재발급/강제 로그아웃 대상에서 제외한다. 그렇지 않으면 원인 안내 없이 로그인 화면으로 튕긴다.
+ */
+const isLoginEndpoint = (url?: string): boolean =>
+  !!url && (url === LOGIN_URL || SOCIAL_LOGIN_URLS.includes(url));
 
 const isAdminUrl = (url?: string): boolean =>
   !!url && (url.startsWith(ADMIN_URL_PREFIX) || url === ADMIN_FEEDBACK_LIST_URL);
@@ -142,7 +150,7 @@ instance.interceptors.response.use(
       return Promise.reject(new Error(adminMessage));
     }
 
-    const isLoginRequest = config?.url === LOGIN_URL;
+    const isLoginRequest = isLoginEndpoint(config?.url);
     const isLogoutRequest = config?.url === LOGOUT_URL;
     const isReissueRequest = config?.url === REISSUE_URL;
     const isPublicAuthRequest = isPublicAuthUrl(config?.url);

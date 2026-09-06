@@ -11,7 +11,7 @@ import FeedbackdetailScreen from '@/screens/FeedbackdetailScreen';
 import FindIdScreen from '@/screens/FindIdScreen';
 import FindIdSuccessScreen from '@/screens/FindIdSuccessScreen';
 import FindIdResultScreen from '@/screens/FindIdResultScreen';
-import LoginScreen from '@/screens/Login';
+import LoginScreen, { GoogleLoginScreen, KakaoLoginScreen, NaverLoginScreen } from '@/screens/Login';
 import QrLoginScreen from '@/screens/QrLoginScreen';
 import TabletMain from '@/screens/tablet/TabletMain';
 import TabletLogin from '@/screens/tablet/TabletLogin';
@@ -52,6 +52,9 @@ const RootNavigator = () => {
       screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="GoogleLogin" component={GoogleLoginScreen} />
+      <Stack.Screen name="KakaoLogin" component={KakaoLoginScreen} />
+      <Stack.Screen name="NaverLogin" component={NaverLoginScreen} />
       <Stack.Screen name="QrLogin" component={QrLoginScreen} />
       <Stack.Screen name="MobileTabs" component={TabNavigator} />
       <Stack.Screen name="Signup" component={SignupScreen} />

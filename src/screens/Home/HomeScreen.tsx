@@ -1,34 +1,29 @@
 import React, { useCallback } from 'react';
-import { Linking, Platform, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Platform, ScrollView, Text, View } from 'react-native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import recyclingGlass from '@/assets/images/recycling-glass.png';
-import recyclingPaper from '@/assets/images/recycling-paper.png';
-import recyclingPlastic from '@/assets/images/recycling-plastic.png';
+import { GradientButton } from '@/components/ui';
 import type { RootTabParamList } from '@/navigation/types';
+import { formatDotDate } from '@/utils';
 
-import CameraFab from './components/CameraFab';
+import CameraFab, { CAMERA_FAB_BOTTOM_OFFSET, CAMERA_FAB_SIZE } from './components/CameraFab';
 import type { RecyclingLogEntry } from './components/RecyclingLogItem';
 import RecyclingLogItem from './components/RecyclingLogItem';
 import CharacterCard from './components/CharacterCard';
 import QuizResultCard from './components/QuizResultCard';
+import { useDashboard } from './hooks/useDashboard';
+import { computeAccuracyPercent, getWasteTypeDisplayLabel, getWasteTypeImage } from './utils';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'Home'>;
 
-// TODO: 실제 API 연동 전까지 동작 확인용 mock 값
-const MOCK_LEVEL = 5;
-const MOCK_CURRENT_XP = 500;
-const MOCK_QUIZ_ACCURACY = 80;
-const MOCK_RECYCLING_LOGS: RecyclingLogEntry[] = [
-  { id: '1', date: '2025.05.03', category: '플라스틱', image: recyclingPlastic },
-  { id: '2', date: '2025.05.03', category: '종이', image: recyclingPaper },
-  { id: '3', date: '2025.05.03', category: '유리', image: recyclingGlass },
-];
+/** 마지막 로그 항목이 카메라 플로팅 버튼에 가리지 않도록 확보하는 스크롤 하단 여백 */
+const SCROLL_BOTTOM_PADDING = CAMERA_FAB_BOTTOM_OFFSET + CAMERA_FAB_SIZE + 19;
 
 const HomeScreen = ({ navigation }: Props) => {
+  const { data, isLoading, isError, refetch } = useDashboard();
+
   const handleRetryQuiz = useCallback(() => {
-    // TODO: 가장 최근 틀린 문제로 바로 이동하는 파라미터 연동 (퀴즈 API 연동 후)
     navigation.navigate('Quiz');
   }, [navigation]);
 
@@ -52,28 +47,75 @@ const HomeScreen = ({ navigation }: Props) => {
     }
   }, []);
 
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator color="#7B61FF" size="large" />
+      </View>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background px-[19px]">
+        <Text className="mb-[24px] font-notoSansKRRegular text-base text-body">
+          정보를 불러오지 못했어요.
+        </Text>
+        <GradientButton label="재시도" onPress={refetch} />
+      </View>
+    );
+  }
+
+  const { characterInfo, quizProfileInfo, recyclingLogInfo } = data;
+  const accuracyPercent = computeAccuracyPercent(
+    quizProfileInfo.correctQuiz,
+    quizProfileInfo.solvedQuiz,
+  );
+  const recyclingLogEntries: RecyclingLogEntry[] = recyclingLogInfo.map((log, index) => ({
+    id: `${log.recycledAt}-${index}`,
+    date: formatDotDate(log.recycledAt),
+    category: getWasteTypeDisplayLabel(log.wasteType),
+    image: getWasteTypeImage(log.wasteType),
+  }));
+
   return (
     <View className="flex-1 bg-background">
-      <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
+      {/* 하단 인셋은 탭 바(TabNavigator)가 이미 반영하므로 여기서는 top만 적용한다. */}
+      <SafeAreaView className="flex-1" edges={['top']}>
         <ScrollView
           className="flex-1 px-[19px]"
-          contentContainerStyle={{ paddingBottom: 24, paddingTop: 19 }}
+          contentContainerStyle={{ paddingBottom: SCROLL_BOTTOM_PADDING, paddingTop: 19 }}
           showsVerticalScrollIndicator={false}>
-          <CharacterCard currentXp={MOCK_CURRENT_XP} level={MOCK_LEVEL} />
+          <CharacterCard
+            characterImage={{ uri: characterInfo.imageUrl }}
+            characterName={characterInfo.characterName}
+            level={characterInfo.level}
+            progressRatio={Math.min(Math.max(characterInfo.expPercentage / 100, 0), 1)}
+            remainingXp={characterInfo.remainingExp}
+          />
 
           <View className="mt-[17px]">
-            <QuizResultCard accuracyPercent={MOCK_QUIZ_ACCURACY} onPressRetry={handleRetryQuiz} />
+            <QuizResultCard accuracyPercent={accuracyPercent} onPressRetry={handleRetryQuiz} />
           </View>
 
           <Text className="mb-[26px] mt-[29px] font-notoSansKRBold text-xl text-black">
             분리수거 로그
           </Text>
 
-          <View className="gap-[13px]">
-            {MOCK_RECYCLING_LOGS.map((entry) => (
-              <RecyclingLogItem entry={entry} key={entry.id} onPress={handlePressLog} />
-            ))}
-          </View>
+          {recyclingLogEntries.length === 0 ? (
+            <View className="items-center rounded-[10px] border border-dashed border-border bg-white px-[20px] py-[30px]">
+              <Text className="font-notoSansKRBold text-base text-black">아직 기록이 없어요</Text>
+              <Text className="mt-[8px] text-center font-notoSansKRRegular text-sm text-body">
+                카메라로 첫 분리수거를 기록해보세요
+              </Text>
+            </View>
+          ) : (
+            <View className="gap-[13px]">
+              {recyclingLogEntries.map((entry) => (
+                <RecyclingLogItem entry={entry} key={entry.id} onPress={handlePressLog} />
+              ))}
+            </View>
+          )}
         </ScrollView>
       </SafeAreaView>
 

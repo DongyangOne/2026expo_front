@@ -16,7 +16,9 @@ interface SignupFieldWithActionProps {
   helperVariant?: 'error' | 'success';
   blinkToken?: number;
   actionDisabled?: boolean;
+  editable?: boolean;
   keyboardType?: TextInputProps['keyboardType'];
+  editable?: boolean;
   onChangeText: (value: string) => void;
   onPressAction: () => void;
 }
@@ -32,7 +34,9 @@ const SignupFieldWithAction = ({
   helperVariant = 'error',
   blinkToken,
   actionDisabled = false,
+  editable = true,
   keyboardType,
+  editable = true,
   onChangeText,
   onPressAction,
 }: SignupFieldWithActionProps) => {
@@ -50,7 +54,10 @@ const SignupFieldWithAction = ({
       <View className="relative">
         <TextInput
           autoCapitalize="none"
-          className="h-[43.5px] rounded-[9.25px] border border-border bg-white py-0 pl-[14px] pr-[110px] font-notoSansKRDemiLight text-sm text-black"
+          className={`h-[43.5px] rounded-[9.25px] border border-border py-0 pl-[14px] pr-[110px] font-notoSansKRDemiLight text-sm ${
+            editable ? 'bg-white text-black' : 'bg-disabledBg text-gray'
+          }`}
+          editable={editable}
           keyboardType={keyboardType}
           maxLength={maxLength}
           placeholder={placeholder}

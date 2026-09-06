@@ -12,7 +12,7 @@ export const getProfile = () => {
   return instance.get('/api/v1/user/profile');
 };
 
-export const sendVerificationEmail = (): Promise<ApiResponse<SendVerificationEmailData>> =>
+export const sendProfileVerificationEmail = (): Promise<ApiResponse<SendVerificationEmailData>> =>
   instance
     .post<ApiResponse<SendVerificationEmailData>>('/api/v1/user/verification/email')
     .then((res) => res.data);
