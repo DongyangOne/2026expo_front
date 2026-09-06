@@ -27,7 +27,6 @@ export const googleLogin = (
     .post<ApiResponse<GoogleLoginResponse>>('/api/v1/auth/google', payload)
     .then((res) => res.data);
 
-
 export const logout = (): Promise<ApiResponse<{ message: string }>> => {
   return apiInstance
     .post<ApiResponse<{ message: string }>>('/api/v1/auth/logout')

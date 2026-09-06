@@ -119,7 +119,6 @@ const LoginScreen = ({ navigation, route }: Props) => {
       });
       return;
     }
-
   };
 
   return (

@@ -40,7 +40,6 @@ export interface GoogleLoginSuccessResponse extends LoginResponse {
 
 export type GoogleLoginResponse = GoogleSignupRequiredResponse | GoogleLoginSuccessResponse;
 
-
 export interface ReissueTokenRequest {
   refreshToken: string;
 }
