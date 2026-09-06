@@ -16,7 +16,7 @@ export type RootTabParamList = {
 
 export type RootStackParamList = {
   Splash: undefined;
-  Login: { qrToken?: string } | undefined;
+  Login: { qrToken?: string; loginId?: string } | undefined;
   Tabs: NavigatorScreenParams<RootTabParamList>;
   FeedbackDetail: { id: number };
   MobileTabs: NavigatorScreenParams<RootTabParamList> | undefined;
@@ -34,9 +34,9 @@ export type RootStackParamList = {
   ResetPassword: undefined;
   ResetPasswordSuccess: undefined;
   FindId: undefined;
-  FindIdSuccess: undefined;
+  FindIdSuccess: { userId: string };
   FindIdResult: { userId: string };
-  TabletTrashFeedback: undefined;
+  TabletTrashFeedback: { clientId?: string } | undefined;
   EditProfile: undefined;
 
   UserAuth: undefined;

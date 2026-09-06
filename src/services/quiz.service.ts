@@ -24,9 +24,7 @@ export const submitQuizAnswer = (
     .post<ApiResponse<QuizAnswerData>>(`/api/v1/quiz/sessions/${sessionId}/answers`, payload)
     .then((res) => res.data);
 
-export const finishQuizSession = (
-  sessionId: string,
-): Promise<ApiResponse<QuizResultData>> =>
+export const finishQuizSession = (sessionId: string): Promise<ApiResponse<QuizResultData>> =>
   apiInstance
     .post<ApiResponse<QuizResultData>>(`/api/v1/quiz/sessions/${sessionId}/result`)
     .then((res) => res.data);

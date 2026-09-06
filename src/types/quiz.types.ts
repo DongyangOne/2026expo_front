@@ -31,10 +31,17 @@ export interface QuizResultData {
   correctRate: number;
   earnedExp: number;
   resultMessage: string;
+  beforeLevel: number;
+  beforeExp: number;
   currentLevel: number;
   currentExp: number;
   levelUp: boolean;
+  maxExp: number;
   expPercent: number;
   remainingExp: number;
+  userCharacterId: number;
+  characterId: number;
+  characterName: string;
   characterImageUrl: string;
+  evolutionStage: number;
 }

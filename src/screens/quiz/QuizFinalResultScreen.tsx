@@ -7,11 +7,11 @@ import QuitIcon from '@/assets/icons/quit.svg';
 import type { QuizResultData } from '@/types';
 import congratsImage from '@/assets/images/congrats.png';
 import charEggImage from '@/assets/images/char-egg.png';
-
+import { COLORS } from '@/constants/theme';
 
 const LEVEL_BAR_HEIGHT = 20;
-const LEVEL_GRADIENT_START = '#7B61FF';
-const LEVEL_GRADIENT_END = '#FF4FD8';
+const LEVEL_GRADIENT_START = COLORS.purple;
+const LEVEL_GRADIENT_END = COLORS.pink;
 
 interface QuizFinalResultScreenProps {
   result: QuizResultData;
@@ -23,8 +23,18 @@ const QuizFinalResultScreen = ({
   result,
   onRetry,
   onClose,
-}: QuizFinalResultScreenProps) => {
-  const progressRatio = Math.min(Math.max(result.expPercent, 0), 100) / 100;
+}: QuizFinalResultScreenProps): React.JSX.Element => {
+  const {
+    correctCount,
+    totalCount,
+    currentLevel,
+    expPercent,
+    earnedExp,
+    levelUp,
+    resultMessage,
+    characterImageUrl,
+  } = result;
+  const progressRatio = Math.min(Math.max(expPercent, 0), 100) / 100;
 
   return (
     <View className="flex-1 bg-background px-10 pt-[20px]">
@@ -36,21 +46,25 @@ const QuizFinalResultScreen = ({
         <Image source={congratsImage} style={{ width: 160, height: 160 }} />
 
         <Text className="font-notoSansKRBold text-2xl text-black">
-          {result.levelUp ? '레벨 업!' : '훌륭해요!'}
+          {levelUp ? '레벨 업!' : '훌륭해요!'}
         </Text>
 
         <Text className="mt-6 text-center font-notoSansKRRegular text-base leading-7 text-gray">
-                {result.correctCount}/{result.totalCount}개 맞췄어요!{'\n'}
-                {result.resultMessage}
+          {correctCount}/{totalCount}개 맞췄어요!{'\n'}
+          {resultMessage}
         </Text>
 
-        <View className="mt-10 aspect-square w-1/2 items-center justify-center">
-          <Image source={charEggImage} className="h-full w-full" resizeMode="contain" />
+        <Text className="mt-3 font-notoSansKRBold text-sm text-purple">+{earnedExp} EXP</Text>
+
+        <View className="mt-8 aspect-square w-1/2 items-center justify-center">
+          <Image
+            source={characterImageUrl ? { uri: characterImageUrl } : charEggImage}
+            className="h-full w-full"
+            resizeMode="contain"
+          />
         </View>
 
-        <Text className="mt-8 font-notoSansKRBold text-base text-black">
-          Lv.{result.currentLevel}
-        </Text>
+        <Text className="mt-8 font-notoSansKRBold text-base text-black">Lv.{currentLevel}</Text>
         <View
           className="mt-3 w-2/3 border border-border"
           style={{
