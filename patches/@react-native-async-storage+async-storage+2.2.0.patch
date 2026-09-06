@@ -1,0 +1,26 @@
+diff --git a/node_modules/@react-native-async-storage/async-storage/package.json b/node_modules/@react-native-async-storage/async-storage/package.json
+index 93f9594..82b4f54 100644
+--- a/node_modules/@react-native-async-storage/async-storage/package.json
++++ b/node_modules/@react-native-async-storage/async-storage/package.json
+@@ -100,7 +100,7 @@
+     ]
+   },
+   "codegenConfig": {
+-    "name": "rnasyncstorage",
++    "name": "AsyncStorageSpec",
+     "type": "modules",
+     "jsSrcsDir": "./src",
+     "android": {
+diff --git a/node_modules/@react-native-async-storage/async-storage/ios/RNCAsyncStorage.h b/node_modules/@react-native-async-storage/async-storage/ios/RNCAsyncStorage.h
+index c40983c..be0f16e 100644
+--- a/node_modules/@react-native-async-storage/async-storage/ios/RNCAsyncStorage.h
++++ b/node_modules/@react-native-async-storage/async-storage/ios/RNCAsyncStorage.h
+@@ -11,7 +11,7 @@
+ #import <React/RCTInvalidating.h>
+ 
+ #ifdef RCT_NEW_ARCH_ENABLED
+-#import <rnasyncstorage/rnasyncstorage.h>
++#import <AsyncStorageSpec/AsyncStorageSpec.h>
+ #endif
+ 
+ #import "RNCAsyncStorageDelegate.h"

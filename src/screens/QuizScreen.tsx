@@ -1,7 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 import { GradientButton } from '@/components/ui';
+import type { RootTabParamList } from '@/navigation/types';
 import QuizFinalResultScreen from '@/screens/quiz/QuizFinalResultScreen';
 import QuizQuestionScreen, { QUESTION_POOL, QuizQuestion } from '@/screens/quiz/QuizQuestionScreen';
 import QuizResultScreen from '@/screens/quiz/QuizResultScreen';
@@ -10,7 +12,9 @@ import { finishQuizSession, startQuizSession, submitQuizAnswer } from '@/service
 import type { QuizResultData } from '@/types';
 import { COLORS } from '@/constants/theme';
 
-const QuizScreen = (): React.JSX.Element => {
+type Props = BottomTabScreenProps<RootTabParamList, 'Quiz'>;
+
+const QuizScreen = (_props: Props): React.JSX.Element => {
   const [quizCount, setQuizCount] = useState<number | null>(null);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);

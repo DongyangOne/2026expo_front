@@ -14,6 +14,14 @@ export type {
 } from './classification.types';
 export type { QrLoginData, QrLoginSseResponse, QrTokenData } from './qr.types';
 export type {
+  EvolutionStage,
+  DashboardWasteType,
+  CharacterInfo,
+  QuizProfileInfo,
+  RecyclingLogInfo,
+  MyDashboardData,
+} from './dashboard.types';
+export type {
   LoginRequest,
   AuthUser,
   LoginResponse,
@@ -52,7 +60,6 @@ export type {
   FeedbackListData,
   PageRequest,
 } from './feedback.types';
-
 export type {
   QuizAnswerData,
   QuizAnswerRequest,

@@ -6,6 +6,7 @@ export {
   reissueToken,
   sendFindIdVerificationCode,
 } from './auth';
+export { getMyDashboard } from './dashboard';
 export { checkAdminIdExists, loginAdmin, reissueAdminToken, signupAdmin } from './auth.service';
 export { clearAdminSession } from './authStorage.service';
 export { getTabletClassification } from './classification.service';
