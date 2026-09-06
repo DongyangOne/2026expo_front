@@ -32,9 +32,6 @@ type FieldKey =
 const EMAIL_CODE_DURATION_SECONDS = 5 * 60;
 const TOAST_DURATION_MS = 2500;
 
-// TODO: 소셜 회원가입 연동 시 각 소셜 제공자의 고유 ID로 채워야 함. 현재는 LOCAL 가입만 지원
-const SOCIAL_TYPE = 'LOCAL' as const;
-
 const EMAIL_SEND_ERROR_MESSAGE = '인증번호 발송에 실패했습니다.';
 const EMAIL_CHECK_ERROR_MESSAGE = '인증번호 확인에 실패했습니다.';
 const ID_CHECK_ERROR_MESSAGE = '아이디 중복 확인에 실패했습니다.';
@@ -83,12 +80,15 @@ const formatRemainingTime = (totalSeconds: number) => {
   return `${minutes}:${seconds}`;
 };
 
-const SignupScreen = ({ navigation }: Props) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+const SignupScreen = ({ navigation, route }: Props) => {
+  const socialInfo = route.params;
+  const isSocialSignup = !!socialInfo;
+
+  const [name, setName] = useState(socialInfo?.prefillUsername ?? '');
+  const [email, setEmail] = useState(socialInfo?.prefillEmail ?? '');
   const [emailTouched, setEmailTouched] = useState(false);
   const [emailStatus, setEmailStatus] = useState<'idle' | 'sent' | 'duplicate' | 'verified'>(
-    'idle',
+    isSocialSignup ? 'verified' : 'idle',
   );
   const [remainingSeconds, setRemainingSeconds] = useState(EMAIL_CODE_DURATION_SECONDS);
   const [code, setCode] = useState('');
@@ -153,6 +153,10 @@ const SignupScreen = ({ navigation }: Props) => {
   }, [id]);
 
   const passwordError = useMemo(() => {
+    if (isSocialSignup) {
+      return '';
+    }
+
     if (!password) {
       return '비밀번호를 입력해 주세요.';
     }
@@ -166,7 +170,7 @@ const SignupScreen = ({ navigation }: Props) => {
     }
 
     return '';
-  }, [password]);
+  }, [isSocialSignup, password]);
 
   const nameInvalid = !!nameError;
   const emailInvalid = !!emailFormatError || emailStatus === 'duplicate';
@@ -176,7 +180,8 @@ const SignupScreen = ({ navigation }: Props) => {
   const organizationInvalid = !!organizationError;
   const idInvalid = !!idFormatError || idStatus !== 'available';
   const passwordInvalid = !!passwordError;
-  const passwordConfirmInvalid = !passwordConfirm || passwordConfirm !== password;
+  const passwordConfirmInvalid =
+    !isSocialSignup && (!passwordConfirm || passwordConfirm !== password);
   const agreedInvalid = !agreed;
 
   const emailHelper = useMemo((): { text: string; variant: 'error' | 'success' } => {
@@ -240,6 +245,10 @@ const SignupScreen = ({ navigation }: Props) => {
   }, [idStatus, submitAttempted, idTouched, idFormatError]);
 
   const passwordConfirmHelper = useMemo((): { text: string; variant: 'error' | 'success' } => {
+    if (isSocialSignup) {
+      return { text: '', variant: 'error' };
+    }
+
     if (!passwordConfirm) {
       return submitAttempted
         ? { text: '비밀번호를 다시 입력해 주세요.', variant: 'error' }
@@ -251,7 +260,7 @@ const SignupScreen = ({ navigation }: Props) => {
     }
 
     return { text: '비밀번호가 일치합니다.', variant: 'success' };
-  }, [passwordConfirm, password, submitAttempted]);
+  }, [isSocialSignup, passwordConfirm, password, submitAttempted]);
 
   useEffect(() => {
     if (emailStatus !== 'sent' || remainingSeconds <= 0) {
@@ -415,15 +424,17 @@ const SignupScreen = ({ navigation }: Props) => {
     setIsSubmitting(true);
 
     try {
-      await signup({
+      const payload = {
         username: name,
         loginId: id,
-        password,
         email,
         team: organization,
-        agreeTerms: agreed ? 'Y' : 'N',
-        social: SOCIAL_TYPE,
-      });
+        agreeTerms: agreed ? ('Y' as const) : ('N' as const),
+        social: socialInfo?.socialType ?? ('LOCAL' as const),
+        ...(isSocialSignup ? { providerId: socialInfo.socialProviderId } : { password }),
+      };
+
+      await signup(payload);
 
       setToastMessage('가입완료. 다시 로그인 해주세요.');
       setTimeout(() => {
@@ -431,6 +442,13 @@ const SignupScreen = ({ navigation }: Props) => {
       }, TOAST_DURATION_MS);
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ApiResponse<unknown>>;
+
+      // TODO: 디버깅용 임시 로그, 확인 후 제거
+      console.log('[SignupScreen] signup 요청 실패, status:', axiosError.response?.status);
+      console.log('[SignupScreen] signup 요청 실패, response.data:', axiosError.response?.data);
+      console.log('[SignupScreen] signup 요청 실패, error.message:', axiosError.message);
+      console.log('[SignupScreen] signup 요청 실패, 원본 error:', error);
+
       const errorCode = axiosError.response?.data.code;
 
       if (errorCode === 'DUPLICATE_USER') {
@@ -482,6 +500,7 @@ const SignupScreen = ({ navigation }: Props) => {
 
           <SignupField
             blinkToken={getBlinkToken('name')}
+            editable={!isSocialSignup}
             helperText={submitAttempted ? nameError : ''}
             label="이름"
             maxLength={8}
@@ -492,9 +511,10 @@ const SignupScreen = ({ navigation }: Props) => {
 
           <View className="mt-[4px]">
             <SignupFieldWithAction
-              actionDisabled={isEmailSending}
+              actionDisabled={isSocialSignup || isEmailSending}
               actionLabel="이메일 인증"
               blinkToken={getBlinkToken('email')}
+              editable={!isSocialSignup}
               gradientId="signup-email-verify-gradient"
               helperText={emailHelper.text}
               helperVariant={emailHelper.variant}
@@ -507,7 +527,7 @@ const SignupScreen = ({ navigation }: Props) => {
             />
           </View>
 
-          {(emailStatus === 'sent' || emailStatus === 'verified') && (
+          {!isSocialSignup && (emailStatus === 'sent' || emailStatus === 'verified') && (
             <View className="mt-[4px]">
               <VerificationCodeField
                 actionDisabled={code.length !== 6 || codeExpired || isCodeChecking}
@@ -559,6 +579,7 @@ const SignupScreen = ({ navigation }: Props) => {
           <View className="mt-[4px]">
             <SignupField
               blinkToken={getBlinkToken('password')}
+              editable={!isSocialSignup}
               helperText={submitAttempted ? passwordError : ''}
               label="비밀번호"
               maxLength={16}
@@ -572,6 +593,7 @@ const SignupScreen = ({ navigation }: Props) => {
           <View className="mt-[4px]">
             <SignupField
               blinkToken={getBlinkToken('passwordConfirm')}
+              editable={!isSocialSignup}
               helperText={passwordConfirmHelper.text}
               helperVariant={passwordConfirmHelper.variant}
               label="비밀번호 확인"
