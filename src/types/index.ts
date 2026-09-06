@@ -15,11 +15,10 @@ export type {
 export type { QrLoginData, QrLoginSseResponse, QrTokenData } from './qr.types';
 export type {
   EvolutionStage,
-  WasteType,
+  DashboardWasteType,
   CharacterInfo,
   QuizProfileInfo,
   RecyclingLogInfo,
-  WrongQuizInfo,
   MyDashboardData,
 } from './dashboard.types';
 export type {

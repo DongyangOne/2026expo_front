@@ -14,7 +14,7 @@ import { COLORS } from '@/constants/theme';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'Quiz'>;
 
-const QuizScreen = ({ route }: Props): React.JSX.Element => {
+const QuizScreen = (_props: Props): React.JSX.Element => {
   const [quizCount, setQuizCount] = useState<number | null>(null);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -35,17 +35,12 @@ const QuizScreen = ({ route }: Props): React.JSX.Element => {
   // "다음" 연타로 결과 정산 요청이 중복 전송되는 것을 막는 동기 락. state는 리렌더 전까지 갱신되지 않아 사용할 수 없다.
   const isSettlingRef = useRef(false);
 
-  const wrongQuizInfo = route.params?.wrongQuizInfo;
-
   const handleSolveQuiz = async (): Promise<void> => {
     if (!quizCount || isStarting) return;
 
     setIsStarting(true);
     try {
-      const { data } = await startQuizSession({
-        quantity: quizCount,
-        ...(wrongQuizInfo ? { wrongQuizInfo } : {}),
-      });
+      const { data } = await startQuizSession({ quantity: quizCount });
 
       sessionRunRef.current += 1;
 

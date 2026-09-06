@@ -21,9 +21,8 @@ const HomeScreen = ({ navigation }: Props) => {
   const { data, isLoading, isError, refetch } = useDashboard();
 
   const handleRetryQuiz = useCallback(() => {
-    const wrongQuizInfo = data?.wrongQuizInfo;
-    navigation.navigate('Quiz', wrongQuizInfo ? { wrongQuizInfo } : undefined);
-  }, [navigation, data]);
+    navigation.navigate('Quiz');
+  }, [navigation]);
 
   const handlePressLog = useCallback(
     (_entry: RecyclingLogEntry) => {
