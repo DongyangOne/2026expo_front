@@ -24,10 +24,21 @@ export interface KakaoLoginRequest {
   rememberMe: 'Y' | 'N';
 }
 
+export type NaverLoginRequest = KakaoLoginRequest;
+
 export interface KakaoSignupRequiredResponse {
   needsSignup: 'Y';
   socialProviderId: string;
   socialType: 'KAKAO';
+  email: string;
+  username: string;
+}
+
+export interface NaverSignupRequiredResponse {
+  // TODO: 카카오는 실측 결과 'Y'였음. 네이버도 실기기 테스트로 실제 값 확인 필요
+  needsSignup: 'Y';
+  socialProviderId: string;
+  socialType: 'NAVER';
   email: string;
   username: string;
 }
@@ -37,6 +48,14 @@ export interface KakaoLoginSuccessResponse extends LoginResponse {
 }
 
 export type KakaoLoginResponse = KakaoSignupRequiredResponse | KakaoLoginSuccessResponse;
+
+export interface NaverLoginSuccessResponse extends LoginResponse {
+  needsSignup: 'N';
+  socialProviderId: string;
+  socialType: 'NAVER';
+}
+
+export type NaverLoginResponse = NaverSignupRequiredResponse | NaverLoginSuccessResponse;
 
 export interface ReissueTokenRequest {
   refreshToken: string;

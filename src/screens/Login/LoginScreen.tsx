@@ -98,15 +98,15 @@ const LoginScreen = ({ navigation, route }: Props) => {
   };
 
   const handleSocialPress = (provider: 'google' | 'naver' | 'kakao') => {
-    if (provider === 'kakao') {
-      navigation.navigate('KakaoLogin', {
+    if (provider === 'kakao' || provider === 'naver') {
+      navigation.navigate(provider === 'kakao' ? 'KakaoLogin' : 'NaverLogin', {
         qrToken: route.params?.qrToken,
         rememberMe: autoLogin ? 'Y' : 'N',
       });
       return;
     }
 
-    // TODO: 구글/네이버 소셜 로그인 화면/SDK 연동
+    // TODO: 구글 소셜 로그인 화면/SDK 연동
   };
 
   return (

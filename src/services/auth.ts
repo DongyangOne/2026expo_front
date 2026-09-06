@@ -8,6 +8,8 @@ import type {
   KakaoLoginResponse,
   LoginRequest,
   LoginResponse,
+  NaverLoginRequest,
+  NaverLoginResponse,
   ReissueTokenResponse,
   WithdrawalRequest,
   WithdrawalResponse,
@@ -23,6 +25,11 @@ export const login = (payload: LoginRequest): Promise<ApiResponse<LoginResponse>
 export const kakaoLogin = (payload: KakaoLoginRequest): Promise<ApiResponse<KakaoLoginResponse>> =>
   apiInstance
     .post<ApiResponse<KakaoLoginResponse>>('/api/v1/auth/kakao', payload)
+    .then((res) => res.data);
+
+export const naverLogin = (payload: NaverLoginRequest): Promise<ApiResponse<NaverLoginResponse>> =>
+  apiInstance
+    .post<ApiResponse<NaverLoginResponse>>('/api/v1/auth/naver', payload)
     .then((res) => res.data);
 
 export const logout = (): Promise<ApiResponse<{ message: string }>> => {

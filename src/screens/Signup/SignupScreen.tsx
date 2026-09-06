@@ -424,13 +424,13 @@ const SignupScreen = ({ navigation, route }: Props) => {
     setIsSubmitting(true);
 
     try {
-      await signup({
+      const payload = {
         username: name,
         loginId: id,
         email,
         team: organization,
-        agreeTerms: agreed ? 'Y' : 'N',
-        social: socialInfo?.socialType ?? 'LOCAL',
+        agreeTerms: agreed ? ('Y' as const) : ('N' as const),
+        social: socialInfo?.socialType ?? ('LOCAL' as const),
         ...(isSocialSignup ? { providerId: socialInfo.socialProviderId } : { password }),
       });
 
@@ -440,6 +440,13 @@ const SignupScreen = ({ navigation, route }: Props) => {
       }, TOAST_DURATION_MS);
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ApiResponse<unknown>>;
+
+      // TODO: 디버깅용 임시 로그, 확인 후 제거
+      console.log('[SignupScreen] signup 요청 실패, status:', axiosError.response?.status);
+      console.log('[SignupScreen] signup 요청 실패, response.data:', axiosError.response?.data);
+      console.log('[SignupScreen] signup 요청 실패, error.message:', axiosError.message);
+      console.log('[SignupScreen] signup 요청 실패, 원본 error:', error);
+
       const errorCode = axiosError.response?.data.code;
 
       if (errorCode === 'DUPLICATE_USER') {
