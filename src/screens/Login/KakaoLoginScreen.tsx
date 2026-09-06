@@ -112,7 +112,10 @@ const KakaoLoginScreen = ({ navigation, route }: Props) => {
   };
 
   const handleShouldStartLoad = (request: ShouldStartLoadRequest): boolean => {
-    if (!redirectUri || !(request.url === redirectUri || request.url.startsWith(`${redirectUri}?`))) {
+    if (
+      !redirectUri ||
+      !(request.url === redirectUri || request.url.startsWith(`${redirectUri}?`))
+    ) {
       return true;
     }
 
@@ -177,7 +180,10 @@ const KakaoLoginScreen = ({ navigation, route }: Props) => {
       </SafeAreaView>
 
       <LoginToast
-        message={toastMessage ?? (!restApiKey || !redirectUri ? '카카오 로그인 설정이 누락되었습니다.' : '')}
+        message={
+          toastMessage ??
+          (!restApiKey || !redirectUri ? '카카오 로그인 설정이 누락되었습니다.' : '')
+        }
         visible={!!toastMessage || !restApiKey || !redirectUri}
       />
     </View>

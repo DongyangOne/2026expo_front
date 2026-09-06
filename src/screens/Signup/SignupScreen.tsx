@@ -180,7 +180,8 @@ const SignupScreen = ({ navigation, route }: Props) => {
   const organizationInvalid = !!organizationError;
   const idInvalid = !!idFormatError || idStatus !== 'available';
   const passwordInvalid = !!passwordError;
-  const passwordConfirmInvalid = !isSocialSignup && (!passwordConfirm || passwordConfirm !== password);
+  const passwordConfirmInvalid =
+    !isSocialSignup && (!passwordConfirm || passwordConfirm !== password);
   const agreedInvalid = !agreed;
 
   const emailHelper = useMemo((): { text: string; variant: 'error' | 'success' } => {

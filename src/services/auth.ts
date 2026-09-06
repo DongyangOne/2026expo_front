@@ -20,9 +20,7 @@ export const login = (payload: LoginRequest): Promise<ApiResponse<LoginResponse>
     .post<ApiResponse<LoginResponse>>('/api/v1/auth/login', payload)
     .then((res) => res.data);
 
-export const kakaoLogin = (
-  payload: KakaoLoginRequest,
-): Promise<ApiResponse<KakaoLoginResponse>> =>
+export const kakaoLogin = (payload: KakaoLoginRequest): Promise<ApiResponse<KakaoLoginResponse>> =>
   apiInstance
     .post<ApiResponse<KakaoLoginResponse>>('/api/v1/auth/kakao', payload)
     .then((res) => res.data);
