@@ -32,6 +32,7 @@ interface AuthState {
   // 액션
   setUser: (user: User) => void;
   setAuth: (res: LoginResponse) => void;
+  updateAuthUser: (partial: Partial<AuthUser>) => Promise<void>;
   persistAuth: (res: LoginResponse, rememberMe: 'Y' | 'N') => Promise<void>;
   setTokens: (tokens: AuthTokens) => void;
   restoreSession: () => Promise<boolean>;
@@ -69,6 +70,19 @@ export const useAuthStore = create<AuthState>()(
         state.refreshToken = res.refreshToken;
         state.rememberMe = res.rememberMe;
       }),
+
+    updateAuthUser: async (partial) => {
+      set((state) => {
+        if (state.authUser) {
+          state.authUser = { ...state.authUser, ...partial };
+        }
+      });
+
+      const { rememberMe, authUser } = useAuthStore.getState();
+      if (rememberMe === 'Y' && authUser) {
+        await AsyncStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(authUser));
+      }
+    },
 
     persistAuth: async (res, rememberMe) => {
       useAuthStore.getState().setAuth({ ...res, rememberMe });
