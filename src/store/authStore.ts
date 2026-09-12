@@ -79,8 +79,15 @@ export const useAuthStore = create<AuthState>()(
       });
 
       const { rememberMe, authUser } = useAuthStore.getState();
-      if (rememberMe === 'Y' && authUser) {
+      if (rememberMe !== 'Y' || !authUser) {
+        return;
+      }
+
+      try {
         await AsyncStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(authUser));
+      } catch (err) {
+        // 스토어는 이미 갱신됐으므로 저장 실패가 호출부의 성공 처리를 막지 않도록 삼킨다.
+        console.error('[authStore] AsyncStorage 사용자 정보 저장 실패:', err);
       }
     },
 

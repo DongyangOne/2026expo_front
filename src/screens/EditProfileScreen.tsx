@@ -74,7 +74,7 @@ const EditProfileScreen = () => {
   };
 
   const handleSubmit = async () => {
-    console.log('handleSubmit 시작, id:', id, 'password:', password);
+    console.log('handleSubmit 시작, id:', id);
 
     if (id.trim() === '') {
       setIdError('아이디를 입력해주세요.');
@@ -93,7 +93,7 @@ const EditProfileScreen = () => {
     }
 
     if (!PASSWORD_REGEX.test(password)) {
-      console.log('PASSWORD_REGEX 실패, password:', password);
+      console.log('PASSWORD_REGEX 실패');
       setPasswordError('8~16자, 영문/숫자/특수문자를 모두 포함해야 합니다.');
       return;
     }
@@ -105,7 +105,7 @@ const EditProfileScreen = () => {
     }
 
     if (hasSequentialChars(password)) {
-      console.log('연속문자 감지, password:', password);
+      console.log('연속문자 감지');
       setPasswordError('연속된 문자 또는 숫자는 사용할 수 없습니다.');
       return;
     }
@@ -117,7 +117,7 @@ const EditProfileScreen = () => {
     }
 
     if (password !== passwordCheck) {
-      console.log('불일치, password:', password, 'passwordCheck:', passwordCheck);
+      console.log('비밀번호 확인 불일치');
       setPasswordCheckError('비밀번호가 일치하지 않습니다.');
       return;
     }
