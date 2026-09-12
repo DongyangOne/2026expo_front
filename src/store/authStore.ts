@@ -32,6 +32,7 @@ interface AuthState {
   // 액션
   setUser: (user: User) => void;
   setAuth: (res: LoginResponse) => void;
+  updateAuthUser: (partial: Partial<AuthUser>) => Promise<void>;
   persistAuth: (res: LoginResponse, rememberMe: 'Y' | 'N') => Promise<void>;
   setTokens: (tokens: AuthTokens) => void;
   restoreSession: () => Promise<boolean>;
@@ -69,6 +70,26 @@ export const useAuthStore = create<AuthState>()(
         state.refreshToken = res.refreshToken;
         state.rememberMe = res.rememberMe;
       }),
+
+    updateAuthUser: async (partial) => {
+      set((state) => {
+        if (state.authUser) {
+          state.authUser = { ...state.authUser, ...partial };
+        }
+      });
+
+      const { rememberMe, authUser } = useAuthStore.getState();
+      if (rememberMe !== 'Y' || !authUser) {
+        return;
+      }
+
+      try {
+        await AsyncStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(authUser));
+      } catch (err) {
+        // 스토어는 이미 갱신됐으므로 저장 실패가 호출부의 성공 처리를 막지 않도록 삼킨다.
+        console.error('[authStore] AsyncStorage 사용자 정보 저장 실패:', err);
+      }
+    },
 
     persistAuth: async (res, rememberMe) => {
       useAuthStore.getState().setAuth({ ...res, rememberMe });

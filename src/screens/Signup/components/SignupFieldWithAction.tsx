@@ -18,7 +18,6 @@ interface SignupFieldWithActionProps {
   actionDisabled?: boolean;
   editable?: boolean;
   keyboardType?: TextInputProps['keyboardType'];
-  editable?: boolean;
   onChangeText: (value: string) => void;
   onPressAction: () => void;
 }
@@ -36,7 +35,6 @@ const SignupFieldWithAction = ({
   actionDisabled = false,
   editable = true,
   keyboardType,
-  editable = true,
   onChangeText,
   onPressAction,
 }: SignupFieldWithActionProps) => {

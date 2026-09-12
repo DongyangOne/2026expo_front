@@ -15,7 +15,7 @@ cssInterop(LinearGradient, {
 });
 import BackArrow from '@/assets/images/vector.svg';
 
-const AUTH_CODE_DURATION = 300; // 5분 (초 단위)
+const AUTH_CODE_DURATION = 300;
 
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
@@ -25,7 +25,6 @@ const formatTime = (totalSeconds: number): string => {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
-// 에러가 어느 입력칸 소속인지 구분
 type ErrorField = 'userId' | 'email' | 'authCode' | null;
 
 const UserAuthScreen = () => {
@@ -40,9 +39,8 @@ const UserAuthScreen = () => {
   const [isExpired, setIsExpired] = useState(false);
 
   const [verifiedUserId, setVerifiedUserId] = useState('');
-  const [verifiedEmail, setVerifiedEmail] = useState(''); // 추가: 코드 발송 시점의 이메일 기록
+  const [verifiedEmail, setVerifiedEmail] = useState('');
 
-  // 화면 전체에서 에러는 항상 하나만 존재. 어느 필드 소속인지만 같이 저장
   const [errorField, setErrorField] = useState<ErrorField>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -85,7 +83,6 @@ const UserAuthScreen = () => {
   useFocusEffect(
     useCallback(() => {
       clearTimer();
-
       setUserId('');
       setEmail('');
       setAuthCode('');
@@ -93,7 +90,7 @@ const UserAuthScreen = () => {
       setRemainingSeconds(AUTH_CODE_DURATION);
       setIsExpired(false);
       setVerifiedUserId('');
-      setVerifiedEmail(''); // 추가
+      setVerifiedEmail('');
       clearError();
 
       return () => clearTimer();
@@ -139,7 +136,7 @@ const UserAuthScreen = () => {
     try {
       await sendProfileVerificationEmail();
       setVerifiedUserId(userId.trim());
-      setVerifiedEmail(email.trim()); // 추가: 실제로 코드가 발송된 이메일을 기록
+      setVerifiedEmail(email.trim());
       setAuthCode('');
       setIsCodeSent(true);
       startTimer();
@@ -168,8 +165,6 @@ const UserAuthScreen = () => {
       return;
     }
     if (email.trim() !== verifiedEmail) {
-      // 추가: 코드를 발송한 이메일과 현재 입력된 이메일이 다르면
-      // 인증코드 검증을 시도하기 전에 여기서 막아준다.
       showError('email', '이메일이 변경되었습니다. 인증을 다시 진행해주세요.');
       return;
     }
@@ -203,17 +198,15 @@ const UserAuthScreen = () => {
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <View className="mx-11 flex-1">
         <View className="relative mt-[37px] flex-row items-center justify-center">
-          {/* 뒤로가기 버튼 */}
           <TouchableOpacity
             onPress={() => navigation.navigate('MobileTabs', { screen: 'Account' })}
             className="absolute left-0">
             <BackArrow />
           </TouchableOpacity>
-          {/* 타이틀 */}
+
           <Text className=" text-center font-notoSansKRBold text-xl text-black">사용자 인증</Text>
         </View>
 
-        {/* 아이디 */}
         <View className="mt-52">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">아이디</Text>
           <View className="rounded-xl border border-border bg-white px-3">
@@ -234,7 +227,6 @@ const UserAuthScreen = () => {
           )}
         </View>
 
-        {/* 이메일 */}
         <View className="mt-4">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-black">이메일</Text>
           <View className="flex-row">
@@ -267,7 +259,6 @@ const UserAuthScreen = () => {
           )}
         </View>
 
-        {/* 인증 코드: 전송 버튼을 누르기 전에는 노출되지 않음 */}
         {isCodeSent && (
           <View className="mt-5">
             <Text className="mb-2 font-notoSansKRRegular text-sm text-body">인증 코드</Text>
@@ -293,7 +284,6 @@ const UserAuthScreen = () => {
           </View>
         )}
 
-        {/* 확인 버튼 */}
         <TouchableOpacity
           className="mx-5 mt-40"
           onPress={handleEditProfile}

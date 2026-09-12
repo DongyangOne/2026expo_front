@@ -30,8 +30,8 @@ const EditProfileScreen = () => {
   const [passwordError, setPasswordError] = useState('');
   const [passwordCheckError, setPasswordCheckError] = useState('');
 
-  // TODO: 실제 프로필 조회 API로 교체 (예: GET /user/profile)
-  // 화면 진입 시 서버에서 현재 아이디/비밀번호를 받아와 TextInput에 채워 넣습니다.
+  const updateAuthUser = useAuthStore((state) => state.updateAuthUser);
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -47,10 +47,8 @@ const EditProfileScreen = () => {
     fetchProfile();
   }, []);
 
-  // 아이디 : 4~12자, 영문 소문자+숫자
   const ID_REGEX = /^(?=.*[a-z])(?=.*\d)[a-z\d]{4,12}$/;
 
-  // 비밀번호 : 8~16자, 영문+숫자+특수문자
   const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/;
 
   const hasSequentialChars = (str: string) => {
@@ -76,8 +74,8 @@ const EditProfileScreen = () => {
   };
 
   const handleSubmit = async () => {
-    console.log('handleSubmit 시작, id:', id, 'password:', password);
-    // 빈 값 체크 먼저
+    console.log('handleSubmit 시작, id:', id);
+
     if (id.trim() === '') {
       setIdError('아이디를 입력해주세요.');
       return;
@@ -95,7 +93,7 @@ const EditProfileScreen = () => {
     }
 
     if (!PASSWORD_REGEX.test(password)) {
-      console.log('PASSWORD_REGEX 실패, password:', password);
+      console.log('PASSWORD_REGEX 실패');
       setPasswordError('8~16자, 영문/숫자/특수문자를 모두 포함해야 합니다.');
       return;
     }
@@ -107,7 +105,7 @@ const EditProfileScreen = () => {
     }
 
     if (hasSequentialChars(password)) {
-      console.log('연속문자 감지, password:', password);
+      console.log('연속문자 감지');
       setPasswordError('연속된 문자 또는 숫자는 사용할 수 없습니다.');
       return;
     }
@@ -119,7 +117,7 @@ const EditProfileScreen = () => {
     }
 
     if (password !== passwordCheck) {
-      console.log('불일치, password:', password, 'passwordCheck:', passwordCheck);
+      console.log('비밀번호 확인 불일치');
       setPasswordCheckError('비밀번호가 일치하지 않습니다.');
       return;
     }
@@ -135,6 +133,10 @@ const EditProfileScreen = () => {
         passwordConfirm: passwordCheck,
       });
       console.log('updateProfile 응답:', JSON.stringify(res));
+
+      await updateAuthUser({
+        loginId: res.data?.loginId ?? id,
+      });
 
       goToAccount();
     } catch (error) {
@@ -155,25 +157,21 @@ const EditProfileScreen = () => {
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <View className="mx-11 flex-1">
         <View className="relative mt-[37px] flex-row items-center justify-center">
-          {/* 뒤로가기 버튼 */}
           <TouchableOpacity className="absolute left-0" onPress={goToAccount}>
             <BackArrow />
           </TouchableOpacity>
-          {/* 타이틀 */}
+
           <Text className=" text-center font-notoSansKRBold text-xl text-black">프로필 수정</Text>
         </View>
 
-        {/* 프로필 이미지 */}
         <View className="mt-[28px] items-center">
           <ProfileImage />
         </View>
 
-        {/* 이름 */}
         <Text className="mt-[35px] text-center font-notoSansKRBold text-xl text-black">
           {authUser?.username}
         </Text>
 
-        {/* 아이디 */}
         <View className="mt-6">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">아이디</Text>
           <View className="rounded-xl border border-border bg-white px-3">
@@ -188,7 +186,6 @@ const EditProfileScreen = () => {
           {idError !== '' && <Text className="mt-1 text-xs text-red">{idError}</Text>}
         </View>
 
-        {/* 이메일 */}
         <View className="mt-4">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">이메일</Text>
           <View className="rounded-xl border border-border bg-white px-3 py-4">
@@ -196,7 +193,6 @@ const EditProfileScreen = () => {
           </View>
         </View>
 
-        {/* 비밀번호 */}
         <View className="mt-4">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">비밀번호</Text>
           <View className="rounded-xl border border-border bg-white px-3">
@@ -229,7 +225,6 @@ const EditProfileScreen = () => {
           )}
         </View>
 
-        {/* 확인 버튼 */}
         <TouchableOpacity
           className="mx-5 mt-40"
           onPress={handleSubmit}
@@ -245,7 +240,6 @@ const EditProfileScreen = () => {
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* 서버 에러 메시지 */}
         {submitError !== '' && (
           <Text className="mx-5 mt-2 text-center text-xs text-red">{submitError}</Text>
         )}

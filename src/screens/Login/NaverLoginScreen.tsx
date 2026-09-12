@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Config from 'react-native-config';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,7 +7,6 @@ import WebView from 'react-native-webview';
 import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
 
 import { TopBar } from '@/components/ui';
-import { STORAGE_KEYS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
 import { naverLogin } from '@/services';
 import { useAuthStore } from '@/store';
@@ -36,7 +34,7 @@ const generateState = (): string =>
   `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
 
 const NaverLoginScreen = ({ navigation, route }: Props) => {
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const persistAuth = useAuthStore((state) => state.persistAuth);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -87,17 +85,7 @@ const NaverLoginScreen = ({ navigation, route }: Props) => {
         return;
       }
 
-      setAuth(data);
-
-      if (rememberMe === 'Y') {
-        const { authUser } = useAuthStore.getState();
-
-        await AsyncStorage.multiSet([
-          [STORAGE_KEYS.ACCESS_TOKEN, data.accessToken],
-          [STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken],
-          [STORAGE_KEYS.AUTH_USER, JSON.stringify(authUser)],
-        ]);
-      }
+      await persistAuth(data, rememberMe);
 
       const qrToken = route.params?.qrToken;
 
