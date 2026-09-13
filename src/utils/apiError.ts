@@ -19,3 +19,33 @@ export const getServerMessage = (error: unknown): string | null => {
 
   return message.length > 0 ? message : null;
 };
+
+export const getApiErrorMessage = (error: unknown, fallbackMessage: string): string => {
+  if (axios.isAxiosError(error)) {
+    const responseData = error.response?.data;
+
+    if (typeof responseData === 'string' && responseData.trim()) {
+      return responseData;
+    }
+
+    if (responseData !== undefined && responseData !== null) {
+      const serializedResponse = JSON.stringify(responseData);
+
+      if (serializedResponse) {
+        return serializedResponse;
+      }
+    }
+
+    if (error.response?.status) {
+      return `HTTP ${error.response.status}`;
+    }
+
+    return error.message || fallbackMessage;
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return fallbackMessage;
+};

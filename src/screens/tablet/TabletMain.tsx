@@ -252,7 +252,7 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
 
           const { clientId } = response.data;
           console.warn('[분류 흐름 4] Base API clientId 발급 성공', { clientId });
-          console.warn('[분류 흐름 5] 로딩 화면 이동', { clientId });
+          console.warn('[분류 흐름 5] 쓰레기 올려 주세요 화면 이동', { clientId });
           navigation.replace('TabletTrashFeedback', { clientId });
         })
         .catch(async (error: unknown): Promise<void> => {

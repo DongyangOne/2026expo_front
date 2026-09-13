@@ -17,6 +17,7 @@ import {
   LoadingStep,
   RetryGuideStep,
   SuccessStep,
+  useDetectionTrigger,
   useTabletClassification,
   WaitingTrashStep,
 } from './trashFeedback';
@@ -77,9 +78,24 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
       onCompleted: handleClassificationCompleted,
     });
 
+  const handleDetectionSuccess = useCallback((): void => {
+    setCurrentStep((currentStepValue) =>
+      currentStepValue === 'waitingTrash' ? 'loading' : currentStepValue,
+    );
+  }, []);
+
+  const { detectionErrorMessage, isTriggering, retryDetection } = useDetectionTrigger({
+    isActive: currentStep === 'waitingTrash',
+    onSuccess: handleDetectionSuccess,
+  });
+
   const handleNextPress = useCallback((): void => {
     if (currentStep === 'waitingTrash') {
-      setCurrentStep('loading');
+      if (isTriggering || detectionErrorMessage) {
+        return;
+      }
+
+      handleDetectionSuccess();
       return;
     }
 
@@ -89,7 +105,18 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
     }
 
     setCurrentStep('retryGuide');
-  }, [classificationResult?.status, currentStep]);
+  }, [
+    classificationResult?.status,
+    currentStep,
+    detectionErrorMessage,
+    handleDetectionSuccess,
+    isTriggering,
+  ]);
+
+  const handleDetectionRetry = useCallback((): void => {
+    setRemainingSeconds(COUNTDOWN_START_SECONDS);
+    retryDetection();
+  }, [retryDetection]);
 
   const handleHomePress = useCallback((): void => {
     navigation.replace('TabletMain');
@@ -110,6 +137,7 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
       setClientId(issuedClientId);
       setRemainingSeconds(COUNTDOWN_START_SECONDS);
       resetClassification();
+      retryDetection();
       setCurrentStep('waitingTrash');
     } catch (error: unknown) {
       console.error('[TabletTrashFeedbackScreen] clientId 재발급 실패', error);
@@ -117,7 +145,7 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
     } finally {
       setIsRestarting(false);
     }
-  }, [clientId, resetClassification]);
+  }, [clientId, resetClassification, retryDetection]);
 
   useEffect((): (() => void) | undefined => {
     if (currentStep !== 'canResult' || classificationResult?.status !== 'ALLOWED') {
@@ -134,7 +162,7 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
   }, [classificationResult?.status, currentStep]);
 
   useEffect((): (() => void) | undefined => {
-    if (currentStep !== 'waitingTrash') {
+    if (currentStep !== 'waitingTrash' || detectionErrorMessage) {
       return undefined;
     }
 
@@ -150,7 +178,7 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
     return (): void => {
       clearTimeout(timerId);
     };
-  }, [currentStep, navigation, remainingSeconds]);
+  }, [currentStep, detectionErrorMessage, navigation, remainingSeconds]);
 
   return (
     <View className="flex-1 overflow-hidden bg-background">
@@ -183,7 +211,14 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
             </View>
             <View className="absolute inset-[1px] rounded-[14px] bg-white px-[60px] py-[40px]">
               {currentStep === 'waitingTrash' ? (
-                <WaitingTrashStep onNext={handleNextPress} remainingSeconds={remainingSeconds} />
+                <WaitingTrashStep
+                  detectionErrorMessage={detectionErrorMessage}
+                  isTriggering={isTriggering}
+                  onHome={handleHomePress}
+                  onNext={handleNextPress}
+                  onRetry={handleDetectionRetry}
+                  remainingSeconds={remainingSeconds}
+                />
               ) : null}
               {currentStep === 'loading' ? (
                 <LoadingStep

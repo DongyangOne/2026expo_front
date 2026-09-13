@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
 
-import { getTabletClassification } from '@/services';
+import { captureAndClassify, getTabletClassification } from '@/services';
 import type { TabletClassificationData } from '@/types';
+import { getApiErrorMessage } from '@/utils';
 
 const CLASSIFICATION_POLL_INTERVAL_MS = 1000;
 const CLASSIFICATION_TIMEOUT_MS = 30000;
 const CLASSIFICATION_MAX_CONSECUTIVE_FAILURE_COUNT = 3;
 const CLASSIFICATION_ERROR_MESSAGE = '분류 결과를 불러오지 못했어요.';
 const CLASSIFICATION_TIMEOUT_MESSAGE = '인식 시간이 초과됐어요. 다시 시도해 주세요.';
+const CAPTURE_AND_CLASSIFY_ERROR_MESSAGE = '촬영 및 분류 요청에 실패했어요.';
 
 interface UseTabletClassificationResult {
   classificationResult: TabletClassificationData | null;
@@ -69,7 +72,7 @@ const useTabletClassification = ({
         // 백엔드 스펙상 결과가 없거나 아직 완료되지 않은 경우에만 WAITING을 내려주므로
         // status를 완료 판정의 유일한 기준으로 사용한다.
         if (response.data.status !== 'WAITING') {
-          console.warn('[분류 흐름 11] 분류 완료, 결과 화면 전환', {
+          console.warn('[분류 흐름 12] 분류 완료, 결과 화면 전환', {
             clientId: classificationClientId,
             status: response.data.status,
             wasteType: response.data.wasteType,
@@ -80,7 +83,7 @@ const useTabletClassification = ({
           return;
         }
 
-        console.warn('[분류 흐름 11] 분류 대기 중, 1초 후 재조회', {
+        console.warn('[분류 흐름 12] 분류 대기 중, 1초 후 재조회', {
           clientId: classificationClientId,
           status: response.data.status,
           completed: response.data.completed,
@@ -115,7 +118,12 @@ const useTabletClassification = ({
           throw new Error('clientId가 없습니다.');
         }
 
-        console.warn('[분류 흐름 6] 로딩 화면 진입, 분류 결과 조회 시작', { clientId });
+        console.warn('[분류 흐름 8] 로딩 화면 진입, 촬영 및 분류 요청 시작', { clientId });
+        const captureResponse = await captureAndClassify(clientId);
+        console.warn('[분류 흐름 9] 촬영 및 분류 응답 수신', {
+          clientId,
+          response: captureResponse,
+        });
         await fetchClassificationResult(clientId);
       } catch (error: unknown) {
         if (isCancelled) {
@@ -123,8 +131,14 @@ const useTabletClassification = ({
         }
 
         clearTimeout(timeoutTimerId);
-        console.error('[useTabletClassification] 감지 요청 실패', error);
-        setClassificationErrorMessage(CLASSIFICATION_ERROR_MESSAGE);
+        const errorMessage = getApiErrorMessage(error, CAPTURE_AND_CLASSIFY_ERROR_MESSAGE);
+
+        console.error('[분류 흐름 실패 - 촬영 및 분류]', {
+          message: errorMessage,
+          response: axios.isAxiosError(error) ? error.response?.data : undefined,
+          status: axios.isAxiosError(error) ? error.response?.status : undefined,
+        });
+        setClassificationErrorMessage(errorMessage);
       }
     };
 

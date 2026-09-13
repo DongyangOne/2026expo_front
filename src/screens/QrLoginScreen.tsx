@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Linking, Platform, Pressable, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -11,13 +11,14 @@ type Props = NativeStackScreenProps<RootStackParamList, 'QrLogin'>;
 
 const QR_TOKEN_ERROR_MESSAGE = '유효한 QR 로그인 정보가 없습니다.';
 const APPROVAL_ERROR_MESSAGE = '태블릿 로그인 승인에 실패했습니다.';
+const CAMERA_OPEN_ERROR_MESSAGE =
+  '카메라를 열지 못했습니다. 카메라에서 새 QR 코드를 스캔해 주세요.';
 
 const QrLoginScreen = ({ navigation, route }: Props): React.JSX.Element => {
   const accessToken = useAuthStore((state) => state.accessToken);
   const isRestoring = useAuthStore((state) => state.isRestoring);
   const attemptedQrTokenRef = useRef<string | null>(null);
   const [approvalErrorMessage, setApprovalErrorMessage] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
   const qrToken = route.params?.qrToken;
 
   useEffect((): (() => void) | void => {
@@ -67,12 +68,20 @@ const QrLoginScreen = ({ navigation, route }: Props): React.JSX.Element => {
     return (): void => {
       isActive = false;
     };
-  }, [accessToken, isRestoring, navigation, qrToken, retryCount]);
+  }, [accessToken, isRestoring, navigation, qrToken]);
 
-  const handleRetry = (): void => {
-    attemptedQrTokenRef.current = null;
-    setRetryCount((currentRetryCount) => currentRetryCount + 1);
-  };
+  const handleRetry = useCallback(async (): Promise<void> => {
+    if (Platform.OS !== 'android') {
+      setApprovalErrorMessage(CAMERA_OPEN_ERROR_MESSAGE);
+      return;
+    }
+
+    try {
+      await Linking.sendIntent('android.media.action.STILL_IMAGE_CAMERA');
+    } catch {
+      setApprovalErrorMessage(CAMERA_OPEN_ERROR_MESSAGE);
+    }
+  }, []);
 
   if (!qrToken) {
     return (
@@ -94,7 +103,7 @@ const QrLoginScreen = ({ navigation, route }: Props): React.JSX.Element => {
           </Text>
           <Pressable
             className="mt-[28px] h-[52px] items-center justify-center rounded-[12px] bg-purple"
-            onPress={handleRetry}>
+            onPress={() => void handleRetry()}>
             <Text className="font-notoSansKRBold text-[16px] text-white">다시 시도</Text>
           </Pressable>
         </View>
