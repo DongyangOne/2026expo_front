@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '@/navigation/types';
 import { approveQrLogin } from '@/services';
 import { useAuthStore } from '@/store';
+import { ApiError } from '@/utils';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'QrLogin'>;
 
@@ -45,7 +46,9 @@ const QrLoginScreen = ({ navigation, route }: Props): React.JSX.Element => {
         const approvalResponse = await approveQrLogin(qrToken);
 
         if (!approvalResponse.success) {
-          throw new Error(approvalResponse.message || APPROVAL_ERROR_MESSAGE);
+          throw new ApiError(approvalResponse.message || APPROVAL_ERROR_MESSAGE, {
+            code: approvalResponse.code,
+          });
         }
 
         console.warn('[QrLoginScreen] QR 로그인 승인 성공', approvalResponse);
@@ -54,11 +57,17 @@ const QrLoginScreen = ({ navigation, route }: Props): React.JSX.Element => {
           navigation.replace('MobileTabs');
         }
       } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : APPROVAL_ERROR_MESSAGE;
+        console.error('[QrLoginScreen] QR 로그인 승인 실패', {
+          message: errorMessage,
+          status: error instanceof ApiError ? error.status : undefined,
+          code: error instanceof ApiError ? error.code : undefined,
+        });
+
         if (!isActive) {
           return;
         }
 
-        const errorMessage = error instanceof Error ? error.message : APPROVAL_ERROR_MESSAGE;
         setApprovalErrorMessage(errorMessage);
       }
     };

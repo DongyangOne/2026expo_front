@@ -1,4 +1,5 @@
 export {
+  ApiError,
   getApiErrorMessage,
   getServerMessage,
   isNetworkError,
