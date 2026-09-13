@@ -211,9 +211,6 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     hasHandledQrLogin.current = false;
     console.warn('[TabletMain] QR 로그인 SSE 연결 시작');
     const qrLoginConnection = connectQrLogin(qrToken);
-    const qrDisplayTimer = setTimeout((): void => {
-      setHasStartedSseConnection(true);
-    }, 0);
 
     qrLoginConnection.addEventListener('open', (): void => {
       console.warn('[TabletMain] QR 로그인 SSE 연결 성공');
@@ -276,7 +273,6 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     });
 
     return () => {
-      clearTimeout(qrDisplayTimer);
       qrLoginConnection.removeAllEventListeners();
       qrLoginConnection.close();
     };
