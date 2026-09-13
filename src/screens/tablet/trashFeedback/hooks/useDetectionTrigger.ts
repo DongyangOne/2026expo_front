@@ -26,6 +26,7 @@ const isDetectionCompleted = (response: unknown): boolean => {
   const responseData = isRecord(response.data) ? response.data : response;
   const success = response.success ?? responseData.success;
   const completed = response.completed ?? responseData.completed;
+  const detected = response.detected ?? responseData.detected;
   const statusText = [
     response.status,
     response.state,
@@ -43,12 +44,13 @@ const isDetectionCompleted = (response: unknown): boolean => {
   if (
     success === false ||
     completed === false ||
+    detected === false ||
     /(timeout|timed.?out|failed|failure|not.?detected|시간.?초과|실패|미감지)/i.test(statusText)
   ) {
     return false;
   }
 
-  if (success === true || completed === true) {
+  if (success === true || completed === true || detected === true) {
     return true;
   }
 

@@ -42,8 +42,8 @@ describe('useDetectionTrigger', (): void => {
     );
   });
 
-  it('무게 감지 완료 응답에서만 촬영 단계로 넘어간다', async (): Promise<void> => {
-    jest.mocked(triggerDetection).mockResolvedValue({ success: true });
+  it('detected가 true인 무게 감지 응답에서 촬영 단계로 넘어간다', async (): Promise<void> => {
+    jest.mocked(triggerDetection).mockResolvedValue({ detected: true, weight_g: 15.8 });
 
     await renderHook(() => useDetectionTrigger({ isActive: true, onSuccess: handleSuccess }));
 
