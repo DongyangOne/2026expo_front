@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, ToastAndroid, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AxiosError } from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-native-svg';
 
@@ -10,13 +9,12 @@ import { FONTS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
 import { loginAdmin } from '@/services';
 import { useAuthStore } from '@/store';
-import type { ApiResponse } from '@/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TabletLogin'>;
 
-const LOGIN_FAILED_MESSAGE = '아이디/비밀번호가 맞지 않습니다.';
-const LOGIN_ERROR_MESSAGE = '로그인 중 오류가 발생했습니다.';
-const LOGIN_RESPONSE_ERROR_MESSAGE = '로그인 응답을 확인할 수 없습니다.';
+const LOGIN_FAILED_MESSAGE = '아이디 또는 비밀번호를 확인해 주세요.';
+const LOGIN_ERROR_MESSAGE = '로그인에 실패했어요. 잠시 후 다시 시도해 주세요.';
+const LOGIN_RESPONSE_ERROR_MESSAGE = '로그인 정보를 확인하지 못했어요. 다시 시도해 주세요.';
 
 type LoginInputProps = {
   label: string;
@@ -127,7 +125,7 @@ const TabletLogin = ({ navigation }: Props) => {
       });
 
       if (!loginResponse.success) {
-        ToastAndroid.show(loginResponse.message || LOGIN_FAILED_MESSAGE, ToastAndroid.SHORT);
+        ToastAndroid.show(LOGIN_FAILED_MESSAGE, ToastAndroid.SHORT);
         return;
       }
 
@@ -138,11 +136,8 @@ const TabletLogin = ({ navigation }: Props) => {
 
       setAdminSession(loginResponse.data);
       navigation.replace('TabletReport');
-    } catch (error: unknown) {
-      const axiosError = error as AxiosError<ApiResponse<unknown>>;
-      const errorMessage = axiosError.response?.data.message ?? LOGIN_ERROR_MESSAGE;
-
-      ToastAndroid.show(errorMessage, ToastAndroid.SHORT);
+    } catch {
+      ToastAndroid.show(LOGIN_ERROR_MESSAGE, ToastAndroid.SHORT);
     } finally {
       setIsSubmitting(false);
     }

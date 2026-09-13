@@ -84,17 +84,13 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
     );
   }, []);
 
-  const { detectionErrorMessage, isTriggering, retryDetection } = useDetectionTrigger({
+  const { detectionErrorMessage, retryDetection } = useDetectionTrigger({
     isActive: currentStep === 'waitingTrash',
     onSuccess: handleDetectionSuccess,
   });
 
   const handleNextPress = useCallback((): void => {
     if (currentStep === 'waitingTrash') {
-      if (isTriggering || detectionErrorMessage) {
-        return;
-      }
-
       handleDetectionSuccess();
       return;
     }
@@ -108,9 +104,7 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
   }, [
     classificationResult?.status,
     currentStep,
-    detectionErrorMessage,
     handleDetectionSuccess,
-    isTriggering,
   ]);
 
   const handleDetectionRetry = useCallback((): void => {
@@ -213,7 +207,6 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
               {currentStep === 'waitingTrash' ? (
                 <WaitingTrashStep
                   detectionErrorMessage={detectionErrorMessage}
-                  isTriggering={isTriggering}
                   onHome={handleHomePress}
                   onNext={handleNextPress}
                   onRetry={handleDetectionRetry}

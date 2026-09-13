@@ -3,7 +3,6 @@ import axios from 'axios';
 
 import { captureAndClassify, getTabletClassification } from '@/services';
 import type { TabletClassificationData } from '@/types';
-import { getApiErrorMessage } from '@/utils';
 
 const CLASSIFICATION_POLL_INTERVAL_MS = 1000;
 const CLASSIFICATION_TIMEOUT_MS = 30000;
@@ -131,14 +130,12 @@ const useTabletClassification = ({
         }
 
         clearTimeout(timeoutTimerId);
-        const errorMessage = getApiErrorMessage(error, CAPTURE_AND_CLASSIFY_ERROR_MESSAGE);
-
         console.error('[분류 흐름 실패 - 촬영 및 분류]', {
-          message: errorMessage,
+          error,
           response: axios.isAxiosError(error) ? error.response?.data : undefined,
           status: axios.isAxiosError(error) ? error.response?.status : undefined,
         });
-        setClassificationErrorMessage(errorMessage);
+        setClassificationErrorMessage(CAPTURE_AND_CLASSIFY_ERROR_MESSAGE);
       }
     };
 

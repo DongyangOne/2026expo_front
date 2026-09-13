@@ -30,6 +30,7 @@ interface ReportGroup {
 }
 
 const PAGE_SIZE = 10;
+const REPORT_ERROR_MESSAGE = '피드백을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
 
 const groupFeedbackByDate = (feedbackList: AdminFeedback[]): ReportGroup[] => {
   const feedbackGroups: ReportGroup[] = [];
@@ -116,9 +117,7 @@ const TabletReport = ({ navigation }: Props) => {
       setIsLast(data.last);
     } catch (error: unknown) {
       console.error('[TabletReport] 관리자 피드백 조회 실패', error);
-      setErrorMessage(
-        error instanceof Error ? error.message : '관리자 피드백을 불러오지 못했습니다.',
-      );
+      setErrorMessage(REPORT_ERROR_MESSAGE);
     } finally {
       isRequestingRef.current = false;
       setIsLoading(false);

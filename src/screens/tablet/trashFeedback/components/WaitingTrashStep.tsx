@@ -6,7 +6,6 @@ import WatchIcon from '@/assets/icons/watch.svg';
 
 interface WaitingTrashStepProps {
   detectionErrorMessage: string | null;
-  isTriggering: boolean;
   remainingSeconds: number;
   onHome: () => void;
   onNext: () => void;
@@ -15,7 +14,6 @@ interface WaitingTrashStepProps {
 
 const WaitingTrashStep = ({
   detectionErrorMessage,
-  isTriggering,
   remainingSeconds,
   onHome,
   onNext,
@@ -26,7 +24,6 @@ const WaitingTrashStep = ({
       <TouchableOpacity
         className="absolute left-[24px] top-[24px] z-10 rounded-full border border-border px-[16px] py-[8px]"
         activeOpacity={0.8}
-        disabled={isTriggering || !!detectionErrorMessage}
         onPress={onNext}>
         <Text className="font-notoSansKRRegular text-[16px] leading-[20px] text-body">다음</Text>
       </TouchableOpacity>
