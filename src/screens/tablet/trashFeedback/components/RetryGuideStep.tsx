@@ -57,6 +57,7 @@ const RetryGuideStep = ({
             <Video
               key={`${classificationResult.guideVideoUrl}-${guideVideoPlaybackKey}`}
               controls={false}
+              muted
               onEnd={handleVideoEnd}
               onError={handleVideoError}
               paused={false}

@@ -5,7 +5,7 @@ import { triggerDetection } from '@/services';
 
 const DETECTION_TRIGGER_FALLBACK_MESSAGE = '쓰레기 감지에 실패했어요. 다시 시도해 주세요.';
 const DETECTION_TIMEOUT_MESSAGE =
-  '무게를 감지하지 못했어요. 다음을 눌러 계속하거나 다시 시도해 주세요.';
+  '무게를 감지하지 못했어요.\n 다음을 눌러 계속하거나 다시 시도해 주세요.';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;

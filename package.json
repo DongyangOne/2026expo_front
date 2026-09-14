@@ -13,7 +13,10 @@
     "test": "jest"
   },
   "jest": {
-    "preset": "react-native"
+    "preset": "react-native",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|react-native-sse|@react-native(-community)?)/)"
+    ]
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",

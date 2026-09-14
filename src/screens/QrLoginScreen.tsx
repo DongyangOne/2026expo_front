@@ -43,6 +43,7 @@ const QrLoginScreen = ({ navigation, route }: Props): React.JSX.Element => {
       setApprovalErrorMessage(null);
 
       try {
+        console.warn('[QrLoginScreen] QR 로그인 승인 요청 시작');
         const approvalResponse = await approveQrLogin(qrToken);
 
         if (!approvalResponse.success) {
@@ -52,10 +53,8 @@ const QrLoginScreen = ({ navigation, route }: Props): React.JSX.Element => {
         }
 
         console.warn('[QrLoginScreen] QR 로그인 승인 성공', approvalResponse);
-
-        if (isActive) {
-          navigation.replace('MobileTabs');
-        }
+        // 승인 성공 시 토큰은 이미 소비됐으므로 딥링크 화면이 먼저 교체돼도 이동을 생략하지 않는다.
+        navigation.replace('MobileTabs');
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : APPROVAL_ERROR_MESSAGE;
         console.error('[QrLoginScreen] QR 로그인 승인 실패', {

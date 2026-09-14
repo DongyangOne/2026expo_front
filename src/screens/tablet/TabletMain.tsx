@@ -23,11 +23,14 @@ interface QrTapState {
 
 const QR_SIZE = 440;
 const QR_TOKEN_REFRESH_INTERVAL_MS = 2 * 60 * 1000 + 50 * 1000;
+const QR_CONNECTION_TIMEOUT_MS = 10000;
+const QR_CONNECTION_RETRY_DELAY_MS = 3000;
 const LOGIN_TAP_WINDOW_MS = 5000;
 const LOGIN_TAP_COUNT = 5;
 const QR_TOKEN_ERROR_MESSAGE = 'QR 코드를 불러오지 못했습니다.';
 const QR_NETWORK_ERROR_MESSAGE = '네트워크 연결을 확인한 후 다시 시도해주세요.';
 const CLIENT_ID_ERROR_MESSAGE = '분류 요청을 준비하지 못했습니다.';
+const QR_LOGIN_RESPONSE_ERROR_MESSAGE = '로그인 응답을 처리하지 못해 QR 코드를 새로 발급합니다.';
 const QR_LOGIN_DEEP_LINK_PREFIX = 'expo2026://qr-login?qrToken=';
 
 const isRecord = (candidate: unknown): candidate is Record<string, unknown> =>
@@ -91,6 +94,11 @@ interface QrCodeProps {
   onRetry: () => void;
 }
 
+interface QrLoginEvent {
+  type: string;
+  data: string | null;
+}
+
 const QrCode = ({ qrToken, isLoading, errorMessage, onRetry }: QrCodeProps): React.JSX.Element => {
   const qrLoginDeepLink = qrToken
     ? `${QR_LOGIN_DEEP_LINK_PREFIX}${encodeURIComponent(qrToken)}`
@@ -150,6 +158,9 @@ const GradientGuideText = (): React.JSX.Element => {
 const TabletMain = ({ navigation }: Props): React.JSX.Element => {
   const qrTapState = useRef<QrTapState>({ firstTapAt: 0, count: 0 });
   const hasHandledQrLogin = useRef(false);
+  const isMounted = useRef(false);
+  const isIssuingQrToken = useRef(false);
+  const qrRetryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const logout = useAuthStore((state) => state.logout);
   const setAuth = useAuthStore((state) => state.setAuth);
   const clearLoginResponse = useQrLoginStore((state) => state.clearLoginResponse);
@@ -160,6 +171,16 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
   const [hasStartedSseConnection, setHasStartedSseConnection] = useState(false);
 
   const fetchQrToken = useCallback(async (): Promise<void> => {
+    if (!isMounted.current || isIssuingQrToken.current || hasHandledQrLogin.current) {
+      return;
+    }
+
+    if (qrRetryTimer.current !== null) {
+      clearTimeout(qrRetryTimer.current);
+      qrRetryTimer.current = null;
+    }
+
+    isIssuingQrToken.current = true;
     setIsQrLoading(true);
     setQrErrorMessage(null);
     setHasStartedSseConnection(false);
@@ -168,12 +189,20 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     try {
       const qrTokenResponse = await issueQrToken();
 
+      if (!isMounted.current || hasHandledQrLogin.current) {
+        return;
+      }
+
       if (!qrTokenResponse.success || !qrTokenResponse.data.qrToken) {
         throw new Error(qrTokenResponse.message || QR_TOKEN_ERROR_MESSAGE);
       }
 
       setQrToken(qrTokenResponse.data.qrToken);
     } catch (error: unknown) {
+      if (!isMounted.current || hasHandledQrLogin.current) {
+        return;
+      }
+
       console.error('[TabletMain] QR 토큰 발급 실패', error);
       const errorMessage =
         axios.isAxiosError(error) && !error.response
@@ -181,11 +210,15 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
           : QR_TOKEN_ERROR_MESSAGE;
       setQrErrorMessage(errorMessage);
     } finally {
-      setIsQrLoading(false);
+      isIssuingQrToken.current = false;
+      if (isMounted.current && !hasHandledQrLogin.current) {
+        setIsQrLoading(false);
+      }
     }
   }, []);
 
   useEffect((): (() => void) => {
+    isMounted.current = true;
     const initialQrTokenTimer = setTimeout(() => {
       void fetchQrToken();
     }, 0);
@@ -198,8 +231,12 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     }, QR_TOKEN_REFRESH_INTERVAL_MS);
 
     return () => {
+      isMounted.current = false;
       clearTimeout(initialQrTokenTimer);
       clearInterval(qrTokenRefreshInterval);
+      if (qrRetryTimer.current !== null) {
+        clearTimeout(qrRetryTimer.current);
+      }
     };
   }, [fetchQrToken]);
 
@@ -209,33 +246,63 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     }
 
     hasHandledQrLogin.current = false;
+    let isActive = true;
     console.warn('[TabletMain] QR 로그인 SSE 연결 시작');
     const qrLoginConnection = connectQrLogin(qrToken);
 
-    qrLoginConnection.addEventListener('open', (): void => {
-      console.warn('[TabletMain] QR 로그인 SSE 연결 성공');
-      setHasStartedSseConnection(true);
-    });
+    const handleConnectionFailure = (errorMessage: string): void => {
+      if (!isActive || hasHandledQrLogin.current) {
+        return;
+      }
 
-    qrLoginConnection.addEventListener('INIT', (event): void => {
-      console.warn('[TabletMain] QR 로그인 SSE 연결 준비 완료', event.data);
-    });
+      isActive = false;
+      clearTimeout(connectionTimeout);
+      setQrToken(null);
+      setHasStartedSseConnection(false);
+      setIsQrLoading(false);
+      setQrErrorMessage(errorMessage);
+      // 승인 결과를 놓친 QR은 이미 소비됐을 수 있어 새 토큰으로 복구한다.
+      qrRetryTimer.current = setTimeout(() => {
+        void fetchQrToken();
+      }, QR_CONNECTION_RETRY_DELAY_MS);
+    };
 
-    qrLoginConnection.addEventListener('LOGIN_SUCCESS', (event): void => {
-      console.warn('[분류 흐름 1] QR 로그인 성공 이벤트 수신');
+    const connectionTimeout = setTimeout(() => {
+      console.warn('[TabletMain] QR 로그인 SSE 연결 대기 시간 초과');
+      handleConnectionFailure(QR_NETWORK_ERROR_MESSAGE);
+    }, QR_CONNECTION_TIMEOUT_MS);
 
-      if (hasHandledQrLogin.current) {
+    const handleQrLoginEvent = (event: QrLoginEvent): void => {
+      if (event.type === 'LOGIN_SUCCESS' || event.type === 'message') {
+        console.warn('[TabletMain] QR 로그인 SSE 메시지 수신', {
+          eventType: event.type,
+          hasData: !!event.data,
+          dataLength: event.data?.length ?? 0,
+        });
+      }
+
+      if (!isActive || hasHandledQrLogin.current) {
         return;
       }
 
       const loginResponse = parseQrLoginResponse(event.data);
 
       if (!loginResponse) {
-        console.error('[TabletMain] QR 로그인 승인 응답 형식 오류');
+        if (event.type === 'LOGIN_SUCCESS') {
+          console.error('[TabletMain] QR 로그인 승인 응답 형식 오류', {
+            hasData: !!event.data,
+            dataLength: event.data?.length ?? 0,
+          });
+          handleConnectionFailure(QR_LOGIN_RESPONSE_ERROR_MESSAGE);
+        }
         return;
       }
 
       hasHandledQrLogin.current = true;
+      clearTimeout(connectionTimeout);
+      setQrToken(null);
+      setHasStartedSseConnection(false);
+      setIsQrLoading(true);
       setLoginResponse(loginResponse);
       setAuth({ ...loginResponse.data, rememberMe: 'N' });
       console.warn('[분류 흐름 2] QR 로그인 정보 저장 완료');
@@ -243,6 +310,10 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
 
       void createFeedbackDetection()
         .then((response): void => {
+          if (!isMounted.current) {
+            return;
+          }
+
           if (!response.success || !response.data.clientId) {
             throw new Error(response.message);
           }
@@ -253,30 +324,65 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
           navigation.replace('TabletTrashFeedback', { clientId });
         })
         .catch(async (error: unknown): Promise<void> => {
+          if (!isMounted.current) {
+            return;
+          }
+
           console.error('[분류 흐름 실패 - clientId 발급]', error);
           setQrToken(null);
           setHasStartedSseConnection(false);
           setQrErrorMessage(CLIENT_ID_ERROR_MESSAGE);
           clearLoginResponse();
           await logout();
+          if (isMounted.current) {
+            hasHandledQrLogin.current = false;
+            setIsQrLoading(false);
+          }
         });
+    };
+
+    qrLoginConnection.addEventListener('open', (): void => {
+      if (!isActive || hasHandledQrLogin.current) {
+        return;
+      }
+
+      clearTimeout(connectionTimeout);
+      console.warn('[TabletMain] QR 로그인 SSE 연결 성공');
+      setHasStartedSseConnection(true);
+    });
+
+    qrLoginConnection.addEventListener('INIT', (event): void => {
+      console.warn('[TabletMain] QR 로그인 SSE 연결 준비 완료', event.data);
+    });
+
+    qrLoginConnection.addEventListener('message', handleQrLoginEvent);
+
+    /*
+     * 기존 서버는 LOGIN_SUCCESS라는 사용자 정의 이벤트를 보내지만,
+     * 중계기에서 event 필드가 사라지면 react-native-sse는 message로 전달한다.
+     */
+    qrLoginConnection.addEventListener('LOGIN_SUCCESS', (event): void => {
+      console.warn('[분류 흐름 1] QR 로그인 성공 이벤트 수신');
+      handleQrLoginEvent(event);
     });
 
     qrLoginConnection.addEventListener('close', (): void => {
       console.warn('[TabletMain] QR 로그인 SSE 연결 종료');
-      setHasStartedSseConnection(false);
+      handleConnectionFailure(QR_NETWORK_ERROR_MESSAGE);
     });
 
     qrLoginConnection.addEventListener('error', (event): void => {
       console.error('[TabletMain] QR 로그인 SSE 연결 오류', event);
-      setHasStartedSseConnection(false);
+      handleConnectionFailure(QR_NETWORK_ERROR_MESSAGE);
     });
 
     return () => {
+      isActive = false;
+      clearTimeout(connectionTimeout);
       qrLoginConnection.removeAllEventListeners();
       qrLoginConnection.close();
     };
-  }, [clearLoginResponse, logout, navigation, qrToken, setAuth, setLoginResponse]);
+  }, [clearLoginResponse, fetchQrToken, logout, navigation, qrToken, setAuth, setLoginResponse]);
 
   const handleQrPress = useCallback((): void => {
     const currentTime = Date.now();

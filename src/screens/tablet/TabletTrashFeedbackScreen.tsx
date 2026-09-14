@@ -101,11 +101,7 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
     }
 
     setCurrentStep('retryGuide');
-  }, [
-    classificationResult?.status,
-    currentStep,
-    handleDetectionSuccess,
-  ]);
+  }, [classificationResult?.status, currentStep, handleDetectionSuccess]);
 
   const handleDetectionRetry = useCallback((): void => {
     setRemainingSeconds(COUNTDOWN_START_SECONDS);
