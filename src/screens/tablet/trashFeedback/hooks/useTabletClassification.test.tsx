@@ -8,6 +8,7 @@ import type { ApiResponse, TabletClassificationData } from '@/types';
 import useTabletClassification from './useTabletClassification';
 
 jest.mock('@/services', () => ({
+  captureAndClassify: jest.fn(),
   getTabletClassification: jest.fn(),
 }));
 jest.mock('react-native-css-interop', () => ({
