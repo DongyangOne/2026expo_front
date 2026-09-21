@@ -44,10 +44,7 @@ export const checkLoginIdDuplicate = async (
 };
 
 export const signup = async (request: SignupRequest): Promise<ApiResponse<SignupResponse>> => {
-  const response = await instance.post<ApiResponse<SignupResponse>>(
-    '/api/v1/auth/signup',
-    request,
-  );
+  const response = await instance.post<ApiResponse<SignupResponse>>('/api/v1/auth/signup', request);
 
   return response.data;
 };

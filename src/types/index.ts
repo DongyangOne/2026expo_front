@@ -7,11 +7,36 @@ export type {
   UpdateProfileData,
 } from './user.types';
 export type { ApiResponse } from './api.types';
+export type {
+  TabletClassificationData,
+  TabletClassificationStatus,
+  WasteType,
+} from './classification.types';
 export type { QrLoginData, QrLoginSseResponse, QrTokenData } from './qr.types';
+export type {
+  EvolutionStage,
+  DashboardWasteType,
+  CharacterInfo,
+  QuizProfileInfo,
+  RecyclingLogInfo,
+  MyDashboardData,
+} from './dashboard.types';
 export type {
   LoginRequest,
   AuthUser,
+  GoogleLoginRequest,
+  GoogleLoginResponse,
+  GoogleSignupRequiredResponse,
+  GoogleLoginSuccessResponse,
   LoginResponse,
+  KakaoLoginRequest,
+  KakaoLoginResponse,
+  KakaoSignupRequiredResponse,
+  KakaoLoginSuccessResponse,
+  NaverLoginRequest,
+  NaverLoginResponse,
+  NaverSignupRequiredResponse,
+  NaverLoginSuccessResponse,
   ReissueTokenRequest,
   ReissueTokenResponse,
   WithdrawalRequest,
@@ -24,6 +49,15 @@ export type {
   AdminReissueData,
   AdminReissueRequest,
   AdminSignupRequest,
+  FindPasswordCheckRequest,
+  FindPasswordCheckResponse,
+  FindPasswordResetRequest,
+  FindPasswordSendRequest,
+  FindPasswordSendResponse,
+  FindIdCheckRequest,
+  FindIdCheckResponse,
+  FindIdSendRequest,
+  FindIdSendResponse,
 } from './auth.types';
 export type {
   EmailCheckRequest,
@@ -39,6 +73,14 @@ export type {
   AdminFeedbackListData,
   Feedback,
   FeedbackDetailData,
+  FeedbackDetectionData,
   FeedbackListData,
   PageRequest,
 } from './feedback.types';
+export type {
+  QuizAnswerData,
+  QuizAnswerRequest,
+  QuizResultData,
+  QuizSessionData,
+  QuizSessionRequest,
+} from './quiz.types';

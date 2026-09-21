@@ -12,14 +12,16 @@ type FindPasswordSuccessScreenProps = NativeStackScreenProps<
   'FindPasswordSuccess'
 >;
 
-const FindPasswordSuccessScreen = ({ navigation }: FindPasswordSuccessScreenProps) => {
+const FindPasswordSuccessScreen = ({ navigation, route }: FindPasswordSuccessScreenProps) => {
+  const { passwordResetToken } = route.params;
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.replace('ResetPassword');
+      navigation.replace('ResetPassword', { passwordResetToken });
     }, AUTO_ADVANCE_DELAY);
 
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [navigation, passwordResetToken]);
 
   return (
     <View className="flex-1 overflow-hidden bg-background">

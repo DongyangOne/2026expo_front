@@ -28,7 +28,10 @@ module.exports = {
 
     // TypeScript
     '@typescript-eslint/no-explicit-any': 'error',
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+    ],
 
     // Hooks
     'react-hooks/exhaustive-deps': 'warn',

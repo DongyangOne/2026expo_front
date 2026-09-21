@@ -14,11 +14,21 @@ export type RootTabParamList = {
 
 export type RootStackParamList = {
   Splash: undefined;
-  Login: { qrToken?: string } | undefined;
+  Login: { qrToken?: string; loginId?: string } | undefined;
+  GoogleLogin: { qrToken?: string; rememberMe?: 'Y' | 'N' } | undefined;
+  KakaoLogin: { qrToken?: string; rememberMe?: 'Y' | 'N' } | undefined;
+  NaverLogin: { qrToken?: string; rememberMe?: 'Y' | 'N' } | undefined;
   Tabs: NavigatorScreenParams<RootTabParamList>;
   FeedbackDetail: { id: number };
   MobileTabs: NavigatorScreenParams<RootTabParamList> | undefined;
-  Signup: undefined;
+  Signup:
+    | {
+        socialType: 'KAKAO' | 'NAVER' | 'GOOGLE';
+        socialProviderId: string;
+        prefillEmail: string;
+        prefillUsername: string;
+      }
+    | undefined;
   SignupComplete: undefined;
   Terms: { onAgree: () => void } | undefined;
   DeleteAccount: undefined;
@@ -27,14 +37,14 @@ export type RootStackParamList = {
   TabletLogin: undefined;
   TabletSignup: undefined;
   TabletReport: undefined;
-  FindPassword: undefined;
-  FindPasswordSuccess: undefined;
-  ResetPassword: undefined;
+  FindPassword: { message?: string } | undefined;
+  FindPasswordSuccess: { passwordResetToken: string };
+  ResetPassword: { passwordResetToken: string };
   ResetPasswordSuccess: undefined;
   FindId: undefined;
-  FindIdSuccess: undefined;
+  FindIdSuccess: { userId: string };
   FindIdResult: { userId: string };
-  TabletTrashFeedback: undefined;
+  TabletTrashFeedback: { clientId?: string } | undefined;
   EditProfile: undefined;
 
   UserAuth: undefined;

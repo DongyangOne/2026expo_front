@@ -10,6 +10,12 @@ export const COLORS = {
   danger: '#EF4444',
   white: '#FFFFFF',
   black: '#000000',
+  purple: '#7B61FF',
+  pink: '#FF4FD8',
+  linear: {
+    start: '#FF6363',
+    end: '#FF7A59',
+  },
   gray: {
     100: '#F3F4F6',
     200: '#E5E7EB',

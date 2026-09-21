@@ -7,7 +7,7 @@ module.exports = {
       colors: {
         primary: {
           //메인
-          backgorund: '#F8F9FC',
+          background: '#F8F9FC',
           start: '#7B61FF',
           end: '#FF4FD8',
         },

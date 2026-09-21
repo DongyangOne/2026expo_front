@@ -35,7 +35,7 @@ const GradientButton = ({
 
   return (
     <TouchableOpacity
-      className="shrink-0 items-center justify-center px-4 overflow-hidden"
+      className="shrink-0 items-center justify-center overflow-hidden px-4"
       style={[
         {
           height,
@@ -51,7 +51,7 @@ const GradientButton = ({
       onPress={onPress}
       disabled={disabled}
       activeOpacity={0.8}
-      onLayout={e => setWidth(e.nativeEvent.layout.width)}>
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
       {width > 0 && (
         <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
           <Defs>
@@ -64,7 +64,9 @@ const GradientButton = ({
         </Svg>
       )}
       <Text
-        className={`text-base text-white ${fontWeight === 'bold' ? 'font-notoSansKRBold' : 'font-notoSansKRRegular'}`}
+        className={`text-base text-white ${
+          fontWeight === 'bold' ? 'font-notoSansKRBold' : 'font-notoSansKRRegular'
+        }`}
         style={{ fontSize }}>
         {label}
       </Text>

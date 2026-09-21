@@ -36,7 +36,9 @@ const SignupInput = ({
 
   return (
     <View className="w-full">
-      <Text className="mb-[5px] font-notoSansKRRegular text-sm text-body" style={{ lineHeight: 16 }}>
+      <Text
+        className="mb-[5px] font-notoSansKRRegular text-sm text-body"
+        style={{ lineHeight: 16 }}>
         {label}
         {required ? <Text className="font-notoSansKRRegular text-pink"> *</Text> : null}
       </Text>

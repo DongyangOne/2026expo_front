@@ -24,7 +24,7 @@ export interface ExistsCheckResponse {
 export interface SignupRequest {
   username: string;
   loginId: string;
-  password: string;
+  password?: string;
   email: string;
   team: string;
   agreeTerms: 'Y' | 'N';

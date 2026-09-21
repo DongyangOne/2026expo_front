@@ -11,13 +11,11 @@ cssInterop(LinearGradient, {
   className: 'style',
 });
 
-import CompleteImage from '../assets/images/leave.svg';
+import CompleteImage from '@/assets/images/leave.svg';
 
-import tailwindConfig from '../../tailwind.config.js';
+import { COLORS } from '@/constants/theme';
 
 const DeleteCompleteScreen = () => {
-  const { colors } = tailwindConfig.theme!.extend! as { colors: Record<string, string> };
-
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleGoHome = () => {
@@ -39,7 +37,7 @@ const DeleteCompleteScreen = () => {
       {/* 처음으로 버튼 */}
       <TouchableOpacity className="mx-14 mt-20" onPress={handleGoHome}>
         <LinearGradient
-          colors={[colors.purple, colors.pink]}
+          colors={[COLORS.purple, COLORS.pink]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           className="items-center justify-center rounded-full py-5">

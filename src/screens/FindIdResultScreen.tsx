@@ -28,7 +28,12 @@ const FindIdResultScreen = ({ navigation, route }: FindIdResultScreenProps) => {
       <View className="mt-16 px-10">
         <GradientButton
           label="로그인 하기   →"
-          onPress={() => navigation.navigate('MobileTabs')}
+          onPress={() =>
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login', params: { loginId: userId } }],
+            })
+          }
           height={54}
           borderRadius={10}
           fontSize={16}
