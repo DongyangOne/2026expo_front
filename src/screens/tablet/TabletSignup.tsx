@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, ToastAndroid, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AxiosError } from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, {
   Defs,
@@ -16,7 +15,6 @@ import { SignupInput } from '@/components/ui';
 import { FONTS } from '@/constants';
 import type { RootStackParamList } from '@/navigation/types';
 import { checkAdminIdExists, signupAdmin } from '@/services';
-import type { ApiResponse } from '@/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TabletSignup'>;
 
@@ -24,8 +22,8 @@ const KEYBOARD_SEQUENCES = ['qwer', 'wert'];
 const ID_AVAILABLE_MESSAGE = '사용 가능한 아이디입니다.';
 const ID_DUPLICATE_MESSAGE = '이미 사용 중인 아이디입니다.';
 const ID_CHECK_REQUIRED_MESSAGE = '중복확인 인증을 해주세요.';
-const ID_CHECK_ERROR_MESSAGE = '아이디 중복 확인 중 오류가 발생했습니다.';
-const SIGNUP_ERROR_MESSAGE = '회원가입 중 오류가 발생했습니다.';
+const ID_CHECK_ERROR_MESSAGE = '아이디 확인에 실패했어요. 잠시 후 다시 시도해 주세요.';
+const SIGNUP_ERROR_MESSAGE = '회원가입에 실패했어요. 잠시 후 다시 시도해 주세요.';
 const SIGNUP_SUCCESS_MESSAGE = '가입완료';
 
 const GradientText = ({ label }: { label: string }) => {
@@ -170,7 +168,7 @@ const TabletSignup = ({ navigation }: Props) => {
       const existsResponse = await checkAdminIdExists({ adminId: id });
 
       if (!existsResponse.success) {
-        setIdCheckMessage(existsResponse.message || ID_CHECK_ERROR_MESSAGE);
+        setIdCheckMessage(ID_CHECK_ERROR_MESSAGE);
         return;
       }
 
@@ -178,11 +176,8 @@ const TabletSignup = ({ navigation }: Props) => {
       setIdCheckMessage(
         existsResponse.data.exists === 'Y' ? ID_DUPLICATE_MESSAGE : ID_AVAILABLE_MESSAGE,
       );
-    } catch (error: unknown) {
-      const axiosError = error as AxiosError<ApiResponse<unknown>>;
-      const errorMessage = axiosError.response?.data.message ?? ID_CHECK_ERROR_MESSAGE;
-
-      setIdCheckMessage(errorMessage);
+    } catch {
+      setIdCheckMessage(ID_CHECK_ERROR_MESSAGE);
     } finally {
       setIsCheckingId(false);
     }
@@ -220,7 +215,7 @@ const TabletSignup = ({ navigation }: Props) => {
       });
 
       if (!signupResponse.success) {
-        setFormMessage(signupResponse.message || SIGNUP_ERROR_MESSAGE);
+        setFormMessage(SIGNUP_ERROR_MESSAGE);
         return;
       }
 
@@ -231,11 +226,8 @@ const TabletSignup = ({ navigation }: Props) => {
           onPress: () => navigation.replace('TabletLogin'),
         },
       ]);
-    } catch (error: unknown) {
-      const axiosError = error as AxiosError<ApiResponse<unknown>>;
-      const errorMessage = axiosError.response?.data.message ?? SIGNUP_ERROR_MESSAGE;
-
-      setFormMessage(errorMessage);
+    } catch {
+      setFormMessage(SIGNUP_ERROR_MESSAGE);
     } finally {
       setIsSubmitting(false);
     }

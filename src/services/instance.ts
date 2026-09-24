@@ -5,6 +5,7 @@ import Config from 'react-native-config';
 import { STORAGE_KEYS } from '@/constants';
 import { useAuthStore } from '@/store';
 import type { AdminReissueData, ApiResponse, ReissueTokenResponse } from '@/types';
+import { ApiError } from '@/utils';
 
 import { reissueToken } from './auth';
 import { reissueAdminToken } from './auth.service';
@@ -147,7 +148,13 @@ instance.interceptors.response.use(
       }
 
       const adminMessage = error.response?.data?.message ?? error.message;
-      return Promise.reject(new Error(adminMessage));
+      return Promise.reject(
+        new ApiError(adminMessage, {
+          status,
+          code: error.response?.data?.code,
+          data: error.response?.data?.data,
+        }),
+      );
     }
 
     const isLoginRequest = isLoginEndpoint(config?.url);
@@ -178,7 +185,13 @@ instance.interceptors.response.use(
     }
 
     const message = error.response?.data?.message ?? error.message;
-    return Promise.reject(new Error(message));
+    return Promise.reject(
+      new ApiError(message, {
+        status,
+        code: error.response?.data?.code,
+        data: error.response?.data?.data,
+      }),
+    );
   },
 );
 
