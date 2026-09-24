@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { withdrawUser } from '@/services/auth'; // 실제 경로에 맞게 수정
+import { withdrawUser } from '@/services/auth';
 import { useAuthStore } from '@/store';
 
 import BackArrow from '@/assets/images/vector.svg';
@@ -25,8 +25,6 @@ const WITHDRAW_REASONS = [
   '기타',
 ] as const;
 
-// UI에 노출되는 한글 사유 -> 서버 enum 코드 매핑
-// (서버가 정의한 실제 enum 값으로 맞춰주세요)
 const REASON_CODE_MAP: Record<(typeof WITHDRAW_REASONS)[number], string> = {
   '기록을 삭제하고 싶어서': 'DELETE_RECORDS',
   '서비스 장애가 너무 많아서': 'SERVICE_ISSUE',
@@ -34,7 +32,6 @@ const REASON_CODE_MAP: Record<(typeof WITHDRAW_REASONS)[number], string> = {
   기타: 'ETC',
 };
 
-// ---- 비밀번호 형식 규칙 (그대로 유지) ----
 const SPECIAL_CHARS = `!@#$%^&*()_+\\-=\\[\\]{};':"\\\\|,.<>/?~\``;
 const ALLOWED_LENGTH_REGEX = new RegExp(`^[A-Za-z0-9${SPECIAL_CHARS}]{8,16}$`);
 const HAS_LETTER_REGEX = /[A-Za-z]/;
@@ -157,7 +154,7 @@ const DeleteAccountScreen = () => {
       withdrawReasonDetail: selected === '기타' ? etcText.trim() : '',
     };
 
-    console.log('[탈퇴 요청 payload]', JSON.stringify(payload)); // 👈 이 줄 추가
+    console.log('[탈퇴 요청 payload]', JSON.stringify(payload));
 
     try {
       const { success } = await withdrawUser({
@@ -167,14 +164,11 @@ const DeleteAccountScreen = () => {
       });
 
       if (success) {
-        // 기존 로그아웃 로직 재사용 (토큰/스토리지 정리 포함)
         await useAuthStore.getState().logout();
 
         navigation.navigate('DeleteComplete');
       }
     } catch {
-      // instance.ts 인터셉터에서 error.response.data.message만 실어서 Error로 던지고 있어서
-      // code(INVALID_INPUT 등)로는 분기 불가. message로 처리.
       setSubmitError('비밀번호가 틀립니다.');
     } finally {
       setIsSubmitting(false);
@@ -192,7 +186,7 @@ const DeleteAccountScreen = () => {
         <Text className="mt-20 text-center font-notoSansKRBold text-xl text-black">
           떠나신다고 하니 슬퍼요.{'\n'} 더 나은 서비스를 위해{'\n'} 떠나시는 이유를 알려주세요
         </Text>
-        <Text className="mb-12 mt-6 text-center font-notoSansKRDemiLight text-base text-gray">
+        <Text className="mb-[53px] mt-[22px] text-center font-notoSansKRDemiLight text-base text-gray">
           떠나시면 계정은 다시 복구할 수 없어요
         </Text>
 
@@ -202,7 +196,7 @@ const DeleteAccountScreen = () => {
           return (
             <TouchableOpacity
               key={reason}
-              className="mb-4 ml-10 flex-row items-center"
+              className="mb-5 ml-10 flex-row items-center"
               onPress={() => setSelected(reason)}>
               <View
                 className={`h-5 w-5 items-center justify-center rounded-full border ${
@@ -217,7 +211,7 @@ const DeleteAccountScreen = () => {
         })}
 
         <>
-          <View className="mx-11 mt-14">
+          <View className="mx-11 mt-[64px]">
             <Text className="mb-2 font-notoSansKRRegular text-sm text-body">비밀번호</Text>
             <View className="rounded-xl border border-border bg-white px-3">
               <TextInput
@@ -238,7 +232,7 @@ const DeleteAccountScreen = () => {
             )}
           </View>
 
-          <View className="mx-11 mt-4">
+          <View className="mx-11 mt-3">
             <Text className="mb-2 font-notoSansKRRegular text-sm text-body">비밀번호 확인</Text>
             <View className="rounded-xl border border-border bg-white px-3">
               <TextInput
@@ -281,7 +275,7 @@ const DeleteAccountScreen = () => {
         )}
 
         <TouchableOpacity
-          className="mx-14 mt-20"
+          className="mx-14 mt-[54px]"
           onPress={handleNext}
           disabled={!isNextEnabled}
           activeOpacity={isNextEnabled ? 0.7 : 1}>
