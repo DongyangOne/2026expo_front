@@ -7,7 +7,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 export type RootTabParamList = {
   Home: undefined;
   Search: undefined;
-  Quiz: undefined;
+  Quiz: { retry?: boolean; retrySessionId?: string } | undefined;
   Feedback: undefined;
   Account: undefined;
 };

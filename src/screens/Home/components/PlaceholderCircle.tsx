@@ -24,9 +24,9 @@ const PlaceholderCircle = ({ size, source }: PlaceholderCircleProps) => {
   if (source && !hasError) {
     return (
       <Image
-        className="rounded-full bg-placeholder"
+        className="rounded-full"
         onError={() => setHasError(true)}
-        resizeMode="cover"
+        resizeMode="contain"
         source={source}
         style={{ width: size, height: size }}
       />

@@ -36,6 +36,9 @@ const QuizFinalResultScreen = ({
   } = result;
   const progressRatio = Math.min(Math.max(expPercent, 0), 100) / 100;
 
+  const wrongCount = result.wrongCount ?? (totalCount - correctCount);
+  const isAllCorrect = wrongCount === 0;
+
   return (
     <View className="flex-1 bg-background px-10 pt-[20px]">
       <Pressable className="absolute left-8 top-[68px] z-10" onPress={onClose}>
@@ -92,7 +95,12 @@ const QuizFinalResultScreen = ({
       </View>
 
       <View className="mb-10 mt-10 px-2">
-        <GradientButton label="다시하기" onPress={onRetry} height={50} borderRadius={28} />
+        <GradientButton
+          label={isAllCorrect ? '새로운 퀴즈 풀기' : '다시하기'}
+          onPress={onRetry}
+          height={50}
+          borderRadius={28}
+        />
       </View>
     </View>
   );

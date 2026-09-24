@@ -1,20 +1,36 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 import { GradientButton } from '@/components/ui';
 import type { RootTabParamList } from '@/navigation/types';
 import QuizFinalResultScreen from '@/screens/quiz/QuizFinalResultScreen';
-import QuizQuestionScreen, { QUESTION_POOL, QuizQuestion } from '@/screens/quiz/QuizQuestionScreen';
+import QuizQuestionScreen, { QuizQuestion } from '@/screens/quiz/QuizQuestionScreen';
 import QuizResultScreen from '@/screens/quiz/QuizResultScreen';
 import QuizStartScreen from '@/screens/quiz/QuizStartScreen';
-import { finishQuizSession, startQuizSession, submitQuizAnswer } from '@/services/quiz.service';
+import {
+  finishQuizSession,
+  finishRetrySession,
+  startQuizSession,
+  startRetrySession,
+  submitQuizAnswer,
+  submitRetryAnswer,
+} from '@/services/quiz.service';
 import type { QuizResultData } from '@/types';
 import { COLORS } from '@/constants/theme';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'Quiz'>;
 
-const QuizScreen = (_props: Props): React.JSX.Element => {
+/** 지정 개수만큼 빈 QuizQuestion 배열을 생성한다. 실제 문항 내용은 API 응답으로 채워진다. */
+const generatePlaceholders = (count: number): QuizQuestion[] =>
+  Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    question: '',
+    answer: false,
+    explanation: '',
+  }));
+
+const QuizScreen = ({ route, navigation }: Props): React.JSX.Element => {
   const [quizCount, setQuizCount] = useState<number | null>(null);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -30,10 +46,30 @@ const QuizScreen = (_props: Props): React.JSX.Element => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSettling, setIsSettling] = useState(false);
   const [isSettleFailed, setIsSettleFailed] = useState(false);
+  /** 다시풀기 모드 여부. true이면 retry 전용 API를 사용한다. */
+  const [isRetryMode, setIsRetryMode] = useState(false);
+  /** 원본 퀴즈 세션 ID. 다시풀기 시작 시 이 ID로 retry API를 호출한다. */
+  const [originalSessionId, setOriginalSessionId] = useState<string | null>(null);
   // 세션 실행 토큰: 새 퀴즈 시작/종료 시 갱신해 이전 요청의 응답을 무효화한다.
   const sessionRunRef = useRef(0);
   // "다음" 연타로 결과 정산 요청이 중복 전송되는 것을 막는 동기 락. state는 리렌더 전까지 갱신되지 않아 사용할 수 없다.
   const isSettlingRef = useRef(false);
+
+  /** 퀴즈 시작/다시풀기 후 공통 상태를 초기화한다. */
+  const resetQuizState = (newSessionId: string, questions: QuizQuestion[]): void => {
+    setSessionId(newSessionId);
+    setQuizQuestions(questions);
+    setCurrentIndex(0);
+    setIsCorrect(null);
+    setExplanation('');
+    setApiFinished(false);
+    setQuizResult(null);
+    setIsSubmitting(false);
+    setIsSettling(false);
+    setIsSettleFailed(false);
+    setIsFinished(false);
+    setIsPlaying(true);
+  };
 
   const handleSolveQuiz = async (): Promise<void> => {
     if (!quizCount || isStarting) return;
@@ -44,24 +80,16 @@ const QuizScreen = (_props: Props): React.JSX.Element => {
 
       sessionRunRef.current += 1;
 
-      const questions = QUESTION_POOL.slice(0, quizCount);
+      const questions = generatePlaceholders(quizCount);
       if (questions.length > 0) {
         questions[0] = { ...questions[0], id: data.quizId, question: data.question };
       }
 
-      setSessionId(data.sessionId);
-      setQuizQuestions(questions);
-      setCurrentIndex(0);
-      setIsCorrect(null);
-      setExplanation('');
-      setApiFinished(false);
-      setQuizResult(null);
-      setIsSubmitting(false);
-      setIsSettling(false);
-      setIsSettleFailed(false);
-      setIsFinished(false);
-      setIsPlaying(true);
+      setIsRetryMode(false);
+      setOriginalSessionId(data.sessionId);
+      resetQuizState(data.sessionId, questions);
     } catch (err: unknown) {
+      console.error('[QuizScreen] startQuizSession error:', err);
       // instance.ts 인터셉터가 message만 실어서 Error로 던지므로 code(QUIZ_NOT_FOUND 등)로는 분기 불가. message로 처리.
       const message = err instanceof Error ? err.message : '잠시 후 다시 시도해주세요.';
       Alert.alert('퀴즈를 시작할 수 없어요', message);
@@ -69,6 +97,43 @@ const QuizScreen = (_props: Props): React.JSX.Element => {
       setIsStarting(false);
     }
   };
+
+  /** 틀린 문제만 모아 다시풀기를 시작한다. 갯수 제한 없이 틀린 문제 전체를 다시 풀게 된다. */
+  const handleRetryQuiz = useCallback(async (customSessionId?: string): Promise<void> => {
+    const targetSessionId = customSessionId || originalSessionId;
+    if (!targetSessionId || isStarting) return;
+
+    setIsStarting(true);
+    try {
+      const { data } = await startRetrySession(targetSessionId);
+
+      sessionRunRef.current += 1;
+
+      const questions = generatePlaceholders(data.totalCount);
+      if (questions.length > 0) {
+        questions[0] = { ...questions[0], id: data.quizId, question: data.question };
+      }
+
+      setIsRetryMode(true);
+      setOriginalSessionId(targetSessionId);
+      resetQuizState(data.sessionId, questions);
+    } catch (err: unknown) {
+      console.error('[QuizScreen] startRetrySession error:', err);
+      const message = err instanceof Error ? err.message : '잠시 후 다시 시도해주세요.';
+      Alert.alert('다시풀기를 시작할 수 없어요', message);
+    } finally {
+      setIsStarting(false);
+    }
+  }, [originalSessionId, isStarting]);
+
+  // 홈 화면 "다시 풀기" 버튼으로 진입 시 전달받은 retrySessionId로 자동으로 다시풀기를 시작한다.
+  useEffect(() => {
+    const targetSessionId = route.params?.retrySessionId || (route.params?.retry ? originalSessionId : undefined);
+    if (targetSessionId) {
+      navigation.setParams({ retrySessionId: undefined, retry: undefined });
+      void handleRetryQuiz(targetSessionId);
+    }
+  }, [route.params?.retrySessionId, route.params?.retry, originalSessionId, handleRetryQuiz, navigation]);
 
   const handleCloseQuiz = (): void => {
     setIsExitConfirmOpen(true);
@@ -84,6 +149,7 @@ const QuizScreen = (_props: Props): React.JSX.Element => {
     setIsSubmitting(false);
     setIsSettling(false);
     setIsSettleFailed(false);
+    setIsRetryMode(false);
     sessionRunRef.current += 1;
   };
 
@@ -95,7 +161,8 @@ const QuizScreen = (_props: Props): React.JSX.Element => {
 
     setIsSubmitting(true);
     try {
-      const { data } = await submitQuizAnswer(sessionId, {
+      const submitFn = isRetryMode ? submitRetryAnswer : submitQuizAnswer;
+      const { data } = await submitFn(sessionId, {
         currentQuizId: currentQuestion.id,
         answer: selected ? 'O' : 'X',
       });
@@ -122,6 +189,7 @@ const QuizScreen = (_props: Props): React.JSX.Element => {
 
       setIsCorrect(data.isCorrect);
     } catch (err: unknown) {
+      console.error('[QuizScreen] submitAnswer error:', err);
       // 세션이 종료/재시작된 뒤 도착한 실패 응답은 현재 화면과 무관하므로 알림하지 않는다.
       if (sessionRunRef.current !== runToken) return;
       const message = err instanceof Error ? err.message : '잠시 후 다시 시도해주세요.';
@@ -136,13 +204,20 @@ const QuizScreen = (_props: Props): React.JSX.Element => {
     const runToken = sessionRunRef.current;
     setIsSettling(true);
     try {
-      const { data } = await finishQuizSession(settleSessionId);
+      const finishFn = isRetryMode ? finishRetrySession : finishQuizSession;
+      const { data } = await finishFn(settleSessionId);
 
       if (sessionRunRef.current !== runToken) return;
 
+      // 일반 퀴즈 세션이 완료된 경우에만 retry 대상 세션 ID를 갱신한다.
+      // 다시풀기(retry) 세션 ID는 백엔드 retry 시작 API의 대상(일반 세션)이 될 수 없다.
+      if (!isRetryMode) {
+        setOriginalSessionId(settleSessionId);
+      }
       setQuizResult(data);
       setIsFinished(true);
-    } catch {
+    } catch (err) {
+      console.error('[QuizScreen] settleQuiz error:', err);
       // 응답을 기다리는 동안 세션이 초기화(나가기 등)됐다면 실패 화면을 띄우지 않는다.
       if (sessionRunRef.current !== runToken) return;
       setIsSettleFailed(true);
@@ -172,6 +247,7 @@ const QuizScreen = (_props: Props): React.JSX.Element => {
     setIsCorrect(null);
     setExplanation('');
     setApiFinished(false);
+    setIsRetryMode(false);
     sessionRunRef.current += 1;
   };
 
@@ -196,6 +272,7 @@ const QuizScreen = (_props: Props): React.JSX.Element => {
   const handleCloseFinalResult = (): void => {
     setIsFinished(false);
     setQuizResult(null);
+    setIsRetryMode(false);
   };
 
   if (isSettling) {
@@ -233,10 +310,14 @@ const QuizScreen = (_props: Props): React.JSX.Element => {
   }
 
   if (isFinished && quizResult) {
+    const wrongCount = quizResult.wrongCount ?? (quizResult.totalCount - quizResult.correctCount);
+    // 틀린 문제가 있으면 다시풀기(retry), 전부 맞혔으면 결과 닫고 시작 화면으로 이동
+    const retryHandler = wrongCount > 0 ? () => void handleRetryQuiz() : handleCloseFinalResult;
+
     return (
       <QuizFinalResultScreen
         result={quizResult}
-        onRetry={handleSolveQuiz}
+        onRetry={retryHandler}
         onClose={handleCloseFinalResult}
       />
     );
