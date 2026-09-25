@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { GradientButton } from '@/components/ui';
 import type { RootTabParamList } from '@/navigation/types';
@@ -99,41 +100,60 @@ const QuizScreen = ({ route, navigation }: Props): React.JSX.Element => {
   };
 
   /** 틀린 문제만 모아 다시풀기를 시작한다. 갯수 제한 없이 틀린 문제 전체를 다시 풀게 된다. */
-  const handleRetryQuiz = useCallback(async (customSessionId?: string): Promise<void> => {
-    const targetSessionId = customSessionId || originalSessionId;
-    if (!targetSessionId || isStarting) return;
+  const handleRetryQuiz = useCallback(
+    async (customSessionId?: string): Promise<void> => {
+      const targetSessionId = customSessionId || originalSessionId;
+      if (!targetSessionId || isStarting) return;
 
-    setIsStarting(true);
-    try {
-      const { data } = await startRetrySession(targetSessionId);
+      setIsStarting(true);
+      try {
+        const { data } = await startRetrySession(targetSessionId);
 
-      sessionRunRef.current += 1;
+        sessionRunRef.current += 1;
 
-      const questions = generatePlaceholders(data.totalCount);
-      if (questions.length > 0) {
-        questions[0] = { ...questions[0], id: data.quizId, question: data.question };
+        const questions = generatePlaceholders(data.totalCount);
+        if (questions.length > 0) {
+          questions[0] = { ...questions[0], id: data.quizId, question: data.question };
+        }
+
+        setIsRetryMode(true);
+        setOriginalSessionId(targetSessionId);
+        resetQuizState(data.sessionId, questions);
+      } catch (err: unknown) {
+        console.error('[QuizScreen] startRetrySession error:', err);
+        const message = err instanceof Error ? err.message : '잠시 후 다시 시도해주세요.';
+        Alert.alert('다시풀기를 시작할 수 없어요', message);
+      } finally {
+        setIsStarting(false);
       }
+    },
+    [originalSessionId, isStarting],
+  );
 
-      setIsRetryMode(true);
-      setOriginalSessionId(targetSessionId);
-      resetQuizState(data.sessionId, questions);
-    } catch (err: unknown) {
-      console.error('[QuizScreen] startRetrySession error:', err);
-      const message = err instanceof Error ? err.message : '잠시 후 다시 시도해주세요.';
-      Alert.alert('다시풀기를 시작할 수 없어요', message);
-    } finally {
-      setIsStarting(false);
-    }
-  }, [originalSessionId, isStarting]);
+  // 홈 화면 "다시 풀기" 버튼으로 진입 시 전달받은 retrySessionId로 다시풀기를 시작한다.
+  // 탭 화면은 언마운트되지 않으므로 퀴즈를 풀던 중이면 진행 중인 세션을 버릴지 먼저 확인한다.
+  const retrySessionIdParam = route.params?.retrySessionId;
+  const isQuizInProgress = isPlaying || isSettling;
+  useFocusEffect(
+    useCallback(() => {
+      // 시작 요청이 진행 중이면 파라미터를 남겨두고, isStarting이 풀린 뒤 다시 실행될 때 처리한다.
+      if (!retrySessionIdParam || isStarting) return;
+      navigation.setParams({ retrySessionId: undefined });
 
-  // 홈 화면 "다시 풀기" 버튼으로 진입 시 전달받은 retrySessionId로 자동으로 다시풀기를 시작한다.
-  useEffect(() => {
-    const targetSessionId = route.params?.retrySessionId || (route.params?.retry ? originalSessionId : undefined);
-    if (targetSessionId) {
-      navigation.setParams({ retrySessionId: undefined, retry: undefined });
-      void handleRetryQuiz(targetSessionId);
-    }
-  }, [route.params?.retrySessionId, route.params?.retry, originalSessionId, handleRetryQuiz, navigation]);
+      if (!isQuizInProgress) {
+        void handleRetryQuiz(retrySessionIdParam);
+        return;
+      }
+      Alert.alert(
+        '진행 중인 퀴즈가 있어요',
+        '지금 풀던 퀴즈를 그만두고 틀린 문제 다시 풀기를 시작할까요?',
+        [
+          { text: '계속 풀기', style: 'cancel' },
+          { text: '다시 풀기', onPress: () => void handleRetryQuiz(retrySessionIdParam) },
+        ],
+      );
+    }, [retrySessionIdParam, isStarting, isQuizInProgress, handleRetryQuiz, navigation]),
+  );
 
   const handleCloseQuiz = (): void => {
     setIsExitConfirmOpen(true);
@@ -310,7 +330,7 @@ const QuizScreen = ({ route, navigation }: Props): React.JSX.Element => {
   }
 
   if (isFinished && quizResult) {
-    const wrongCount = quizResult.wrongCount ?? (quizResult.totalCount - quizResult.correctCount);
+    const wrongCount = quizResult.wrongCount ?? quizResult.totalCount - quizResult.correctCount;
     // 틀린 문제가 있으면 다시풀기(retry), 전부 맞혔으면 결과 닫고 시작 화면으로 이동
     const retryHandler = wrongCount > 0 ? () => void handleRetryQuiz() : handleCloseFinalResult;
 

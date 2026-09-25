@@ -31,9 +31,7 @@ export const finishQuizSession = (sessionId: string): Promise<ApiResponse<QuizRe
     .then((res) => res.data);
 
 /** 기존 퀴즈 세션에서 틀린 문제만 가져와 다시풀기 세션을 시작한다. */
-export const startRetrySession = (
-  sessionId: string,
-): Promise<ApiResponse<RetryQuizSessionData>> =>
+export const startRetrySession = (sessionId: string): Promise<ApiResponse<RetryQuizSessionData>> =>
   apiInstance
     .post<ApiResponse<RetryQuizSessionData>>(`/api/v1/quiz/sessions/${sessionId}/retry`)
     .then((res) => res.data);

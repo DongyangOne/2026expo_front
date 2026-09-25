@@ -36,7 +36,7 @@ const QuizFinalResultScreen = ({
   } = result;
   const progressRatio = Math.min(Math.max(expPercent, 0), 100) / 100;
 
-  const wrongCount = result.wrongCount ?? (totalCount - correctCount);
+  const wrongCount = result.wrongCount ?? totalCount - correctCount;
   const isAllCorrect = wrongCount === 0;
 
   return (

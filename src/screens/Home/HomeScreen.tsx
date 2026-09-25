@@ -28,10 +28,14 @@ const HomeScreen = ({ navigation }: Props) => {
     if (recentSessionId) {
       navigation.navigate('Quiz', { retrySessionId: recentSessionId });
     } else {
-      Alert.alert('다시 풀 퀴즈가 없어요', '틀린 문제가 없거나 아직 푼 퀴즈가 없어요. 새로운 퀴즈를 풀어보세요!', [
-        { text: '퀴즈 풀기', onPress: () => navigation.navigate('Quiz') },
-        { text: '닫기', style: 'cancel' },
-      ]);
+      Alert.alert(
+        '다시 풀 퀴즈가 없어요',
+        '틀린 문제가 없거나 아직 푼 퀴즈가 없어요. 새로운 퀴즈를 풀어보세요!',
+        [
+          { text: '퀴즈 풀기', onPress: () => navigation.navigate('Quiz') },
+          { text: '닫기', style: 'cancel' },
+        ],
+      );
     }
   }, [data?.recentQuizSessionInfo?.sessionId, navigation]);
 
@@ -76,7 +80,8 @@ const HomeScreen = ({ navigation }: Props) => {
 
   const { characterInfo, quizProfileInfo, recyclingLogInfo, recentQuizSessionInfo } = data;
   const accuracyPercent =
-    recentQuizSessionInfo?.accuracyRate !== undefined && recentQuizSessionInfo?.accuracyRate !== null
+    recentQuizSessionInfo?.accuracyRate !== undefined &&
+    recentQuizSessionInfo?.accuracyRate !== null
       ? Math.round(recentQuizSessionInfo.accuracyRate)
       : computeAccuracyPercent(quizProfileInfo.correctQuiz, quizProfileInfo.solvedQuiz);
   const recyclingLogEntries: RecyclingLogEntry[] = recyclingLogInfo.map((log, index) => ({
