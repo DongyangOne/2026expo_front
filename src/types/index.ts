@@ -19,6 +19,7 @@ export type {
   CharacterInfo,
   QuizProfileInfo,
   RecyclingLogInfo,
+  RecentQuizSessionInfo,
   MyDashboardData,
 } from './dashboard.types';
 export type {
@@ -83,4 +84,5 @@ export type {
   QuizResultData,
   QuizSessionData,
   QuizSessionRequest,
+  RetryQuizSessionData,
 } from './quiz.types';
