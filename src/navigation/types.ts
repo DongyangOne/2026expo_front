@@ -34,6 +34,7 @@ export type RootStackParamList = {
   DeleteAccount: undefined;
   DeleteComplete: undefined;
   TabletMain: undefined;
+  TabletSettings: undefined;
   TabletLogin: undefined;
   TabletSignup: undefined;
   TabletReport: undefined;

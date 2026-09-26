@@ -146,6 +146,22 @@ describe('TabletMain QR 로그인 복구', () => {
     expect(screen.getByTestId('qr-code')).toHaveTextContent('expo2026://qr-login?qrToken=token-1');
   });
 
+  it('로고를 5번 클릭하면 하드웨어 설정 화면으로 이동한다', async () => {
+    await renderTablet();
+
+    const logoButton = screen.getByLabelText('하드웨어 설정');
+
+    await act(async () => {
+      fireEvent.press(logoButton);
+      fireEvent.press(logoButton);
+      fireEvent.press(logoButton);
+      fireEvent.press(logoButton);
+      fireEvent.press(logoButton);
+    });
+
+    expect(navigation.navigate).toHaveBeenCalledWith('TabletSettings');
+  });
+
   it('연결 오류 시 기존 QR을 숨기고 3초 뒤 새 연결이 열린 QR을 표시한다', async () => {
     await renderTablet();
     await openConnection();

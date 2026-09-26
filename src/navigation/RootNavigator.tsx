@@ -28,6 +28,7 @@ import ResetPasswordScreen from '@/screens/ResetPasswordScreen';
 import ResetPasswordSuccessScreen from '@/screens/ResetPasswordSuccessScreen';
 import TabNavigator from './TabNavigator';
 import TabletTrashFeedbackScreen from '@/screens/tablet/TabletTrashFeedbackScreen';
+import TabletSettings from '@/screens/tablet/TabletSettings';
 
 import type { RootStackParamList } from './types';
 import EditProfileScreen from '@/screens/EditProfileScreen';
@@ -65,6 +66,7 @@ const RootNavigator = () => {
       <Stack.Screen name="SignupComplete" component={SignupCompleteScreen} />
       <Stack.Screen name="Terms" component={TermsScreen} />
       <Stack.Screen name="TabletMain" component={TabletMain} />
+      <Stack.Screen name="TabletSettings" component={TabletSettings} />
       <Stack.Screen name="TabletLogin" component={TabletLogin} />
       <Stack.Screen name="TabletSignup" component={TabletSignup} />
       <Stack.Screen name="TabletReport" component={TabletReport} />
