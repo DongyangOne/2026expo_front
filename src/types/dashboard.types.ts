@@ -24,8 +24,14 @@ export interface RecyclingLogInfo {
   recycledAt: string;
 }
 
+export interface RecentQuizSessionInfo {
+  sessionId: string;
+  accuracyRate: number;
+}
+
 export interface MyDashboardData {
   characterInfo: CharacterInfo;
   quizProfileInfo: QuizProfileInfo;
   recyclingLogInfo: RecyclingLogInfo[];
+  recentQuizSessionInfo?: RecentQuizSessionInfo | null;
 }

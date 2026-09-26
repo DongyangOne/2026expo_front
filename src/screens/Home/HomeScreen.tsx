@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ActivityIndicator, Linking, Platform, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Platform, ScrollView, Text, View } from 'react-native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -24,8 +24,20 @@ const HomeScreen = ({ navigation }: Props) => {
   const { data, isLoading, isError, refetch } = useDashboard();
 
   const handleRetryQuiz = useCallback(() => {
-    navigation.navigate('Quiz');
-  }, [navigation]);
+    const recentSessionId = data?.recentQuizSessionInfo?.sessionId;
+    if (recentSessionId) {
+      navigation.navigate('Quiz', { retrySessionId: recentSessionId });
+    } else {
+      Alert.alert(
+        '다시 풀 퀴즈가 없어요',
+        '틀린 문제가 없거나 아직 푼 퀴즈가 없어요. 새로운 퀴즈를 풀어보세요!',
+        [
+          { text: '퀴즈 풀기', onPress: () => navigation.navigate('Quiz') },
+          { text: '닫기', style: 'cancel' },
+        ],
+      );
+    }
+  }, [data?.recentQuizSessionInfo?.sessionId, navigation]);
 
   const handlePressLog = useCallback(
     (_entry: RecyclingLogEntry) => {
@@ -66,11 +78,12 @@ const HomeScreen = ({ navigation }: Props) => {
     );
   }
 
-  const { characterInfo, quizProfileInfo, recyclingLogInfo } = data;
-  const accuracyPercent = computeAccuracyPercent(
-    quizProfileInfo.correctQuiz,
-    quizProfileInfo.solvedQuiz,
-  );
+  const { characterInfo, quizProfileInfo, recyclingLogInfo, recentQuizSessionInfo } = data;
+  const accuracyPercent =
+    recentQuizSessionInfo?.accuracyRate !== undefined &&
+    recentQuizSessionInfo?.accuracyRate !== null
+      ? Math.round(recentQuizSessionInfo.accuracyRate)
+      : computeAccuracyPercent(quizProfileInfo.correctQuiz, quizProfileInfo.solvedQuiz);
   const recyclingLogEntries: RecyclingLogEntry[] = recyclingLogInfo.map((log, index) => ({
     id: `${log.recycledAt}-${index}`,
     date: formatDotDate(log.recycledAt),

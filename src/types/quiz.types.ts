@@ -8,6 +8,13 @@ export interface QuizSessionData {
   question: string;
 }
 
+export interface RetryQuizSessionData {
+  sessionId: string;
+  totalCount: number;
+  quizId: number;
+  question: string;
+}
+
 export interface QuizAnswerRequest {
   currentQuizId: number;
   answer: 'O' | 'X';

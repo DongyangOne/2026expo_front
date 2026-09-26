@@ -85,3 +85,4 @@ watchman-state/
 .vscode/.history
 *.code-workspace
 *.sw?
+powershell.cmd
