@@ -227,8 +227,8 @@ const UserAuthScreen = () => {
           )}
         </View>
 
-        <View className="mt-4">
-          <Text className="mb-2 font-notoSansKRRegular text-sm text-black">이메일</Text>
+        <View className="mt-5">
+          <Text className="mb-[6px] font-notoSansKRRegular text-sm text-black">이메일</Text>
           <View className="flex-row">
             <View className="flex-1 flex-row items-center justify-between rounded-l-xl border border-border bg-white px-3">
               <TextInput
@@ -260,7 +260,7 @@ const UserAuthScreen = () => {
         </View>
 
         {isCodeSent && (
-          <View className="mt-5">
+          <View className="mt-[15px]">
             <Text className="mb-2 font-notoSansKRRegular text-sm text-body">인증 코드</Text>
             <View className="flex-row items-center justify-between rounded-xl border border-border bg-white px-3">
               <TextInput
@@ -285,7 +285,7 @@ const UserAuthScreen = () => {
         )}
 
         <TouchableOpacity
-          className="mx-5 mt-40"
+          className="mx-5 mt-[131px]"
           onPress={handleEditProfile}
           disabled={isConfirming}>
           <LinearGradient

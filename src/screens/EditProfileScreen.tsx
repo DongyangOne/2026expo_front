@@ -172,7 +172,7 @@ const EditProfileScreen = () => {
           {authUser?.username}
         </Text>
 
-        <View className="mt-6">
+        <View className="mt-[29px]">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">아이디</Text>
           <View className="rounded-xl border border-border bg-white px-3">
             <TextInput
@@ -186,14 +186,14 @@ const EditProfileScreen = () => {
           {idError !== '' && <Text className="mt-1 text-xs text-red">{idError}</Text>}
         </View>
 
-        <View className="mt-4">
+        <View className="mt-[11px]">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">이메일</Text>
           <View className="rounded-xl border border-border bg-white px-3 py-4">
             <Text className="font-notoSansKRDemiLight text-sm text-black">{email}</Text>
           </View>
         </View>
 
-        <View className="mt-4">
+        <View className="mt-[14px]">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">비밀번호</Text>
           <View className="rounded-xl border border-border bg-white px-3">
             <TextInput
@@ -208,7 +208,7 @@ const EditProfileScreen = () => {
           {passwordError !== '' && <Text className="mt-1 text-xs text-red">{passwordError}</Text>}
         </View>
 
-        <View className="mt-4">
+        <View className="mt-[14px]">
           <Text className="mb-2 font-notoSansKRRegular text-sm text-body">비밀번호 확인</Text>
           <View className="rounded-xl border border-border bg-white px-3">
             <TextInput
@@ -226,7 +226,7 @@ const EditProfileScreen = () => {
         </View>
 
         <TouchableOpacity
-          className="mx-5 mt-40"
+          className="mx-5 mt-[54px]"
           onPress={handleSubmit}
           disabled={isSubmitting}
           activeOpacity={isSubmitting ? 1 : 0.7}>
