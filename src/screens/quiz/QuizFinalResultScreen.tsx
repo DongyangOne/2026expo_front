@@ -41,7 +41,7 @@ const QuizFinalResultScreen = ({
 
   return (
     <View className="flex-1 bg-background px-10 pt-[20px]">
-      <Pressable className="absolute left-8 top-[68px] z-10" onPress={onClose}>
+      <Pressable className="absolute left-6 top-8 z-10" onPress={onClose}>
         <QuitIcon width={20} height={19} />
       </Pressable>
 
