@@ -37,9 +37,9 @@ const QuizResultScreen = ({
   const progressPercent = ((currentIndex + 1) / total) * 100;
 
   return (
-    <View className="flex-1 bg-background px-6 pt-[68px]">
+    <View className="flex-1 bg-background px-6 pt-[40px]">
       <View className="flex-row items-center justify-center">
-        <Pressable className="absolute left-0" onPress={onClose}>
+        <Pressable className="absolute -top-4 left-0" onPress={onClose}>
           <QuitIcon width={20} height={19} />
         </Pressable>
         <Text className="font-notoSansKRDemilight text-base text-black">
