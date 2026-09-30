@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { ImageSourcePropType } from 'react-native';
 
 import TrashIcon from '@/assets/icons/trash.svg';
@@ -20,6 +20,13 @@ const WASTE_TYPE_IMAGES: Record<WasteType, ImageSourcePropType | null> = {
   FLUORESCENT: null,
   STYROFOAM: null,
 };
+
+const styles = StyleSheet.create({
+  wasteTypeImage: {
+    height: 300,
+    width: 300,
+  },
+});
 
 interface CanResultStepProps {
   wasteType?: WasteType;
@@ -45,7 +52,7 @@ const CanResultStep = ({
       </TouchableOpacity>
       <View className="absolute inset-0 items-center justify-center" pointerEvents="none">
         {wasteTypeImage ? (
-          <Image className="h-[300px] w-[300px]" resizeMode="contain" source={wasteTypeImage} />
+          <Image resizeMode="contain" source={wasteTypeImage} style={styles.wasteTypeImage} />
         ) : null}
         {!wasteType ? <TrashIcon height={300} width={300} /> : null}
         {wasteType && !wasteTypeImage ? (
