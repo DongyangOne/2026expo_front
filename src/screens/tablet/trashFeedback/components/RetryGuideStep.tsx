@@ -105,7 +105,7 @@ const RetryGuideStep = ({
             </Svg>
           </View>
           <View className="h-full items-center justify-center">
-            <Text className="font-notoSansKRBold text-[20px] leading-[28px] text-white">
+            <Text className="font-notoSansKRBold text-[32px] leading-[28px] text-white">
               {isRestarting ? '준비 중...' : '재시도'}
             </Text>
           </View>
