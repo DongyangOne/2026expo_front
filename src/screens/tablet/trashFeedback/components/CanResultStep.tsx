@@ -4,10 +4,10 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import type { SvgProps } from 'react-native-svg';
 
 import CanIcon from '@/assets/icons/can.svg';
+import PaperIcon from '@/assets/icons/paper.svg';
+import PlasticIcon from '@/assets/icons/plastic.svg';
 import TrashIcon from '@/assets/icons/trash.svg';
-import PaperIcon from '@/assets/images/paper.svg';
-import PlasticBagIcon from '@/assets/images/plasticBag.svg';
-import PlasticBottleIcon from '@/assets/images/plasticBottle.svg';
+import VinylIcon from '@/assets/icons/vinyl.svg';
 import type { WasteType } from '@/types';
 import { getWasteTypeLabel } from '@/utils';
 
@@ -16,8 +16,8 @@ type WasteTypeIcon = React.FC<SvgProps>;
 const WASTE_TYPE_ICONS: Record<WasteType, WasteTypeIcon | null> = {
   CAN: CanIcon,
   PAPER: PaperIcon,
-  PLASTIC: PlasticBottleIcon,
-  VINYL: PlasticBagIcon,
+  PLASTIC: PlasticIcon,
+  VINYL: VinylIcon,
   GLASS: null,
   BATTERY: null,
   FLUORESCENT: null,
