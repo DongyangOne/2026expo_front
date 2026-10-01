@@ -67,17 +67,18 @@ const RetryGuideStep = ({
           style={{ height: '100%', width: '100%' }}
         />
       )}
-      <View className="absolute inset-0 items-center justify-end px-[40px] pb-[40px]">
+      <View className="absolute left-0 right-0 top-[30px] items-center px-[40px]">
         <View className="max-w-[900px] rounded-[12px] bg-white px-[24px] py-[12px]">
-          <Text className="text-center font-notoSansKRRegular text-[30px] leading-[44px] text-black">
+          <Text className="text-center font-notoSansKRBold text-[30px] leading-[44px] text-black">
             {guidanceMessage ??
               classificationResult?.message ??
               (isRecognitionFailure ? '인식에 실패했어요!' : '분리수거를 재시도해 주세요.')}
           </Text>
         </View>
-
+      </View>
+      <View className="absolute bottom-[40px] left-0 right-0 items-center px-[40px]">
         <TouchableOpacity
-          className="mt-[24px] h-[60px] w-[288px] overflow-hidden rounded-[12px]"
+          className="h-[60px] w-[288px] overflow-hidden rounded-[12px]"
           activeOpacity={isRestarting ? 1 : 0.85}
           disabled={isRestarting}
           onPress={onRestart}>
@@ -104,7 +105,7 @@ const RetryGuideStep = ({
             </Svg>
           </View>
           <View className="h-full items-center justify-center">
-            <Text className="font-notoSansKRBold text-[15px] leading-[20px] text-white">
+            <Text className="font-notoSansKRBold text-[20px] leading-[28px] text-white">
               {isRestarting ? '준비 중...' : '재시도'}
             </Text>
           </View>
