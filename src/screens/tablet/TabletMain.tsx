@@ -27,6 +27,8 @@ const QR_CONNECTION_TIMEOUT_MS = 10000;
 const QR_CONNECTION_RETRY_DELAY_MS = 3000;
 const LOGIN_TAP_WINDOW_MS = 5000;
 const LOGIN_TAP_COUNT = 5;
+const SETTINGS_TAP_WINDOW_MS = 5000;
+const SETTINGS_TAP_COUNT = 5;
 const QR_TOKEN_ERROR_MESSAGE = 'QR 코드를 불러오지 못했습니다.';
 const QR_NETWORK_ERROR_MESSAGE = '네트워크 연결을 확인한 후 다시 시도해주세요.';
 const CLIENT_ID_ERROR_MESSAGE = '분류 요청을 준비하지 못했습니다.';
@@ -157,6 +159,7 @@ const GradientGuideText = (): React.JSX.Element => {
 
 const TabletMain = ({ navigation }: Props): React.JSX.Element => {
   const qrTapState = useRef<QrTapState>({ firstTapAt: 0, count: 0 });
+  const logoTapState = useRef<QrTapState>({ firstTapAt: 0, count: 0 });
   const hasHandledQrLogin = useRef(false);
   const isMounted = useRef(false);
   const isIssuingQrToken = useRef(false);
@@ -402,6 +405,24 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     }
   }, [navigation]);
 
+  const handleLogoPress = useCallback((): void => {
+    const currentTime = Date.now();
+    const elapsedTime = currentTime - logoTapState.current.firstTapAt;
+
+    if (elapsedTime > SETTINGS_TAP_WINDOW_MS) {
+      logoTapState.current = { firstTapAt: currentTime, count: 1 };
+      return;
+    }
+
+    const nextCount = logoTapState.current.count + 1;
+    logoTapState.current = { ...logoTapState.current, count: nextCount };
+
+    if (nextCount >= SETTINGS_TAP_COUNT) {
+      logoTapState.current = { firstTapAt: 0, count: 0 };
+      navigation.navigate('TabletSettings');
+    }
+  }, [navigation]);
+
   return (
     <View className="flex-1 overflow-hidden bg-background">
       <TabletBackgroundCircles />
@@ -424,7 +445,12 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
             </View>
 
             <View className="w-1/2 -translate-y-[20px] items-center justify-center">
-              <LogoIcon height={307} width={460} />
+              <Pressable
+                accessibilityLabel="하드웨어 설정"
+                accessibilityRole="button"
+                onPress={handleLogoPress}>
+                <LogoIcon height={307} width={460} />
+              </Pressable>
               <Text className="mt-[20px] text-center font-notoSansKRBold text-[40px] leading-[48px] text-black">
                 QR로 로그인 후
               </Text>
