@@ -1,23 +1,21 @@
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 
-import type { SvgProps } from 'react-native-svg';
+import type { ImageSourcePropType } from 'react-native';
 
-import CanIcon from '@/assets/icons/can.svg';
-import PaperIcon from '@/assets/icons/paper.svg';
-import PlasticIcon from '@/assets/icons/plastic.svg';
+import CanImage from '@/assets/icons/can.png';
+import PaperImage from '@/assets/icons/paper.png';
+import PlasticImage from '@/assets/icons/plastic.png';
 import TrashIcon from '@/assets/icons/trash.svg';
-import VinylIcon from '@/assets/icons/vinyl.svg';
+import VinylImage from '@/assets/icons/vinyl.png';
 import type { WasteType } from '@/types';
 import { getWasteTypeLabel } from '@/utils';
 
-type WasteTypeIcon = React.FC<SvgProps>;
-
-const WASTE_TYPE_ICONS: Record<WasteType, WasteTypeIcon | null> = {
-  CAN: CanIcon,
-  PAPER: PaperIcon,
-  PLASTIC: PlasticIcon,
-  VINYL: VinylIcon,
+const WASTE_TYPE_IMAGES: Record<WasteType, ImageSourcePropType | null> = {
+  CAN: CanImage,
+  PAPER: PaperImage,
+  PLASTIC: PlasticImage,
+  VINYL: VinylImage,
   GLASS: null,
   BATTERY: null,
   FLUORESCENT: null,
@@ -35,7 +33,7 @@ const CanResultStep = ({
   wasteTypeLabel,
   onNext,
 }: CanResultStepProps): React.JSX.Element => {
-  const WasteTypeIconComponent = wasteType ? WASTE_TYPE_ICONS[wasteType] : TrashIcon;
+  const wasteTypeImage = wasteType ? WASTE_TYPE_IMAGES[wasteType] : null;
   const displayWasteTypeLabel = wasteTypeLabel ?? getWasteTypeLabel(wasteType, '분류 결과');
 
   return (
@@ -47,14 +45,17 @@ const CanResultStep = ({
         <Text className="font-notoSansKRRegular text-[16px] leading-[20px] text-body">다음</Text>
       </TouchableOpacity>
       <View className="absolute inset-0 items-center justify-center" pointerEvents="none">
-        {WasteTypeIconComponent ? <WasteTypeIconComponent height={300} width={300} /> : null}
-        {!WasteTypeIconComponent ? (
+        {wasteTypeImage ? (
+          <Image source={wasteTypeImage} className="h-[300px] w-[300px]" resizeMode="contain" />
+        ) : !wasteType ? (
+          <TrashIcon height={300} width={300} />
+        ) : (
           <View className="h-[300px] w-[300px] items-center justify-center rounded-full border-4 border-purple bg-purple/[0.08]">
             <Text className="text-center font-notoSansKRBold text-[40px] leading-[52px] text-purple">
               {displayWasteTypeLabel}
             </Text>
           </View>
-        ) : null}
+        )}
         <Text className="mt-[48px] font-notoSansKRRegular text-[44px] leading-[56px] text-black">
           <Text className="text-trashAction">{displayWasteTypeLabel}</Text>입니다
         </Text>
