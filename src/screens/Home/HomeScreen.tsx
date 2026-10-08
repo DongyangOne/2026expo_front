@@ -112,7 +112,7 @@ const HomeScreen = ({ navigation }: Props) => {
           </View>
 
           <Text className="mb-[26px] mt-[29px] font-notoSansKRBold text-xl text-black">
-            분리수거 로그
+            분리수거 기록
           </Text>
 
           {recyclingLogEntries.length === 0 ? (

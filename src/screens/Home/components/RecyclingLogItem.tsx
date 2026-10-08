@@ -28,7 +28,7 @@ const RecyclingLogItem = ({ entry, onPress }: RecyclingLogItemProps) => {
 
       <View className="ml-[20px]">
         <Text className="font-notoSansKRRegular text-sm text-body">{entry.date}</Text>
-        <Text className="mt-[15px] font-notoSansKRBold text-lg text-black">{entry.category}</Text>
+        <Text className="font-notoSansKRBold text-lg text-black">{entry.category}</Text>
       </View>
     </Pressable>
   );
