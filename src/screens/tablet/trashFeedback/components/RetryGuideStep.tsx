@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
@@ -11,17 +11,22 @@ import type { TabletClassificationData } from '@/types';
 import { getGuidanceMessage } from '../guidance';
 
 const GUIDE_VIDEO_MAX_PLAY_COUNT = 3;
+const GUIDE_VIDEO_PREPARATION_TIMEOUT_MS = 15000;
 
 interface RetryGuideStepProps {
   classificationResult: TabletClassificationData | null;
+  isPreparingVideo?: boolean;
   isRestarting: boolean;
   onRestart: () => void;
+  onVideoPrepared?: () => void;
 }
 
 const RetryGuideStep = ({
   classificationResult,
+  isPreparingVideo = false,
   isRestarting,
   onRestart,
+  onVideoPrepared,
 }: RetryGuideStepProps): React.JSX.Element => {
   const [hasVideoError, setHasVideoError] = useState<boolean>(false);
   const [guideVideoPlaybackKey, setGuideVideoPlaybackKey] = useState<number>(0);
@@ -32,7 +37,18 @@ const RetryGuideStep = ({
 
   const handleVideoError = useCallback((): void => {
     setHasVideoError(true);
-  }, []);
+    onVideoPrepared?.();
+  }, [onVideoPrepared]);
+
+  useEffect((): (() => void) | undefined => {
+    if (!isPreparingVideo) {
+      return undefined;
+    }
+
+    // 준비 이벤트가 오지 않는 영상도 로딩 화면에 계속 머물지 않고 재시도할 수 있게 한다.
+    const timerId = setTimeout(handleVideoError, GUIDE_VIDEO_PREPARATION_TIMEOUT_MS);
+    return (): void => clearTimeout(timerId);
+  }, [handleVideoError, isPreparingVideo]);
 
   const handleVideoEnd = useCallback((): void => {
     setGuideVideoPlaybackKey((currentPlaybackKey) =>
@@ -43,7 +59,11 @@ const RetryGuideStep = ({
   }, []);
 
   return (
-    <View className="absolute inset-0 overflow-hidden rounded-[14px] bg-black">
+    <View
+      accessibilityElementsHidden={isPreparingVideo}
+      importantForAccessibility={isPreparingVideo ? 'no-hide-descendants' : 'auto'}
+      pointerEvents={isPreparingVideo ? 'none' : 'auto'}
+      className="absolute inset-0 overflow-hidden rounded-[14px] bg-black">
       {isRecognitionFailure ? (
         <View className="flex-1 items-center justify-center">
           <XIcon height={220} width={220} />
@@ -61,7 +81,8 @@ const RetryGuideStep = ({
           muted
           onEnd={handleVideoEnd}
           onError={handleVideoError}
-          paused={false}
+          onReadyForDisplay={onVideoPrepared}
+          paused={isPreparingVideo}
           resizeMode={ResizeMode.COVER}
           source={{ uri: classificationResult?.guideVideoUrl ?? undefined }}
           style={{ height: '100%', width: '100%' }}

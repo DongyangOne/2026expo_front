@@ -42,6 +42,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TabletTrashFeedback'>;
 type TrashFeedbackStep =
   | 'waitingTrash'
   | 'loading'
+  | 'preparingVideo'
   | 'canResult'
   | 'success'
   | 'generalWaste'
@@ -66,7 +67,12 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
         classificationResult.status === 'NOT_DETECTED' ||
         classificationResult.status === 'REJECTED';
 
-      setCurrentStep(shouldShowRetryGuide ? 'retryGuide' : 'canResult');
+      const shouldPrepareVideo =
+        classificationResult.status !== 'NOT_DETECTED' &&
+        Boolean(classificationResult.guideVideoUrl);
+      setCurrentStep(
+        shouldShowRetryGuide ? (shouldPrepareVideo ? 'preparingVideo' : 'retryGuide') : 'canResult',
+      );
     },
     [],
   );
@@ -100,8 +106,22 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
       return;
     }
 
-    setCurrentStep('retryGuide');
-  }, [classificationResult?.status, currentStep, handleDetectionSuccess]);
+    const shouldPrepareVideo =
+      classificationResult?.status !== 'NOT_DETECTED' &&
+      Boolean(classificationResult?.guideVideoUrl);
+    setCurrentStep(shouldPrepareVideo ? 'preparingVideo' : 'retryGuide');
+  }, [
+    classificationResult?.guideVideoUrl,
+    classificationResult?.status,
+    currentStep,
+    handleDetectionSuccess,
+  ]);
+
+  const handleGuideVideoPrepared = useCallback((): void => {
+    setCurrentStep((currentStepValue) =>
+      currentStepValue === 'preparingVideo' ? 'retryGuide' : currentStepValue,
+    );
+  }, []);
 
   const handleDetectionRetry = useCallback((): void => {
     setRemainingSeconds(COUNTDOWN_START_SECONDS);
@@ -209,13 +229,25 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
                   remainingSeconds={remainingSeconds}
                 />
               ) : null}
-              {currentStep === 'loading' ? (
-                <LoadingStep
-                  errorMessage={classificationErrorMessage}
-                  isRetrying={isRestarting}
-                  onHome={handleHomePress}
-                  onRetry={handleRestartPress}
+              {/* 준비 완료 시 플레이어를 다시 생성하지 않도록 두 단계에서 같은 위치에 유지한다. */}
+              {currentStep === 'preparingVideo' || currentStep === 'retryGuide' ? (
+                <RetryGuideStep
+                  classificationResult={classificationResult}
+                  isPreparingVideo={currentStep === 'preparingVideo'}
+                  isRestarting={isRestarting}
+                  onVideoPrepared={handleGuideVideoPrepared}
+                  onRestart={handleRestartPress}
                 />
+              ) : null}
+              {currentStep === 'loading' || currentStep === 'preparingVideo' ? (
+                <View className="absolute inset-0 bg-white">
+                  <LoadingStep
+                    errorMessage={classificationErrorMessage}
+                    isRetrying={isRestarting}
+                    onHome={handleHomePress}
+                    onRetry={handleRestartPress}
+                  />
+                </View>
               ) : null}
               {currentStep === 'canResult' ? (
                 <CanResultStep
@@ -229,13 +261,6 @@ const TabletTrashFeedbackScreen = ({ navigation, route }: Props): React.JSX.Elem
               ) : null}
               {currentStep === 'generalWaste' ? (
                 <GeneralWasteStep onHome={handleHomePress} />
-              ) : null}
-              {currentStep === 'retryGuide' ? (
-                <RetryGuideStep
-                  classificationResult={classificationResult}
-                  isRestarting={isRestarting}
-                  onRestart={handleRestartPress}
-                />
               ) : null}
             </View>
           </View>
