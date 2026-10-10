@@ -1,10 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import Video, { ResizeMode } from 'react-native-video';
 
 import XIcon from '@/assets/icons/x.svg';
+import defaultGuideVideo from '@/assets/videos/KakaoTalk_20261007_191947358.mp4';
 import { GRADIENT_ACTIVE } from '@/constants';
 import type { TabletClassificationData } from '@/types';
 
@@ -16,19 +18,24 @@ interface RetryGuideStepProps {
   classificationResult: TabletClassificationData | null;
   isRestarting: boolean;
   onRestart: () => void;
+  onHome?: () => void;
 }
 
 const RetryGuideStep = ({
   classificationResult,
   isRestarting,
   onRestart,
+  onHome,
 }: RetryGuideStepProps): React.JSX.Element => {
+  const isFocused = useIsFocused();
   const [hasVideoError, setHasVideoError] = useState<boolean>(false);
   const [guideVideoPlaybackKey, setGuideVideoPlaybackKey] = useState<number>(0);
 
   const isRecognitionFailure = classificationResult?.status === 'NOT_DETECTED';
   const guidanceMessage = getGuidanceMessage(classificationResult?.guidanceCode);
-  const hasVideoSource = Boolean(classificationResult?.guideVideoUrl);
+  const videoSource = classificationResult?.guideVideoUrl
+    ? { uri: classificationResult.guideVideoUrl }
+    : { uri: Image.resolveAssetSource(defaultGuideVideo).uri };
 
   const handleVideoError = useCallback((): void => {
     setHasVideoError(true);
@@ -48,10 +55,10 @@ const RetryGuideStep = ({
         <View className="flex-1 items-center justify-center">
           <XIcon height={220} width={220} />
         </View>
-      ) : hasVideoError || !hasVideoSource ? (
+      ) : hasVideoError ? (
         <View className="flex-1 items-center justify-center bg-white">
           <Text className="font-notoSansKRRegular text-[20px] leading-[28px] text-body">
-            {hasVideoError ? '동영상을 불러오지 못했어요.' : '안내 동영상이 없어요.'}
+            동영상을 불러오지 못했어요.
           </Text>
         </View>
       ) : (
@@ -61,9 +68,9 @@ const RetryGuideStep = ({
           muted
           onEnd={handleVideoEnd}
           onError={handleVideoError}
-          paused={false}
+          paused={!isFocused}
           resizeMode={ResizeMode.COVER}
-          source={{ uri: classificationResult?.guideVideoUrl ?? undefined }}
+          source={videoSource}
           style={{ height: '100%', width: '100%' }}
         />
       )}
@@ -81,7 +88,7 @@ const RetryGuideStep = ({
           className="h-[60px] w-[288px] overflow-hidden rounded-[12px]"
           activeOpacity={isRestarting ? 1 : 0.85}
           disabled={isRestarting}
-          onPress={onRestart}>
+          onPress={onHome ?? onRestart}>
           <View className="absolute inset-0">
             <Svg height="100%" width="100%">
               <Defs>
@@ -106,7 +113,7 @@ const RetryGuideStep = ({
           </View>
           <View className="h-full items-center justify-center">
             <Text className="font-notoSansKRBold text-[32px] leading-[28px] text-white">
-              {isRestarting ? '준비 중...' : '재시도'}
+              {onHome ? '홈으로 이동' : isRestarting ? '준비 중...' : '재시도'}
             </Text>
           </View>
         </TouchableOpacity>

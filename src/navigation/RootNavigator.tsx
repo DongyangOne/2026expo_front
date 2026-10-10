@@ -18,6 +18,7 @@ import LoginScreen, {
 } from '@/screens/Login';
 import QrLoginScreen from '@/screens/QrLoginScreen';
 import TabletMain from '@/screens/tablet/TabletMain';
+import TabletVideoFeedbackScreen from '@/screens/tablet/TabletVideoFeedbackScreen';
 import TabletLogin from '@/screens/tablet/TabletLogin';
 import TabletReport from '@/screens/tablet/TabletReport';
 import TabletSignup from '@/screens/tablet/TabletSignup';
@@ -66,6 +67,7 @@ const RootNavigator = () => {
       <Stack.Screen name="SignupComplete" component={SignupCompleteScreen} />
       <Stack.Screen name="Terms" component={TermsScreen} />
       <Stack.Screen name="TabletMain" component={TabletMain} />
+      <Stack.Screen name="TabletVideoFeedback" component={TabletVideoFeedbackScreen} />
       <Stack.Screen name="TabletSettings" component={TabletSettings} />
       <Stack.Screen name="TabletLogin" component={TabletLogin} />
       <Stack.Screen name="TabletSignup" component={TabletSignup} />

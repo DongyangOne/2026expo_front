@@ -423,6 +423,10 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
     }
   }, [navigation]);
 
+  const handleVideoFeedbackPress = (): void => {
+    navigation.navigate('TabletVideoFeedback');
+  };
+
   return (
     <View className="flex-1 overflow-hidden bg-background">
       <TabletBackgroundCircles />
@@ -457,6 +461,13 @@ const TabletMain = ({ navigation }: Props): React.JSX.Element => {
               <GradientGuideText />
             </View>
           </View>
+          <Pressable
+            accessibilityLabel="영상 피드백 보기"
+            accessibilityRole="button"
+            className="mb-[24px] mt-[16px] h-[60px] w-[288px] items-center justify-center rounded-[12px] bg-purple"
+            onPress={handleVideoFeedbackPress}>
+            <Text className="font-notoSansKRBold text-[20px] text-white">영상 피드백 보기</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     </View>
