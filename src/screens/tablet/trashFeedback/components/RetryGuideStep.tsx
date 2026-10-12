@@ -1,8 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
-import Video, { ResizeMode } from 'react-native-video';
+import Video, { ResizeMode, type OnVideoErrorData } from 'react-native-video';
 
 import XIcon from '@/assets/icons/x.svg';
 import { getFeedbackVideoSource } from '@/assets/videos';
@@ -31,9 +31,24 @@ const RetryGuideStep = ({
   const guidanceMessage = getGuidanceMessage(classificationResult?.guidanceCode);
   const videoSource = getFeedbackVideoSource(classificationResult?.guideVideoUrl);
 
-  const handleVideoError = useCallback((): void => {
-    setHasVideoError(true);
-  }, []);
+  useEffect(() => {
+    if (__DEV__) {
+      console.warn('[태블릿 안내 영상] 소스 선택', {
+        serverVideoUrl: classificationResult?.guideVideoUrl?.split(/[?#]/, 1)[0],
+        hasLocalVideo: videoSource !== undefined,
+        playbackUri:
+          videoSource === undefined ? undefined : Image.resolveAssetSource(videoSource)?.uri,
+      });
+    }
+  }, [classificationResult?.guideVideoUrl, videoSource]);
+
+  const handleVideoError = useCallback(
+    (error: OnVideoErrorData): void => {
+      console.error('태블릿 안내 영상 재생 실패:', error, classificationResult?.guideVideoUrl);
+      setHasVideoError(true);
+    },
+    [classificationResult?.guideVideoUrl],
+  );
 
   const handleVideoEnd = useCallback((): void => {
     setGuideVideoPlaybackKey((currentPlaybackKey) =>
@@ -62,9 +77,19 @@ const RetryGuideStep = ({
           muted
           onEnd={handleVideoEnd}
           onError={handleVideoError}
+          onLoad={() => {
+            if (__DEV__) {
+              console.warn('[태블릿 안내 영상] 로드 완료');
+            }
+          }}
+          onReadyForDisplay={() => {
+            if (__DEV__) {
+              console.warn('[태블릿 안내 영상] 첫 프레임 준비 완료');
+            }
+          }}
           paused={false}
           resizeMode={ResizeMode.COVER}
-          source={Image.resolveAssetSource(videoSource)}
+          source={{ ...Image.resolveAssetSource(videoSource), type: 'mp4' }}
           style={{ height: '100%', width: '100%' }}
         />
       )}
