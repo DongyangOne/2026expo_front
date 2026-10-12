@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -7,6 +7,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Video, { ResizeMode, VideoRef } from 'react-native-video';
 import { cssInterop } from 'nativewind';
 import BackArrow from '@/assets/images/vector.svg';
+import { getFeedbackVideoSource } from '@/assets/videos';
 
 import { getFeedbackDetail } from '@/services';
 import type { FeedbackDetailData } from '@/types';
@@ -81,6 +82,7 @@ const FeedbackDetailScreen = () => {
   };
 
   const wasteTypeLabel = getWasteTypeLabel(feedback?.wasteType);
+  const videoSource = getFeedbackVideoSource(feedback?.videoUrl);
   const objectParticle = getObjectParticle(wasteTypeLabel);
 
   return (
@@ -135,10 +137,10 @@ const FeedbackDetailScreen = () => {
             <>
               {feedback?.videoUrl && (
                 <View className="mt-6 h-64 overflow-hidden rounded-xl bg-gray">
-                  {hasVideoError ? (
+                  {hasVideoError || videoSource === undefined ? (
                     <View className="h-full items-center justify-center">
                       <Text className="font-notoSansKRRegular text-base text-gray">
-                        동영상을 불러오지 못했어요.
+                        {hasVideoError ? '동영상을 불러오지 못했어요.' : '안내 동영상이 없어요.'}
                       </Text>
                     </View>
                   ) : (
@@ -150,7 +152,7 @@ const FeedbackDetailScreen = () => {
                       onError={handleVideoError}
                       repeat
                       resizeMode={ResizeMode.COVER}
-                      source={{ uri: feedback.videoUrl }}
+                      source={Image.resolveAssetSource(videoSource)}
                       style={{ height: '100%', width: '100%' }}
                     />
                   )}

@@ -8,7 +8,7 @@ declare module '*.svg' {
 }
 
 declare module '*.mp4' {
-  const content: NodeRequire;
+  const content: number;
 
   export default content;
 }

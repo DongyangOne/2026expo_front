@@ -1,10 +1,11 @@
 import React, { useCallback, useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import Video, { ResizeMode } from 'react-native-video';
 
 import XIcon from '@/assets/icons/x.svg';
+import { getFeedbackVideoSource } from '@/assets/videos';
 import { GRADIENT_ACTIVE } from '@/constants';
 import type { TabletClassificationData } from '@/types';
 
@@ -28,7 +29,7 @@ const RetryGuideStep = ({
 
   const isRecognitionFailure = classificationResult?.status === 'NOT_DETECTED';
   const guidanceMessage = getGuidanceMessage(classificationResult?.guidanceCode);
-  const hasVideoSource = Boolean(classificationResult?.guideVideoUrl);
+  const videoSource = getFeedbackVideoSource(classificationResult?.guideVideoUrl);
 
   const handleVideoError = useCallback((): void => {
     setHasVideoError(true);
@@ -48,7 +49,7 @@ const RetryGuideStep = ({
         <View className="flex-1 items-center justify-center">
           <XIcon height={220} width={220} />
         </View>
-      ) : hasVideoError || !hasVideoSource ? (
+      ) : hasVideoError || videoSource === undefined ? (
         <View className="flex-1 items-center justify-center bg-white">
           <Text className="font-notoSansKRRegular text-[20px] leading-[28px] text-body">
             {hasVideoError ? '동영상을 불러오지 못했어요.' : '안내 동영상이 없어요.'}
@@ -63,7 +64,7 @@ const RetryGuideStep = ({
           onError={handleVideoError}
           paused={false}
           resizeMode={ResizeMode.COVER}
-          source={{ uri: classificationResult?.guideVideoUrl ?? undefined }}
+          source={Image.resolveAssetSource(videoSource)}
           style={{ height: '100%', width: '100%' }}
         />
       )}
